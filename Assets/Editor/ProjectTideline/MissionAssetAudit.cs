@@ -18,7 +18,6 @@ namespace ProjectTideline.Editor
     {
         private const string LegacyBuilderPath = "Assets/Editor/ProjectTideline/OldQuayVerticalSliceBuilder.cs";
         private const string LegacyMissionFolder = "Assets/ProjectTideline/Generated/Missions";
-        private const string PortSableMissionFolder = "Assets/ProjectTideline/Content/Missions";
         private const string ReportPath = "ProjectTideline-Mission-Asset-Audit.txt";
 
         private sealed class BuilderMission
@@ -69,6 +68,7 @@ namespace ProjectTideline.Editor
             }
 
             var storyFlagsInDialogue = CollectDialogueStoryFlags();
+            var storyFlagsUsedByMissions = new HashSet<string>(StringComparer.Ordinal);
             int objectiveCount = 0;
             int branchCount = 0;
             int portSableAssetCount = 0;
@@ -170,6 +170,7 @@ namespace ProjectTideline.Editor
                         {
                             conditionParts.Add("flag:" + condition.storyFlagId + ":" +
                                 condition.minimumValue + ":" + condition.maximumValue);
+                            storyFlagsUsedByMissions.Add(condition.storyFlagId);
                             if (!storyFlagsInDialogue.Contains(condition.storyFlagId))
                                 errors.Add(mission.missionId + ": branch " + i +
                                            " references story flag '" + condition.storyFlagId +
@@ -194,7 +195,7 @@ namespace ProjectTideline.Editor
                         errors.Add(mission.missionId + ": terminal ending has a fallback target.");
                 }
 
-                if (legacyOrder.TryGetValue(FindAssetName(path), out int legacyIndex))
+                if (legacyOrder.TryGetValue(mission.missionId, out int legacyIndex))
                     rows.Add("Legacy[" + legacyIndex + "] " + mission.missionId + ": objectives=" +
                              (mission.objectives == null ? 0 : mission.objectives.Length) +
                              ", branches=" + branches.Length + ", terminal=" + mission.endsCampaign);
@@ -204,6 +205,10 @@ namespace ProjectTideline.Editor
                              ", branches=" + branches.Length + ", terminal=" + mission.endsCampaign);
             }
 
+            foreach (string flag in storyFlagsInDialogue)
+                if (!storyFlagsUsedByMissions.Contains(flag))
+                    warnings.Add("Dialogue writes story flag '" + flag + "', but no serialized MissionDefinition branch consumes it yet.");
+
             int outlineCount = AssetDatabase.FindAssets("t:CampaignMissionOutline").Length;
             int portSableMissing = CampaignCanon.Missions.Count - portSableAssetCount;
             rows.Add("MissionDefinition assets discovered: " + assets.Count);
@@ -211,6 +216,12 @@ namespace ProjectTideline.Editor
             rows.Add("Branch records discovered: " + branchCount);
             rows.Add("PORT SABLE MissionDefinition assets: " + portSableAssetCount + "/" + CampaignCanon.Missions.Count);
             rows.Add("Campaign outline assets (design only): " + outlineCount + "/" + CampaignCanon.Missions.Count);
+            if (portSableMissing > 0)
+            {
+                foreach (CampaignCanon.Mission mission in CampaignCanon.Missions)
+                    if (!idToAsset.ContainsKey(mission.Id))
+                        warnings.Add("Missing PORT SABLE MissionDefinition: " + mission.Id + " — " + mission.Title);
+            }
 
             if (portSableMissing > 0)
                 warnings.Add("PORT SABLE is not playable yet: " + portSableMissing +
@@ -330,7 +341,7 @@ namespace ProjectTideline.Editor
 
             rows.Add("Legacy builder: created mission assets=" + created.Count +
                      ", director load entries=" + configured.Count +
-                     ", filename/order contract=" + (errors.Count == 0 ? "checked" : "contains errors"));
+                     ", filename/order contract=" + (configured.SequenceEqual(created.Select(x => x.AssetName)) ? "PASS" : "FAIL"));
             return order;
         }
 
@@ -458,10 +469,6 @@ namespace ProjectTideline.Editor
             if (!pass) failures.Add("FAIL — " + name);
         }
 
-        private static string FindAssetName(string path)
-        {
-            return Path.GetFileNameWithoutExtension(path);
-        }
     }
 }
 #endif

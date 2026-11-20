@@ -58,13 +58,15 @@ The pinned 48 GLB LOD variants are not embedded here. The Unity Editor installer
 
 ## Validation
 
-From the full recovered Unity source folder:
+For the selected GitHub snapshot:
 
 ```bash
-python tools/validate_static.py
+python tools/validate_port_sable_snapshot.py
 ```
 
-The original bundle's static validator passed against the recovered v0.4.9 working tree. It has not yet been rerun against the selected GitHub source snapshot. It does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
+The GitHub Action runs this check on every push and pull request. Latest verified run: **PASS — 72 checks, 31 C# files scanned**. This validates repository consistency only; it does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
+
+The recovered v0.4.9 working tree also passed its original `python tools/validate_static.py` before these new campaign files were added. That original validator is in the complete recovery bundle, not yet mirrored into this selected GitHub snapshot.
 
 ## Target device and quality bar
 

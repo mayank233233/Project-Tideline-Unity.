@@ -33,6 +33,8 @@ For a dialogue choice, the controller:
 
 The normal `RelationshipChanged` and `FlagChanged` ledger events are still raised. The suppression applies only to the mission signal bus.
 
+The runtime director also validates every objective before starting or restoring a mission. It rejects null objectives, blank/duplicate objective IDs, blank descriptions, blank completion signals and counts below one. This mirrors the Editor audit and prevents a malformed asset from silently leaving a live campaign stuck.
+
 ## 2. Nested signal dispatch and mission transitions
 
 `PublicAttentionState` listens for signals including `vehicle.taken`, `vehicle.collision`, `confrontation.resolved` and `confrontation.failed`. A threshold crossing can publish a second signal such as `world.attention.band.noticed` while the original signal is still being dispatched.
@@ -86,7 +88,7 @@ The next implementation gate is:
 
 ## 5. Verification
 
-The latest GitHub static workflow for the mission-signal changes is linked from the repository Actions page. The static validator checks source structure and ordering contracts; it does not execute Unity code.
+The latest verified GitHub run is [44768084908](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/44768084908): **PASS — 126 checks, 33 C# files scanned**. The static validator checks source structure and ordering contracts; it does not execute Unity code.
 
 The legacy Old Quay sequence validator still reports `SKIP` on the selected GitHub snapshot because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present there. The local recovered-tree pass from the previous audit remains a separate result.
 

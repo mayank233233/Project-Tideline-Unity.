@@ -38,8 +38,19 @@ namespace ProjectTideline
         private int _objectiveIndex;
         private int _currentCount;
 
-        private void OnEnable() => MissionSignalBus.Raised += OnSignal;
-        private void OnDisable() => MissionSignalBus.Raised -= OnSignal;
+        private bool _objectiveCompletionPending;
+
+        private void OnEnable()
+        {
+            MissionSignalBus.Raised += OnSignal;
+            MissionSignalBus.DispatchCompleted += OnSignalDispatchCompleted;
+        }
+
+        private void OnDisable()
+        {
+            MissionSignalBus.Raised -= OnSignal;
+            MissionSignalBus.DispatchCompleted -= OnSignalDispatchCompleted;
+        }
 
         private void Start()
         {
@@ -66,6 +77,7 @@ namespace ProjectTideline
             _missionIndex = index;
             _objectiveIndex = 0;
             _currentCount = 0;
+            _objectiveCompletionPending = false;
             MissionStarted?.Invoke(CurrentMission);
             PublishProgress();
         }
@@ -81,6 +93,7 @@ namespace ProjectTideline
                 _missionIndex = campaign.Length;
                 _objectiveIndex = 0;
                 _currentCount = 0;
+                _objectiveCompletionPending = false;
                 PublishProgress();
                 return true;
             }
@@ -96,6 +109,7 @@ namespace ProjectTideline
             _missionIndex = missionIndex;
             _objectiveIndex = safeObjective;
             _currentCount = Mathf.Clamp(objectiveCount, 0, Mathf.Max(1, objective.requiredCount) - 1);
+            _objectiveCompletionPending = false;
             PublishProgress();
             return true;
         }
@@ -103,11 +117,22 @@ namespace ProjectTideline
         private void OnSignal(string signalId, int amount)
         {
             MissionObjective objective = CurrentObjective;
-            if (objective == null || objective.completionSignal != signalId) return;
+            if (objective == null || _objectiveCompletionPending || objective.completionSignal != signalId) return;
             int required = Mathf.Max(1, objective.requiredCount);
             _currentCount = (int)Math.Min(required, (long)_currentCount + amount);
             PublishProgress();
-            if (_currentCount >= required) AdvanceObjective();
+            if (_currentCount >= required)
+                _objectiveCompletionPending = true;
+        }
+
+        private void OnSignalDispatchCompleted()
+        {
+            if (!_objectiveCompletionPending) return;
+            _objectiveCompletionPending = false;
+
+            MissionObjective objective = CurrentObjective;
+            if (objective != null && _currentCount >= Mathf.Max(1, objective.requiredCount))
+                AdvanceObjective();
         }
 
         private void AdvanceObjective()

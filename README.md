@@ -68,7 +68,7 @@ For the selected GitHub snapshot:
 python tools/validate_port_sable_snapshot.py
 ```
 
-The GitHub Action runs this check on every push and pull request. Latest verified run: **PASS — 72 checks, 31 C# files scanned**. This validates repository consistency only; it does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
+The GitHub Action runs this check on every push and pull request. Latest verified run: **PASS — 107 checks, 33 C# files scanned**. This validates repository consistency only; it does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
 
 The recovered v0.4.9 working tree also passed its original `python tools/validate_static.py` before these new campaign files were added. That original validator is in the complete recovery bundle, not yet mirrored into this selected GitHub snapshot.
 

@@ -12,7 +12,7 @@ The campaign follows three playable leads tied together by a failed waterfront s
 
 The city is **Port Sable**, with seven planned districts, five major factions, seven named supporting characters, three lead prologues, eighteen core missions and three endings. The story's shared-history event is Tideglass; its present-day inciting incident is Harbour Exchange.
 
-Read the complete canon in [PORT_SABLE_STORY_CANON.md](PORT_SABLE_STORY_CANON.md).
+Read the complete canon in [PORT_SABLE_STORY_CANON.md](PORT_SABLE_STORY_CANON.md) and the researched [PORT SABLE visual direction / mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md).
 
 ## Campaign data tools
 

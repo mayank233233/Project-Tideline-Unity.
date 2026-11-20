@@ -232,6 +232,60 @@ namespace ProjectTideline
             return true;
         }
 
+        /// <summary>True only when the active lead is in a stable on-foot state.</summary>
+        public bool CanPersistActiveLead
+        {
+            get
+            {
+                RuntimeSlot active = GetActiveSlot();
+                return active != null && active.Interactor != null && active.Interactor.CanSwitchLead;
+            }
+        }
+
+        /// <summary>Captures the last world-space pose for every playable lead.</summary>
+        public LeadTransformSnapshot[] CaptureLeadTransforms()
+        {
+            if (!_initialized) return Array.Empty<LeadTransformSnapshot>();
+            var snapshots = new LeadTransformSnapshot[_runtimeSlots.Count];
+            for (int i = 0; i < _runtimeSlots.Count; i++)
+            {
+                Transform actor = _runtimeSlots[i].Definition.actorRoot.transform;
+                Vector3 position = actor.position;
+                snapshots[i] = new LeadTransformSnapshot
+                {
+                    leadId = _runtimeSlots[i].Definition.canonId,
+                    x = position.x,
+                    y = position.y,
+                    z = position.z,
+                    yaw = actor.eulerAngles.y
+                };
+            }
+            return snapshots;
+        }
+
+        /// <summary>Restores known lead poses. Unknown IDs and non-finite transforms are ignored.</summary>
+        public int RestoreLeadTransforms(LeadTransformSnapshot[] snapshots)
+        {
+            if (!_initialized || snapshots == null) return 0;
+            int restored = 0;
+            foreach (LeadTransformSnapshot snapshot in snapshots)
+            {
+                if (snapshot == null || float.IsNaN(snapshot.x) || float.IsInfinity(snapshot.x)
+                    || float.IsNaN(snapshot.y) || float.IsInfinity(snapshot.y)
+                    || float.IsNaN(snapshot.z) || float.IsInfinity(snapshot.z)
+                    || float.IsNaN(snapshot.yaw) || float.IsInfinity(snapshot.yaw))
+                    continue;
+
+                RuntimeSlot slot = FindSlot(snapshot.leadId);
+                if (slot == null) continue;
+                slot.Definition.actorRoot.transform.SetPositionAndRotation(
+                    new Vector3(snapshot.x, snapshot.y, snapshot.z),
+                    Quaternion.Euler(0f, snapshot.yaw, 0f));
+                restored++;
+            }
+            return restored;
+        }
+
         private bool IsControlHandoffBlocked()
         {
             if (inputRouter != null && inputRouter.GameplayBlocked) return true;

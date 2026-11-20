@@ -258,7 +258,7 @@ def run() -> int:
           and "MissionSignalBus.DispatchCompleted -= OnSignalDispatchCompleted;" in mission_director,
           "MissionDirector must subscribe and unsubscribe from signal-batch completion")
     check("_objectiveCompletionPending" in mission_director
-          and "if (_objectiveCompletionPending) return;" in mission_director,
+          and "objective == null || _objectiveCompletionPending ||" in mission_director,
           "MissionDirector must prevent repeated signals from advancing a completed objective twice")
     signal_handler = mission_director.split("private void OnSignal(string signalId, int amount)", 1)[-1].split(
         "private void OnSignalDispatchCompleted()", 1)[0]

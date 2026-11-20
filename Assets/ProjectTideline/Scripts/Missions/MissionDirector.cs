@@ -151,34 +151,14 @@ namespace ProjectTideline
 
         private bool BranchConditionsMatch(MissionBranch branch)
         {
-            if (branch.conditions == null || branch.conditions.Length == 0) return true;
-
             NPCRelationshipLedger relationshipLedger = NPCRelationshipLedger.Instance;
             NarrativeStateLedger narrativeLedger = NarrativeStateLedger.Instance;
-            foreach (MissionBranchCondition condition in branch.conditions)
-            {
-                if (condition == null) return false;
-                bool usesRelationship = !string.IsNullOrWhiteSpace(condition.relationshipKey);
-                bool usesStoryFlag = !string.IsNullOrWhiteSpace(condition.storyFlagId);
-                if (usesRelationship == usesStoryFlag) return false;
-
-                int value;
-                if (usesRelationship)
-                {
-                    value = relationshipLedger != null ? relationshipLedger.GetValue(condition.relationshipKey) : 0;
-                }
-                else
-                {
-                    // An unset flag must not accidentally match a range containing zero.
-                    if (narrativeLedger == null || !narrativeLedger.HasFlag(condition.storyFlagId)) return false;
-                    value = narrativeLedger.GetFlag(condition.storyFlagId);
-                }
-
-                int minimum = Mathf.Min(condition.minimumValue, condition.maximumValue);
-                int maximum = Mathf.Max(condition.minimumValue, condition.maximumValue);
-                if (value < minimum || value > maximum) return false;
-            }
-            return true;
+            return MissionBranchEvaluator.ConditionsMatch(
+                branch,
+                key => relationshipLedger != null && relationshipLedger.HasValue(key)
+                    ? (int?)relationshipLedger.GetValue(key) : null,
+                flag => narrativeLedger != null && narrativeLedger.HasFlag(flag)
+                    ? (int?)narrativeLedger.GetFlag(flag) : null);
         }
 
         private int FindMissionIndex(string missionId)

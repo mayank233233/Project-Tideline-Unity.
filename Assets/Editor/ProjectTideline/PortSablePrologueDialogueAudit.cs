@@ -38,6 +38,20 @@ namespace ProjectTideline.Editor
                 { "elias_settlement_choice", new HashSet<int> { 1, 2 } }
             };
 
+        private static readonly Dictionary<string, KeyValuePair<string, int>> RequiredChoiceOutcomes =
+            new Dictionary<string, KeyValuePair<string, int>>(StringComparer.Ordinal)
+            {
+                { "prologue.mara.accept_challenge", new KeyValuePair<string, int>("mara_race_choice", 1) },
+                { "prologue.mara.decline_challenge", new KeyValuePair<string, int>("mara_race_choice", 2) },
+                { "prologue.rafi.honour_first_slot", new KeyValuePair<string, int>("rafi_event_choice", 1) },
+                { "prologue.rafi.protect_headline", new KeyValuePair<string, int>("rafi_event_choice", 2) },
+                { "prologue.rafi.own_promise", new KeyValuePair<string, int>("rafi_staff_responsibility", 1) },
+                { "prologue.rafi.take_responsibility", new KeyValuePair<string, int>("rafi_staff_responsibility", 1) },
+                { "prologue.rafi.shift_burden", new KeyValuePair<string, int>("rafi_staff_responsibility", 2) },
+                { "prologue.elias.accept_invitation", new KeyValuePair<string, int>("elias_settlement_choice", 1) },
+                { "prologue.elias.refuse_signature", new KeyValuePair<string, int>("elias_settlement_choice", 2) }
+            };
+
         [MenuItem("Project Tideline/10 — Audit PORT SABLE Prologue Dialogue", priority = 10)]
         public static void RunAudit()
         {
@@ -130,6 +144,36 @@ namespace ProjectTideline.Editor
                 foreach (int value in required.Value)
                     if (!actual.Contains(value))
                         issues.Add("Outcome flag '" + required.Key + "' is missing required value " + value + ".");
+            }
+
+            foreach (KeyValuePair<string, KeyValuePair<string, int>> expected in RequiredChoiceOutcomes)
+            {
+                bool choiceFound = false;
+                bool exactWriteFound = false;
+                foreach (ExpectedGraph graph in ExpectedGraphs)
+                {
+                    DialogueGraph asset = AssetDatabase.LoadAssetAtPath<DialogueGraph>(
+                        Root + "/Dialogue_" + graph.GraphId + ".asset");
+                    if (asset == null || asset.nodes == null) continue;
+                    foreach (DialogueGraph.DialogueNode node in asset.nodes)
+                    {
+                        if (node == null || node.choices == null) continue;
+                        foreach (DialogueGraph.DialogueChoice choice in node.choices)
+                        {
+                            if (choice == null || !string.Equals(choice.signalId, expected.Key, StringComparison.Ordinal))
+                                continue;
+                            choiceFound = true;
+                            if (string.Equals(choice.storyFlagId, expected.Value.Key, StringComparison.Ordinal)
+                                && choice.storyFlagValue == expected.Value.Value)
+                                exactWriteFound = true;
+                        }
+                    }
+                }
+
+                if (!choiceFound)
+                    issues.Add("Required dialogue choice signal is missing: " + expected.Key);
+                else if (!exactWriteFound)
+                    issues.Add("Choice '" + expected.Key + "' does not write " + expected.Value.Key + "=" + expected.Value.Value + ".");
             }
 
             string status = issues.Count == 0 ? "PASS" : "BLOCKED";

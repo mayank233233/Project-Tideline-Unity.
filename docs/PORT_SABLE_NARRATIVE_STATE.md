@@ -10,7 +10,7 @@ PORT SABLE is built around remembered choices. A prologue decision must affect l
 
 | Flag | Values | Meaning |
 |---|---|---|
-| `mara_delivery_choice` | 1 / 2 | Mara accepts Nico's driving challenge / declines and stays focused on the delivery |
+| `mara_race_choice` | 1 / 2 | Mara accepts Nico's driving challenge / declines and stays focused on the delivery |
 | `rafi_event_choice` | 1 / 2 | Rafi honours the first promise / protects the headline event with a revised slot |
 | `rafi_staff_responsibility` | 1 / 2 | Rafi personally tells the performers / makes Mina announce the change |
 | `elias_settlement_choice` | 1 / 2 | Elias witnesses the settlement / refuses to sign for Silas |

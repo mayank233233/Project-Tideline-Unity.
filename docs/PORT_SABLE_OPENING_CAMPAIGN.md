@@ -152,7 +152,7 @@ The event's public presentation begins. A sudden venue-wide interruption causes 
 
 The game remains playable. Rafi helps staff and guests move away from the disrupted floor. Mara gets the display area clear and notices a familiar vehicle has been moved. Elias is ordered to remain in the private room but sees a chance to leave and check on the others.
 
-The House's sealed agreement folios are missing. Their absence matters because the House has used those agreements to claim authority over old debts and favours. The player does not receive a convenient full list of every secret in the city.
+The House's sealed agreement folios are missing too, but they are not the whole mystery. Their absence matters because the House has used those agreements to claim authority over old debts and favours. A rival crew is glimpsed in the confusion, but the player cannot yet tell whether it caused the collapse, exploited it or was framed as well. The player does not receive a convenient full list of every secret in the city.
 
 ### Sequence E — Three partial truths (4–5 minutes)
 
@@ -161,11 +161,11 @@ The player moves through three short playable vignettes:
 2. **Rafi:** return through the venue's service corridors and public floor to account for staff and find Mina. The player must decide whether to help a frightened staff member or pursue a contact who may know what happened to the folios.
 3. **Elias:** a tense conversation with Silas, followed by a walk through the public arcade. Elias can challenge Silas about the transfer or leave the disagreement for later. The choice changes their relationship and the next phone call.
 
-These are three different gameplay sequences, not three versions of the same chase.
+These are three different gameplay sequences, not three versions of the same chase. A Cutwater Circle mark or member appears in the background of at least one sequence; this is the first seed of a rival crew, not a full introduction.
 
 ### Sequence F — The public accusation (2 minutes)
 
-Outside, a House spokesperson issues a carefully prepared public statement: the missing folios are blamed on a supposed joint move by Mara, Rafi and Elias. The statement is not supported by evidence the player has seen. It is a display of the institution's power to define the accepted story.
+Outside, a House spokesperson issues a carefully prepared public statement: the missing consignment and payment are blamed on a supposed joint move by Mara, Rafi and Elias. The missing folios are presented as supporting proof, although the player has not seen evidence tying the leads to the event. It is a display of the institution's power to define the accepted story.
 
 Mireya is present but does not gloat. She watches the response and quietly tells Silas that his old arrangements are no longer useful. Their disagreement is visible to the player without turning either character into a monologue villain.
 
@@ -186,7 +186,17 @@ The player chooses the crew's first priority:
 
 This is a priority choice, not a morality score. All three routes return to the main story while changing dialogue, support availability and hub state.
 
-## 4. Mission outcome matrix
+## 4. Early rival-crew introduction — Nika Vale
+
+The Cutwater Circle must be seeded before the first major score and Nika Vale must have at least three distinct story appearances before the finale:
+1. **THE CUT:** a partial glimpse of the Circle during the event disruption. The player cannot yet identify whether it was responsible.
+2. **DRY DOCK:** Nika appears in person during a waterfront dispute. She argues that the House uses “stability” to keep smaller crews indebted, but her proposed solution would shift costs onto people who never agreed to join her fight.
+3. **NO NEUTRAL GROUND:** Nika and the crew meet again after the player has seen the costs of both systems. The player may cooperate narrowly, refuse, or challenge her internal leadership.
+4. **THE WRONG SIDE OF THE WATER:** the relationship pays off in a personal decision; Nika's help or opposition reflects the player's earlier conduct.
+
+Nika is Elias's former protégé and had an unfinished friendship with Rafi in Lowlight's early years. She is neither a late-game boss nor an automatic ally. Her argument must be understandable without making every action she takes correct.
+
+## 5. Mission outcome matrix
 
 | Player variable | Immediate difference | Later return |
 |---|---|---|
@@ -199,7 +209,7 @@ This is a priority choice, not a morality score. All three routes return to the 
 
 No choice should secretly lock the player out of an entire protagonist or ending without warning. The choices change relationships, resources and mission presentation; the campaign continues.
 
-## 5. Character writing requirements
+## 6. Character writing requirements
 
 ### Dialogue should sound like people who know each other
 

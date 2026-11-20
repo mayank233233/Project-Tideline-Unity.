@@ -71,20 +71,47 @@ namespace ProjectTideline
             if (_graph == null) return;
             if (choice != null)
             {
-                if (!string.IsNullOrWhiteSpace(choice.signalId))
-                    MissionSignalBus.Publish(choice.signalId, Mathf.Max(1, choice.signalAmount));
+                bool relationshipChanged = false;
+                bool storyFlagChanged = false;
 
+                // Apply every persistent consequence before publishing any mission signal.
+                // Ledger events still notify UI/state observers, but their generic mission signals
+                // are suppressed so the MissionDirector cannot resolve a branch mid-choice.
                 if (!string.IsNullOrWhiteSpace(choice.relationshipCharacterId) && choice.relationshipDelta != 0
                     && NPCRelationshipLedger.Instance != null)
-                    NPCRelationshipLedger.Instance.ChangeValue(choice.relationshipCharacterId, choice.relationshipDelta);
+                {
+                    NPCRelationshipLedger.Instance.ChangeValue(
+                        choice.relationshipCharacterId, choice.relationshipDelta, false);
+                    relationshipChanged = true;
+                }
 
                 if (!string.IsNullOrWhiteSpace(choice.storyFlagId))
                 {
                     if (NarrativeStateLedger.Instance != null)
-                        NarrativeStateLedger.Instance.SetFlag(choice.storyFlagId, choice.storyFlagValue);
+                    {
+                        NarrativeStateLedger.Instance.SetFlag(
+                            choice.storyFlagId, choice.storyFlagValue, false);
+                        storyFlagChanged = true;
+                    }
                     else
+                    {
                         Debug.LogError("Dialogue choice '" + choice.label + "' attempted to set story flag '" +
                             choice.storyFlagId + "', but no NarrativeStateLedger exists in the scene.", this);
+                    }
+                }
+
+                // The authored choice signal is the single objective-completion event for this choice.
+                if (!string.IsNullOrWhiteSpace(choice.signalId))
+                {
+                    MissionSignalBus.Publish(choice.signalId, Mathf.Max(1, choice.signalAmount));
+                }
+                else
+                {
+                    // Preserve generic ledger signals for choices that have no explicit signal.
+                    if (relationshipChanged)
+                        MissionSignalBus.Publish("relationship.changed." + choice.relationshipCharacterId, 1);
+                    if (storyFlagChanged)
+                        MissionSignalBus.Publish("story.flag.changed", 1);
                 }
             }
 

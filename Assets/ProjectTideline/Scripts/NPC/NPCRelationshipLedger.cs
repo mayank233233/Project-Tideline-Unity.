@@ -57,13 +57,14 @@ namespace ProjectTideline
             return _values.TryGetValue(characterId, out int value) ? value : 0;
         }
 
-        public int ChangeValue(string characterId, int delta)
+        public int ChangeValue(string characterId, int delta, bool publishMissionSignal = true)
         {
             if (string.IsNullOrWhiteSpace(characterId) || delta == 0) return GetValue(characterId);
             int next = Mathf.Clamp(GetValue(characterId) + delta, -100, 100);
             _values[characterId] = next;
             RelationshipChanged?.Invoke(characterId, next);
-            MissionSignalBus.Publish("relationship.changed." + characterId, 1);
+            if (publishMissionSignal)
+                MissionSignalBus.Publish("relationship.changed." + characterId, 1);
             return next;
         }
 

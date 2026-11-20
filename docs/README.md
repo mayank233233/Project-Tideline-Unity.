@@ -4,6 +4,8 @@
 - [README](../README.md): current implementation truth, setup/validation status and repository limitations.
 - [RECOVERY](../RECOVERY.md): recovered v0.4.9 checkpoint and source-publication constraints.
 
+- [PORT SABLE visual target](PORT_SABLE_VISUAL_TARGET.md): district art direction, character/vehicle standards, lighting, weather and mobile rendering budgets.
+
 ## Campaign source
 
 - `Assets/ProjectTideline/Scripts/Story/CampaignCanon.cs`: canonical machine-checkable mission registry.

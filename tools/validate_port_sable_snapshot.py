@@ -232,9 +232,10 @@ def run() -> int:
     }
     for signal, (flag, value) in required_choice_outcomes.items():
         pattern = (
-            re.escape(f'"{signal}"') + r'\s*,\\s*'
-            + r'"[^"]+"' + r'\s*,\\s*-?\\d+' + r'\s*,\\s*'
-            + re.escape(f'"{flag}"') + r'\s*,\\s*' + str(value) + r'\s*\\)'
+            re.escape(f'"{signal}"')
+            + r'\s*,\s*"[^"]+"\s*,\s*-?\d+\s*,\s*'
+            + re.escape(f'"{flag}"')
+            + r'\s*,\s*' + str(value) + r'\s*\)'
         )
         check(re.search(pattern, builder) is not None,
               f"Dialogue choice {signal} must write {flag}={value}")

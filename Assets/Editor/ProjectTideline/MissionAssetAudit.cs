@@ -162,6 +162,8 @@ namespace ProjectTideline.Editor
                         }
                         if (condition.minimumValue > condition.maximumValue)
                             errors.Add(mission.missionId + ": branch " + i + " has an inverted value range.");
+                        if (condition.minimumValue < -100 || condition.maximumValue > 100)
+                            errors.Add(mission.missionId + ": branch " + i + " condition range is outside [-100, 100].");
 
                         if (relationship)
                             conditionParts.Add("rel:" + condition.relationshipKey + ":" +
@@ -186,6 +188,9 @@ namespace ProjectTideline.Editor
 
                 if (!string.IsNullOrWhiteSpace(mission.fallbackNextMissionId))
                     ValidateForwardTarget(mission, mission.fallbackNextMissionId, idToAsset, legacyOrder, portSableOrder, errors, "fallback");
+
+                if (mission.missionId.StartsWith("ending.", StringComparison.Ordinal) && !mission.endsCampaign)
+                    errors.Add(mission.missionId + ": ending asset must set endsCampaign = true.");
 
                 if (mission.endsCampaign)
                 {
@@ -437,7 +442,36 @@ namespace ProjectTideline.Editor
             Test("empty condition array is unconditional",
                 Match(new MissionBranch { conditions = Array.Empty<MissionBranchCondition>() }, relationship, flags), failures);
 
-            if (failures.Count == 0) failures.Add("PASS — 13 branch evaluator cases.");
+            MissionBranch[] orderedBranches =
+            {
+                Relation("nia", 0, 100),
+                Relation("nia", 4, 4),
+                new MissionBranch { conditions = Array.Empty<MissionBranchCondition>() }
+            };
+            int firstMatch = -1;
+            for (int i = 0; i < orderedBranches.Length; i++)
+            {
+                if (!Match(orderedBranches[i], relationship, flags)) continue;
+                firstMatch = i;
+                break;
+            }
+            Test("the first matching branch wins when multiple conditions are true", firstMatch == 0, failures);
+
+            MissionBranch[] fallbackBranches =
+            {
+                Relation("nia", 5, 100),
+                new MissionBranch { conditions = Array.Empty<MissionBranchCondition>() }
+            };
+            int fallbackMatch = -1;
+            for (int i = 0; i < fallbackBranches.Length; i++)
+            {
+                if (!Match(fallbackBranches[i], relationship, flags)) continue;
+                fallbackMatch = i;
+                break;
+            }
+            Test("unconditional fallback is selected only after earlier conditions fail", fallbackMatch == 1, failures);
+
+            if (failures.Count == 0) failures.Add("PASS — 15 branch evaluator cases.");
             else failures.Insert(0, "FAIL — " + failures.Count + " branch evaluator cases.");
             return failures;
         }

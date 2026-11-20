@@ -32,7 +32,7 @@ namespace ProjectTideline.Editor
         private static readonly Dictionary<string, HashSet<int>> RequiredFlags =
             new Dictionary<string, HashSet<int>>(StringComparer.Ordinal)
             {
-                { "mara_delivery_choice", new HashSet<int> { 1, 2 } },
+                { "mara_race_choice", new HashSet<int> { 1, 2 } },
                 { "rafi_event_choice", new HashSet<int> { 1, 2 } },
                 { "rafi_staff_responsibility", new HashSet<int> { 1, 2 } },
                 { "elias_settlement_choice", new HashSet<int> { 1, 2 } }

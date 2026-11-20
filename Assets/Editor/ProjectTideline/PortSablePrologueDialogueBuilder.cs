@@ -93,9 +93,9 @@ namespace ProjectTideline.Editor
                 Node("nico_at_door", "NICO",
                     "You still take the long way when the short one is faster. Some habits are expensive.",
                     Choice("Then try to keep up.", "mara_close",
-                        "prologue.mara.accept_challenge", "nico_okoye", 2),
+                        "prologue.mara.accept_challenge", "nico_okoye", 2, "mara_delivery_choice", 1),
                     Choice("I am delivering a car, not proving a point.", "mara_close",
-                        "prologue.mara.decline_challenge", "nico_okoye", 1)),
+                        "prologue.mara.decline_challenge", "nico_okoye", 1, "mara_delivery_choice", 2)),
                 Node("mara_close", "MARA",
                     "Keys, route, customer. In that order. Whatever this old notice is, it can wait until the garage is safe for the night.",
                     Choice("Close the shop and leave.", string.Empty,
@@ -114,19 +114,19 @@ namespace ProjectTideline.Editor
                 Node("lowlight_soundcheck", "MINA",
                     "The room is ready. The staff are ready. The performers are ready. The schedule is not. Tell me which promise you intend to keep.",
                     Choice("Keep the first promise.", "honour_first_slot",
-                        "prologue.rafi.honour_first_slot", "mina_sato", 3),
+                        "prologue.rafi.honour_first_slot", "mina_sato", 3, "rafi_event_choice", 1),
                     Choice("Keep the headline event intact.", "protect_headline",
-                        "prologue.rafi.protect_headline", "mina_sato", -2)),
+                        "prologue.rafi.protect_headline", "mina_sato", -2, "rafi_event_choice", 2)),
                 Node("honour_first_slot", "RAFI",
                     "Then we tell the room the truth. It will sting for ten minutes. A lie can keep charging interest for years.",
                     Choice("Tell the performers yourself.", "mina_reply",
-                        "prologue.rafi.own_promise", "mina_sato", 2)),
+                        "prologue.rafi.own_promise", "mina_sato", 2, "rafi_staff_responsibility", 1)),
                 Node("protect_headline", "RAFI",
                     "The night matters to everyone here. I can fix the order. I cannot pretend nobody will notice.",
                     Choice("Make the call and take responsibility.", "mina_reply",
                         "prologue.rafi.take_responsibility", "mina_sato", 1),
                     Choice("Let Mina make the announcement.", "mina_reply",
-                        "prologue.rafi.shift_burden", "mina_sato", -3)),
+                        "prologue.rafi.shift_burden", "mina_sato", -3, "rafi_staff_responsibility", 2)),
                 Node("mina_reply", "MINA",
                     "You make a room feel like it belongs to everyone. Remember that the people carrying the speakers belong here too.",
                     Choice("I know. I will act like it.", "house_invitation",
@@ -163,9 +163,9 @@ namespace ProjectTideline.Editor
                 Node("silas_call", "SILAS",
                     "You have been away long enough, Elias. Harbour Exchange needs someone who remembers what the promises meant before everyone started changing their names.",
                     Choice("I will witness the settlement.", "accept_invitation",
-                        "prologue.elias.accept_invitation", "silas_rook", 2),
+                        "prologue.elias.accept_invitation", "silas_rook", 2, "elias_settlement_choice", 1),
                     Choice("I will attend, but I will not sign for you.", "refuse_signature",
-                        "prologue.elias.refuse_signature", "silas_rook", -2)),
+                        "prologue.elias.refuse_signature", "silas_rook", -2, "elias_settlement_choice", 2)),
                 Node("accept_invitation", "ELIAS",
                     "I will attend. I did not say I would agree.",
                     Choice("Leave the meeting room.", string.Empty,
@@ -193,7 +193,8 @@ namespace ProjectTideline.Editor
 
         private static DialogueGraph.DialogueChoice Choice(
             string label, string nextId, string signalId,
-            string relationshipId, int relationshipDelta)
+            string relationshipId, int relationshipDelta,
+            string storyFlagId = null, int storyFlagValue = 0)
         {
             return new DialogueGraph.DialogueChoice
             {
@@ -202,7 +203,9 @@ namespace ProjectTideline.Editor
                 signalId = signalId,
                 signalAmount = 1,
                 relationshipCharacterId = relationshipId,
-                relationshipDelta = relationshipDelta
+                relationshipDelta = relationshipDelta,
+                storyFlagId = storyFlagId,
+                storyFlagValue = storyFlagValue
             };
         }
 

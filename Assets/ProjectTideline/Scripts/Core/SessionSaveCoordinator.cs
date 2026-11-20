@@ -16,6 +16,7 @@ namespace ProjectTideline
         [SerializeField] private MissionDirector missionDirector;
         [SerializeField] private WorldClock worldClock;
         [SerializeField] private NPCRelationshipLedger relationshipLedger;
+        [SerializeField] private NarrativeStateLedger narrativeStateLedger;
         [SerializeField] private PublicAttentionState publicAttention;
         [SerializeField] private bool loadOnStart = true;
         [SerializeField] private bool saveOnApplicationPause = true;
@@ -44,6 +45,11 @@ namespace ProjectTideline
         {
             ResolveReferences();
             Transform activePlayer = ResolveActivePlayer();
+            if (leadSwitcher != null && !leadSwitcher.CanPersistActiveLead)
+            {
+                Debug.LogWarning("Save skipped: the active lead is inside a vehicle or in a vehicle transition. Exit first; the previous save is preserved.", this);
+                return false;
+            }
             if (activePlayer == null)
             {
                 Debug.LogWarning("Save skipped: no active player Transform is assigned or discoverable.", this);
@@ -56,6 +62,7 @@ namespace ProjectTideline
                 schemaVersion = 2,
                 checkpointId = string.IsNullOrWhiteSpace(checkpointId) ? "checkpoint" : checkpointId,
                 activeLeadId = leadSwitcher != null ? leadSwitcher.ActiveLeadId : string.Empty,
+                leadTransforms = leadSwitcher != null ? leadSwitcher.CaptureLeadTransforms() : null,
                 missionIndex = missionDirector != null ? missionDirector.CurrentMissionIndex : -1,
                 objectiveIndex = missionDirector != null ? missionDirector.CurrentObjectiveIndex : 0,
                 objectiveCount = missionDirector != null ? missionDirector.CurrentObjectiveCount : 0,
@@ -66,6 +73,8 @@ namespace ProjectTideline
                 worldHour = worldClock != null ? worldClock.CurrentHour : 12f,
                 relationshipData = relationshipLedger != null ? relationshipLedger.ExportJson()
                     : NPCRelationshipLedger.Instance != null ? NPCRelationshipLedger.Instance.ExportJson() : string.Empty,
+                narrativeStateData = narrativeStateLedger != null ? narrativeStateLedger.ExportJson()
+                    : NarrativeStateLedger.Instance != null ? NarrativeStateLedger.Instance.ExportJson() : string.Empty,
                 publicAttention = publicAttention != null ? publicAttention.Value
                     : PublicAttentionState.Instance != null ? PublicAttentionState.Instance.Value : 0
             };
@@ -78,9 +87,13 @@ namespace ProjectTideline
         {
             ResolveReferences();
             if (!SaveSnapshotStore.TryRead(out SaveSnapshot snapshot)) return false;
-            if (leadSwitcher != null && !string.IsNullOrWhiteSpace(snapshot.activeLeadId))
+            bool restoredLeadPositions = false;
+            if (leadSwitcher != null)
             {
-                if (!leadSwitcher.RestoreLead(snapshot.activeLeadId))
+                if (snapshot.leadTransforms != null && snapshot.leadTransforms.Length > 0)
+                    restoredLeadPositions = leadSwitcher.RestoreLeadTransforms(snapshot.leadTransforms) > 0;
+
+                if (!string.IsNullOrWhiteSpace(snapshot.activeLeadId) && !leadSwitcher.RestoreLead(snapshot.activeLeadId))
                     Debug.LogWarning("Saved playable lead could not be restored: " + snapshot.activeLeadId, this);
             }
 
@@ -91,13 +104,17 @@ namespace ProjectTideline
                 return false;
             }
 
-            activePlayer.SetPositionAndRotation(
-                new Vector3(snapshot.playerX, snapshot.playerY, snapshot.playerZ),
-                Quaternion.Euler(0f, snapshot.playerYaw, 0f));
+            // Versions 1 and 2 only stored the selected actor. Version 3 stores all three lead poses.
+            if (!restoredLeadPositions)
+                activePlayer.SetPositionAndRotation(
+                    new Vector3(snapshot.playerX, snapshot.playerY, snapshot.playerZ),
+                    Quaternion.Euler(0f, snapshot.playerYaw, 0f));
 
             if (worldClock != null) worldClock.SetCurrentHour(snapshot.worldHour);
             if (relationshipLedger == null) relationshipLedger = NPCRelationshipLedger.Instance;
             if (relationshipLedger != null) relationshipLedger.ImportJson(snapshot.relationshipData);
+            if (narrativeStateLedger == null) narrativeStateLedger = NarrativeStateLedger.Instance;
+            if (narrativeStateLedger != null) narrativeStateLedger.ImportJson(snapshot.narrativeStateData);
             if (publicAttention == null) publicAttention = PublicAttentionState.Instance;
             if (publicAttention != null) publicAttention.Restore(snapshot.publicAttention);
             if (missionDirector != null && snapshot.missionIndex >= 0)
@@ -135,6 +152,8 @@ namespace ProjectTideline
             if (worldClock == null) worldClock = FindFirstObjectByType<WorldClock>();
             if (relationshipLedger == null) relationshipLedger = NPCRelationshipLedger.Instance != null
                 ? NPCRelationshipLedger.Instance : FindFirstObjectByType<NPCRelationshipLedger>();
+            if (narrativeStateLedger == null) narrativeStateLedger = NarrativeStateLedger.Instance != null
+                ? NarrativeStateLedger.Instance : FindFirstObjectByType<NarrativeStateLedger>();
             if (publicAttention == null) publicAttention = PublicAttentionState.Instance != null
                 ? PublicAttentionState.Instance : FindFirstObjectByType<PublicAttentionState>();
         }

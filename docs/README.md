@@ -6,6 +6,7 @@
 
 - [PORT SABLE visual target](PORT_SABLE_VISUAL_TARGET.md): district art direction, character/vehicle standards, lighting, weather and mobile rendering budgets.
 - [Three-lead system](PORT_SABLE_THREE_LEAD_SYSTEM.md): required hero prefabs, component contracts, scene wiring, switch locks and device test plan.
+- [Narrative state and save contract](PORT_SABLE_NARRATIVE_STATE.md): persistent prologue flags, mission-branch conditions, v3 saves, legacy migration and vehicle-save guard.
 
 ## Campaign source
 
@@ -15,6 +16,9 @@
 - `Assets/Editor/ProjectTideline/CampaignOutlineAssetBuilder.cs`: creates or updates the 21 editable outline assets without deleting unexpected stale assets.
 - `Assets/Editor/ProjectTideline/PlayableLeadPrefabAudit.cs`: requires distinct animated hero prefabs with three LODs and locomotion/interaction clips.
 - `Assets/ProjectTideline/Scripts/Player/PlayableLeadSwitcher.cs` and `Assets/ProjectTideline/Scripts/UI/PlayableLeadSwitcherUI.cs`: control transfer and mobile switching UI.
+- `Assets/ProjectTideline/Scripts/Core/NarrativeStateLedger.cs`: persistent choice flags.
+- `Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs`: evaluates story-flag and relationship branches.
+- `Assets/Editor/ProjectTideline/PortSablePrologueDialogueBuilder.cs` / `PortSablePrologueDialogueAudit.cs`: generates and validates the three prologue graphs.
 
 ## Non-negotiable implementation rule
 

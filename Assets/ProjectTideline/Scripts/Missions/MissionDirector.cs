@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ProjectTideline
@@ -73,6 +74,7 @@ namespace ProjectTideline
                 Debug.LogError("Mission '" + candidate.missionId + "' has no objectives. Refusing to auto-complete it.", candidate);
                 return;
             }
+            if (!HasValidObjectives(candidate)) return;
 
             _missionIndex = index;
             _objectiveIndex = 0;
@@ -99,7 +101,8 @@ namespace ProjectTideline
             }
 
             MissionDefinition mission = campaign[missionIndex];
-            if (mission == null || mission.objectives == null || mission.objectives.Length == 0)
+            if (mission == null || mission.objectives == null || mission.objectives.Length == 0
+                || !HasValidObjectives(mission))
                 return false;
 
             int safeObjective = Mathf.Clamp(objectiveIndex, 0, mission.objectives.Length - 1);
@@ -111,6 +114,37 @@ namespace ProjectTideline
             _currentCount = Mathf.Clamp(objectiveCount, 0, Mathf.Max(1, objective.requiredCount) - 1);
             _objectiveCompletionPending = false;
             PublishProgress();
+            return true;
+        }
+
+        private bool HasValidObjectives(MissionDefinition mission)
+        {
+            if (mission == null || mission.objectives == null || mission.objectives.Length == 0)
+                return false;
+
+            var objectiveIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (MissionObjective objective in mission.objectives)
+            {
+                if (objective == null
+                    || string.IsNullOrWhiteSpace(objective.objectiveId)
+                    || string.IsNullOrWhiteSpace(objective.description)
+                    || string.IsNullOrWhiteSpace(objective.completionSignal)
+                    || objective.requiredCount < 1)
+                {
+                    Debug.LogError("Mission '" + mission.missionId +
+                        "' contains an invalid objective. Refusing to start or restore it.", mission);
+                    return false;
+                }
+
+                if (!objectiveIds.Add(objective.objectiveId))
+                {
+                    Debug.LogError("Mission '" + mission.missionId +
+                        "' contains duplicate objectiveId '" + objective.objectiveId +
+                        "'. Refusing to start or restore it.", mission);
+                    return false;
+                }
+            }
+
             return true;
         }
 

@@ -253,7 +253,7 @@ namespace ProjectTideline
 
             if (CharacterEntries.Length != 3) issues.Add("Campaign must define exactly three playable leads.");
             if (SupportingCharacterEntries.Length < 6) issues.Add("Campaign needs at least six named supporting characters.");
-            if (FactionEntries.Length < 6) issues.Add("Campaign must define at least five major factions.");
+            if (FactionEntries.Length < 6) issues.Add("Campaign must define at least six major factions.");
             if (DistrictEntries.Length < 7) issues.Add("Campaign must define at least seven districts.");
             if (EndingEntries.Length != 3) issues.Add("Campaign must define exactly three ending routes.");
             if (InstitutionEntries.Length < 1) issues.Add("Campaign must define its investigative/law-pressure institution separately from character entries.");

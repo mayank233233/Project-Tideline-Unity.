@@ -75,12 +75,14 @@ namespace ProjectTideline
             new Character("mina_sato", "Mina Sato", "Lowlight production manager", "Rafi's most important working relationship"),
             new Character("bash_rahal", "Bash Rahal", "Harbour mechanic and skipper", "Breaker Island contact with personal boundaries"),
             new Character("anika_bose", "Anika Bose", "Investigator", "Persistent pressure and a grounded counterpoint to the crew"),
-            new Character("nico_okoye", "Nico Okoye", "Southline driver and rival", "Can become ally, rival or recurring complication")
+            new Character("nico_okoye", "Nico Okoye", "Southline driver and rival", "Can become ally, rival or recurring complication"),
+            new Character("nika_vale", "Nika Vale", "Leader of the Cutwater Circle; former Elias protégé", "Recurring rival/ally whose breakaway crew challenges the House"),
+            new Character("port_sable_major_crimes", "Port Sable Major Crimes Unit", "Investigative institution associated with Anika Bose", "Persistent narrative pressure; not an omniscient or corrupt stock enemy")
         };
 
         private static readonly string[] FactionEntries =
         {
-            "the_house", "the_breakers", "the_velvet_circuit", "southline_motors", "crownline_response"
+            "the_house", "the_cutwater_circle", "the_breakers", "the_velvet_circuit", "southline_motors", "crownline_response"
         };
 
         private static readonly string[] DistrictEntries =
@@ -245,7 +247,7 @@ namespace ProjectTideline
 
             if (CharacterEntries.Length != 3) issues.Add("Campaign must define exactly three playable leads.");
             if (SupportingCharacterEntries.Length < 6) issues.Add("Campaign needs at least six named supporting characters.");
-            if (FactionEntries.Length < 5) issues.Add("Campaign must define at least five major factions.");
+            if (FactionEntries.Length < 6) issues.Add("Campaign must define at least five major factions.");
             if (DistrictEntries.Length < 7) issues.Add("Campaign must define at least seven districts.");
             if (EndingEntries.Length != 3) issues.Add("Campaign must define exactly three ending routes.");
 

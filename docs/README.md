@@ -19,3 +19,6 @@
 ## Non-negotiable implementation rule
 
 The v0.4.9 Old Quay Ari Solis scene is a legacy technical testbed only. Do not present it as the PORT SABLE campaign. The Mara prologue, Rafi/Elias playable identity and switching, new dialogue playback, mission triggers/objectives, faction simulation, city districts, and endings still require implementation and Unity/device verification.
+
+- [Opening campaign design](PORT_SABLE_OPENING_CAMPAIGN.md): separate lead prologues, THE CUT sequence, choice/consequence matrix and narrative QA criteria.
+- [Criminal ecosystem](PORT_SABLE_CRIMINAL_ECOSYSTEM.md): six factions, rival crew Nika Vale, law-pressure institution and side-story arcs.

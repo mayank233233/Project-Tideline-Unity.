@@ -243,12 +243,32 @@ def run() -> int:
               f"Dialogue audit must validate the specific choice {signal}")
 
     mission_director = read("Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs")
+    mission_signal_bus = read("Assets/ProjectTideline/Scripts/Missions/MissionSignalBus.cs")
     branch_evaluator = read("Assets/ProjectTideline/Scripts/Missions/MissionBranchEvaluator.cs")
     relationship_ledger = read("Assets/ProjectTideline/Scripts/NPC/NPCRelationshipLedger.cs")
     narrative_ledger = read("Assets/ProjectTideline/Scripts/Core/NarrativeStateLedger.cs")
     dialogue_controller = read("Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs")
     check("MissionBranchEvaluator.ConditionsMatch" in mission_director,
           "MissionDirector does not delegate branch decisions to the shared evaluator")
+    check("DispatchCompleted?.Invoke();" in mission_signal_bus
+          and "while (PendingSignals.Count > 0)" in mission_signal_bus
+          and "if (IsDispatching)" in mission_signal_bus,
+          "MissionSignalBus must drain nested signals through a queue before completing dispatch")
+    check("MissionSignalBus.DispatchCompleted += OnSignalDispatchCompleted;" in mission_director
+          and "MissionSignalBus.DispatchCompleted -= OnSignalDispatchCompleted;" in mission_director,
+          "MissionDirector must subscribe and unsubscribe from signal-batch completion")
+    check("_objectiveCompletionPending" in mission_director
+          and "if (_objectiveCompletionPending) return;" in mission_director,
+          "MissionDirector must prevent repeated signals from advancing a completed objective twice")
+    signal_handler = mission_director.split("private void OnSignal(string signalId, int amount)", 1)[-1].split(
+        "private void OnSignalDispatchCompleted()", 1)[0]
+    check("_objectiveCompletionPending = true;" in signal_handler
+          and "AdvanceObjective()" not in signal_handler,
+          "MissionDirector must defer objective advancement until the signal queue drains")
+    dispatch_complete_handler = mission_director.split("private void OnSignalDispatchCompleted()", 1)[-1].split(
+        "private void AdvanceObjective()", 1)[0]
+    check("AdvanceObjective();" in dispatch_complete_handler,
+          "MissionDirector does not advance the objective after signal dispatch completes")
     check("NarrativeStateLedger.Instance" in mission_director and "HasFlag(flag)" in mission_director,
           "MissionDirector is missing persistent story-flag branch evaluation")
     check("usesRelationship == usesStoryFlag" in branch_evaluator,

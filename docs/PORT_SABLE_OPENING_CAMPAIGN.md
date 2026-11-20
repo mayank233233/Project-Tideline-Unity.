@@ -116,7 +116,7 @@ Each prologue is a self-contained 8–12 minute first contact with a lead. They 
 ### Before the mission
 
 The three prologues must be completed in any order. Their outcomes are stored:
-- `mara_delivery_choice`
+- `mara_race_choice`
 - `rafi_event_choice`
 - `elias_settlement_choice`
 

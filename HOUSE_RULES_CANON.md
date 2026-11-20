@@ -1,6 +1,6 @@
-# Project Tideline — HOUSE RULES
+# Project Tideline — PORT SABLE: NO FAVOURS LEFT
 
-**Status: New campaign canon.** HOUSE RULES replaces the earlier Vesper Bay / Ari Solis / Ghost Fleet / Last Open Route premise. This is an original crime saga with its own cast, city, factions and mission design. The existing Old Quay Unity scene is only a technical slice; its old dialogue and mission strings still require migration.
+**Status: New campaign canon.** PORT SABLE: NO FAVOURS LEFT replaces the earlier Vesper Bay / Ari Solis / Ghost Fleet / Last Open Route premise. This is an original crime saga with its own cast, city, factions and mission design. The existing Old Quay Unity scene is only a technical slice; its old dialogue and mission strings still require migration.
 
 ## Creative promise
 
@@ -85,6 +85,46 @@ The three leads must have separate lives, relationships and personal missions. F
 - **Anika Bose:** persistent investigator. Not a corrupt stock villain; she tracks patterns and the consequences of the crew's choices.
 - **Nico Okoye:** gifted Southline driver and rival. Can become an ally, rival or recurring complication depending on the player's conduct.
 
+## The history beneath the first mission
+
+### Tideglass — eight years earlier
+
+The protagonists did not meet by coincidence. Eight years before the campaign, Port Sable's annual waterfront arts-and-motors festival, **Tideglass**, nearly collapsed when its headline sponsor withdrew. Small vendors, performers and contractors were left unpaid. The House stepped in with a rescue arrangement and presented itself as the only group capable of keeping the waterfront economy moving.
+
+The arrangement tied three lives together:
+
+- **Juno Kade** accepted a rescue loan to keep Kade Motor Works open and protect the garage staff. The property became security for a debt she thought could be cleared after one successful season. She kept the detail from Mara because she believed she was protecting her.
+- **Rafi** was a young event promoter whose career survived because the House funded the venue opportunity that eventually became Lowlight. He knew the money came from the House. He did not know that the Kade garage had been used as security.
+- **Elias** negotiated and signed the settlement. He believed he was preventing dozens of small operators from losing everything. He also knew the terms left the House with leverage over Juno and chose not to challenge them.
+
+Mara and Rafi had been close friends and collaborators before Tideglass. Rafi's career rose; Mara stayed at the garage. Neither understood the full cost of the deal, and both made assumptions that hardened into resentment. Elias later became Rafi's mentor inside the House and the person Mara learned to distrust. Their shared past gives the crew history before the player ever sees them together.
+
+Tideglass must not be revealed through one convenient document. Its truth is fragmented across Juno's memory, Rafi's old event material, Elias's account, vendor recollections and the way the city physically changed after the festival. The player assembles a human history, not a magic-file solution.
+
+### The inciting event — Harbour Exchange
+
+The House's annual **Harbour Exchange** is a private gathering where rival operators renew agreements and settle old obligations. This year, Silas intends to transfer the House's influence into Crownline's corporate network. The three leads are hired separately for different, apparently ordinary roles around the event: Mara is responsible for a high-value vehicle presentation, Rafi is running the headline venue programme, and Elias is asked to witness a settlement.
+
+A public-facing handover collapses. A set of legacy agreements disappears from the event, the House's public account names the three leads as responsible, and their access to the old network is cut off. The incident is a cinematic failure that reveals the House's power to decide whose story becomes official. The three survive because each sees a different part of the same event—and because none of them has the whole truth.
+
+Silas expected their old resentments to stop them cooperating. He underestimated how much they have all lost. Elias knows the House's accusation is staged but initially hides how close he was to the decision. That omission becomes the crew's first internal betrayal, not a late-game surprise invented to shock the player.
+
+## Relationship engine
+
+The story's emotional engine is a triangle, not a generic “found family” label:
+
+- **Mara ↔ Rafi:** old friendship, shared humour and unresolved resentment. Rafi once promised that Lowlight would help the garage; he avoided the conversation when the House's terms became clear. Mara is the only person who can puncture his performance without trying.
+- **Rafi ↔ Elias:** former mentor and protégé. Elias taught Rafi how to read a room; Rafi learned to recognise when Elias is withholding something. Each knows the other's public mask.
+- **Elias ↔ Mara:** Elias signed the settlement that put the Kade property under House leverage. He did it to save the business in the short term and never admitted the long-term cost. Mara is not obliged to forgive him because he feels guilty.
+
+The crew should be funny together before it is loyal. Banter grows out of shared memory, disagreement and small repeated rituals at the garage. Quiet scenes after missions carry as much story weight as the large scores.
+
+## Antagonist conflict
+
+Silas Rook and Mireya Voss are not interchangeable “big bads.” Silas believes informal criminal order is a brutal but necessary barrier against uncontrolled conflict. He is willing to sacrifice individual operators to preserve the institution he built. Mireya believes the old order is inefficient and wants to replace it with corporate risk management, standardised agreements and a cleaner public image. She is not secretly running every event; her ambition creates pressure that other characters exploit.
+
+Their alliance is conditional. Silas thinks Crownline will preserve the House's authority under a new name. Mireya thinks she is buying a network, not Silas's permission. The campaign's final conflict should emerge from this incompatible understanding, while the protagonists' own choices determine what happens next.
+
 ## Campaign spine — 18 core missions
 
 Three independent prologues establish the leads, followed by an eighteen-mission campaign. Each mission needs a playable opening, a distinct gameplay verb, a named-character interaction, a character- or choice-driven complication, optional content, a visible consequence and a memorable closing beat.
@@ -103,7 +143,7 @@ Three independent prologues establish the leads, followed by an eighteen-mission
 ### Act II — Build a Name
 5. **THE GUEST LIST:** Rafi navigates a high-status event where the House quietly negotiates with Crownline. Who he protects or embarrasses changes future contacts.
 6. **DRY DOCK:** the Breakers ask the crew to settle a waterfront dispute. Negotiation becomes a multi-stage harbour set piece and the result changes access to Breaker Island.
-7. **HOUSE RULES:** Silas offers each lead a different promise. The player must decide whether the crew accepts, pretends to accept or rejects the offer.
+7. **PORT SABLE: NO FAVOURS LEFT:** Silas offers each lead a different promise. The player must decide whether the crew accepts, pretends to accept or rejects the offer.
 8. **A BETTER NUMBER:** Elias recruits a crew for a major score. Crew selection changes dialogue, capability and the complication profile, not just the payout.
 9. **ALL THE WAY DOWN:** the first major score moves from an exclusive venue through the city to an industrial location. The player switches between leads to keep separate objectives moving.
 10. **FAMILY RATE:** Mara confronts the garage's history and learns why the House could keep her family business on a debt leash. Juno's role at the hub changes.
@@ -139,7 +179,7 @@ Side arcs: Kade Motor Works (garage apprentice, customer and Juno's history); Lo
 A 10/10 score cannot be promised. It has to be earned through production and blind playtests. Testers should remember the leads and at least six supporting characters, describe the core conflict, identify meaningful choices, notice hub and district changes, and experience distinct mission types.
 
 The current Unity slice has one active player and a mission builder based on retired story strings. It does not implement character switching, the House faction simulation, the full districts, all eighteen missions, cinematic scenes or these endings. The immediate production path is:
-1. Replace the Old Quay builder's old dialogue and mission strings with the HOUSE RULES opening slice.
+1. Replace the Old Quay builder's old dialogue and mission strings with the PORT SABLE: NO FAVOURS LEFT opening slice.
 2. Make Mara the first playable lead while preserving the tested movement, camera, vehicle and save systems.
 3. Add lead-profile data and character-specific dialogue before full switching.
 4. Stage Rafi and Elias as distinct characters in the hub.
@@ -147,7 +187,7 @@ The current Unity slice has one active player and a mission builder based on ret
 6. Build one vertical-slice mission for each lead's gameplay identity before expanding the campaign.
 7. Add crew selection and multi-approach scores after the core mission loop is stable.
 
-GTA V's official Q&A describes separate protagonist lives and interwoven missions; RDR2's official synopsis highlights loyalty and internal division within a crew; Rockstar's public GTA VI story description uses interdependence between criminals after a job goes wrong; and GDC's AAA-TYPICAL session discusses character arcs in open gameplay structures. These are craft references only. HOUSE RULES has original characters, setting, factions and plot:
+GTA V's official Q&A describes separate protagonist lives and interwoven missions; RDR2's official synopsis highlights loyalty and internal division within a crew; Rockstar's public GTA VI story description uses interdependence between criminals after a job goes wrong; and GDC's AAA-TYPICAL session discusses character arcs in open gameplay structures. These are craft references only. PORT SABLE: NO FAVOURS LEFT has original characters, setting, factions and plot:
 - https://www.rockstargames.com/newswire/article/o349k552517929/asked-answered-gtav.html
 - https://www.rockstargames.com/newswire/article/4k412883895ka4/Red-Dead-Redemption-2-Now-Available
 - https://www.rockstargames.com/newswire/article/517572321a549a/watch-the-grand-theft-auto-vi-launch-trailer

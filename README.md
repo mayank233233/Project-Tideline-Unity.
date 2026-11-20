@@ -12,7 +12,7 @@ The campaign follows three playable leads tied together by a failed waterfront s
 
 The city is **Port Sable**, with seven planned districts, five major factions, seven named supporting characters, three lead prologues, eighteen core missions and three endings. The story's shared-history event is Tideglass; its present-day inciting incident is Harbour Exchange.
 
-Read the complete canon in [PORT_SABLE_STORY_CANON.md](PORT_SABLE_STORY_CANON.md) and the researched [PORT SABLE visual direction / mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md).
+Read the complete canon in [PORT_SABLE_STORY_CANON.md](PORT_SABLE_STORY_CANON.md), the [visual direction / mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), and the [three-lead prefab and control-handoff specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md).
 
 ## Campaign data tools
 
@@ -41,7 +41,7 @@ The old Ari Solis / Ghost Fleet Old Quay scenario is retained only as a legacy t
 
 **Not yet implemented or verified:** the Mara prologue in Unity, Rafi/Elias playable profiles, real character switching, new campaign dialogue playback, faction simulation, the full seven-district world, campaign mission triggers/objectives, endings, cinematic scene pipeline, Unity compilation, Play Mode, Android APK launch and Vivo performance/thermal testing.
 
-The campaign registry and story bible are content/design groundwork, not a claim of playable content.
+The campaign registry and story bible are content/design groundwork, not a claim of playable content. The lead handoff code also requires three original hero prefabs and scene wiring before it can run.
 
 ## Source and asset recovery status
 

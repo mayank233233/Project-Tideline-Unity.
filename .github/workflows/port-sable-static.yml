@@ -22,3 +22,5 @@ jobs:
           python-version: "3.12"
       - name: Validate campaign and project snapshot
         run: python tools/validate_port_sable_snapshot.py
+      - name: Validate recovered Old Quay mission asset contract when full source is present
+        run: python tools/validate_legacy_mission_sequence.py

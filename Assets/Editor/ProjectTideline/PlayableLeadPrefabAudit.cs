@@ -54,17 +54,37 @@ namespace ProjectTideline.Editor
 
                 Animator[] animators = prefab.GetComponentsInChildren<Animator>(true);
                 bool validAnimator = false;
+                bool hasIdle = false;
+                bool hasWalk = false;
+                bool hasRun = false;
+                bool hasInteraction = false;
                 foreach (Animator animator in animators)
                 {
-                    if (animator != null && animator.runtimeAnimatorController != null
-                        && animator.avatar != null && animator.avatar.isValid)
+                    if (animator == null || animator.runtimeAnimatorController == null
+                        || animator.avatar == null || !animator.avatar.isValid) continue;
+
+                    bool hasMoveSpeed = false;
+                    foreach (AnimatorControllerParameter parameter in animator.parameters)
+                        if (parameter.name == "MoveSpeed" && parameter.type == AnimatorControllerParameterType.Float)
+                            hasMoveSpeed = true;
+
+                    AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+                    foreach (AnimationClip clip in clips)
                     {
-                        validAnimator = true;
-                        break;
+                        if (clip == null || clip.length <= 0f) continue;
+                        string clipName = clip.name.ToLowerInvariant();
+                        if (clipName.Contains("idle")) hasIdle = true;
+                        if (clipName.Contains("walk")) hasWalk = true;
+                        if (clipName.Contains("run")) hasRun = true;
+                        if (clipName.Contains("react") || clipName.Contains("gesture") || clipName.Contains("talk")) hasInteraction = true;
                     }
+                    if (hasMoveSpeed) validAnimator = true;
                 }
+
                 if (!validAnimator)
-                    issues.Add(lead.DisplayName + ": no child Animator has both a RuntimeAnimatorController and valid Avatar.");
+                    issues.Add(lead.DisplayName + ": no child Animator has a valid Avatar, RuntimeAnimatorController and float MoveSpeed parameter.");
+                if (!hasIdle || !hasWalk || !hasRun || !hasInteraction)
+                    issues.Add(lead.DisplayName + ": hero controller must contain non-empty Idle, Walk, Run and Reaction/Gesture/Talk animation clips.");
 
                 LODGroup lodGroup = prefab.GetComponentInChildren<LODGroup>(true);
                 if (lodGroup == null || lodGroup.GetLODs().Length < 3)
@@ -96,7 +116,8 @@ namespace ProjectTideline.Editor
                 }
 
                 rows.Add(lead.DisplayName + ": FOUND; root components=" + (rootComponents ? "PASS" : "FAIL")
-                    + "; valid animated Avatar=" + (validAnimator ? "PASS" : "FAIL")
+                    + "; valid animated Avatar/MoveSpeed=" + (validAnimator ? "PASS" : "FAIL")
+                    + "; locomotion and interaction clips=" + (hasIdle && hasWalk && hasRun && hasInteraction ? "PASS" : "FAIL")
                     + "; 3+ LODs=" + (lodGroup != null && lodGroup.GetLODs().Length >= 3 ? "PASS" : "FAIL")
                     + "; skinned meshes=" + skins.Length);
             }

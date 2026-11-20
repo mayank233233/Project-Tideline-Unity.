@@ -49,12 +49,25 @@ namespace ProjectTideline
         public void StartMission(int index)
         {
             if (campaign == null || index < 0 || index >= campaign.Length || campaign[index] == null) return;
+
+            MissionDefinition candidate = campaign[index];
+            if (string.IsNullOrWhiteSpace(candidate.missionId))
+            {
+                Debug.LogError("Mission asset at campaign index " + index + " has no stable missionId.", candidate);
+                return;
+            }
+            if (candidate.objectives == null || candidate.objectives.Length == 0)
+            {
+                // Empty ScriptableObjects are design placeholders, not completed missions.
+                Debug.LogError("Mission '" + candidate.missionId + "' has no objectives. Refusing to auto-complete it.", candidate);
+                return;
+            }
+
             _missionIndex = index;
             _objectiveIndex = 0;
             _currentCount = 0;
             MissionStarted?.Invoke(CurrentMission);
             PublishProgress();
-            if (CurrentMission.objectives == null || CurrentMission.objectives.Length == 0) CompleteCurrentMission();
         }
 
         /// <summary>Restores a saved campaign position without replaying completion/start events.</summary>

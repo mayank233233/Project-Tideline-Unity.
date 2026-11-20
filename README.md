@@ -12,7 +12,7 @@ The campaign follows three playable leads tied together by a failed waterfront s
 
 The city is **Port Sable**, with seven planned districts, six major factions, eight named supporting characters, one investigative institution, three lead prologues, eighteen core missions and three endings. The story's shared-history event is Tideglass; its present-day inciting incident is Harbour Exchange.
 
-Read the [full story canon](PORT_SABLE_STORY_CANON.md), [visual direction and mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), [three-lead integration specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md), [criminal ecosystem and rival-crew brief](docs/PORT_SABLE_CRIMINAL_ECOSYSTEM.md), [opening campaign mission design](docs/PORT_SABLE_OPENING_CAMPAIGN.md), and [narrative-state/save contract](docs/PORT_SABLE_NARRATIVE_STATE.md), plus the [signature score design for ALL THE WAY DOWN](docs/PORT_SABLE_SIGNATURE_SCORE_ALL_THE_WAY_DOWN.md).
+Read the [full story canon](PORT_SABLE_STORY_CANON.md), [visual direction and mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), [three-lead integration specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md), [criminal ecosystem and rival-crew brief](docs/PORT_SABLE_CRIMINAL_ECOSYSTEM.md), [opening campaign mission design](docs/PORT_SABLE_OPENING_CAMPAIGN.md), [narrative-state/save contract](docs/PORT_SABLE_NARRATIVE_STATE.md), the [signature score design](docs/PORT_SABLE_SIGNATURE_SCORE_ALL_THE_WAY_DOWN.md), and the [mission asset/branch audit](docs/MISSION_ASSET_BRANCH_AUDIT.md).
 
 ## Campaign data tools
 
@@ -20,6 +20,8 @@ The source includes:
 
 - `CampaignCanon.cs`: machine-checkable leads, supporting cast, factions, districts, mission goals, gameplay verbs, character complications, player choices and persistent consequences.
 - `CampaignCanonAudit.cs`: Unity Editor validation for missing/duplicate IDs, incomplete campaign structure and the separate institution registry.
+- `MissionAssetAudit.cs`: scans serialized MissionDefinition assets, objectives, branches, fallbacks, ending flags, unconsumed story flags and legacy builder filename wiring.
+- `MissionBranchEvaluator.cs`: shared branch-condition evaluator; missing relationship/story values are not coerced to zero.
 - `PortSablePrologueDialogueBuilder.cs`: creates the three lead-specific dialogue graph assets; scene/NPC wiring is still required.
 - `PortSablePrologueDialogueAudit.cs`: checks graph IDs, node links, reachability and required saved choice flags.
 - `PlayableLeadPrefabAudit.cs`: blocks missing or reused hero meshes, invalid animation rigs, missing locomotion clips and inadequate LOD setup.
@@ -34,6 +36,7 @@ Unity menu commands:
 - **Project Tideline → 8 — Audit Bespoke Lead Prefabs**
 - **Project Tideline → 9 — Generate PORT SABLE Prologue Dialogue**
 - **Project Tideline → 10 — Audit PORT SABLE Prologue Dialogue**
+- **Project Tideline → 11 — Audit Mission Assets and Branches**
 
 Generated outlines are design records, not playable missions. Do not attach them to `MissionDirector`.
 
@@ -45,7 +48,7 @@ The old Ari Solis / Ghost Fleet Old Quay scenario is retained only as a legacy t
 
 ## Current implementation truth
 
-**Present in this selected source snapshot:** the campaign registry and audits, prologue dialogue graph builder/audit, dialogue-choice state ledger, mission branch handling, three-lead handoff/save source, and selected player/vehicle/NPC systems. These files have not yet been compiled together in Unity.
+**Present in this selected source snapshot:** the campaign registry and audits, prologue dialogue graph builder/audit, dialogue-choice state ledger, mission branch evaluator/audit, three-lead handoff/save source, and selected player/vehicle/NPC systems. These files have not yet been compiled together in Unity.
 
 **Not yet implemented or verified:** the Mara prologue in Unity, Rafi/Elias playable profiles, real character switching, new campaign dialogue playback, faction simulation, the full seven-district world, campaign mission triggers/objectives, endings, cinematic scene pipeline, Unity compilation, Play Mode, Android APK launch and Vivo performance/thermal testing.
 

@@ -1,0 +1,13 @@
+diff --git a/Assets/Editor/ProjectTideline/OldQuayVerticalSliceBuilder.cs b/Assets/Editor/ProjectTideline/OldQuayVerticalSliceBuilder.cs
+index 1a0cbac..4436902 100644
+--- a/Assets/Editor/ProjectTideline/OldQuayVerticalSliceBuilder.cs
++++ b/Assets/Editor/ProjectTideline/OldQuayVerticalSliceBuilder.cs
+@@ -1644,7 +1644,7 @@ namespace ProjectTideline.Editor
+
+         private static void ConfigureMissionDirector(MissionDirector director)
+         {
+-            string[] names = { "M01_Underpass_0317", "M02_No_Back_Door", "M03_Borrowed_Noise", "M04_Every_Receipt", "M05_Tide_Ledger", "M06_A_Favor_Owed", "M07_Split_Shift", "M08_Last_Open_Route", "E_Public_Route", "E_Shared_Tide", "E_Quiet_Sale" };
++            string[] names = { "M01_Underpass_0317", "M02_No_Back_Door", "M03_Borrowed_Noise", "M04_Every_Receipt", "M05_Long_Way_Around", "M06_High_Water_Mark", "M07_Split_Shift", "M08_Last_Open_Route", "E_Public_Route", "E_Shared_Tide", "E_Quiet_Sale" };
+             MissionDefinition[] assets = names.Select(n => AssetDatabase.LoadAssetAtPath<MissionDefinition>(Generated + "/Missions/" + n + ".asset")).ToArray();
+             if (assets.Any(m => m == null)) throw new InvalidOperationException("One or more mission assets could not be loaded. Re-run the builder after the asset database finishes refreshing.");
+             SetArrayReference(director, "campaign", assets);

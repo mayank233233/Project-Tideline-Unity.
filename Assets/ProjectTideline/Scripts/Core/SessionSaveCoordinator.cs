@@ -59,7 +59,7 @@ namespace ProjectTideline
             Vector3 position = activePlayer.position;
             SaveSnapshot snapshot = new SaveSnapshot
             {
-                schemaVersion = 2,
+                schemaVersion = 3,
                 checkpointId = string.IsNullOrWhiteSpace(checkpointId) ? "checkpoint" : checkpointId,
                 activeLeadId = leadSwitcher != null ? leadSwitcher.ActiveLeadId : string.Empty,
                 leadTransforms = leadSwitcher != null ? leadSwitcher.CaptureLeadTransforms() : null,

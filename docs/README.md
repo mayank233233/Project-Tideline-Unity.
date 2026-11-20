@@ -5,6 +5,7 @@
 - [RECOVERY](../RECOVERY.md): recovered v0.4.9 checkpoint and source-publication constraints.
 
 - [PORT SABLE visual target](PORT_SABLE_VISUAL_TARGET.md): district art direction, character/vehicle standards, lighting, weather and mobile rendering budgets.
+- [Three-lead system](PORT_SABLE_THREE_LEAD_SYSTEM.md): required hero prefabs, component contracts, scene wiring, switch locks and device test plan.
 
 ## Campaign source
 
@@ -12,6 +13,8 @@
 - `Assets/ProjectTideline/Scripts/Story/CampaignMissionOutline.cs`: narrative outline ScriptableObject, deliberately separate from playable mission definitions.
 - `Assets/Editor/ProjectTideline/CampaignCanonAudit.cs`: campaign metadata integrity check.
 - `Assets/Editor/ProjectTideline/CampaignOutlineAssetBuilder.cs`: creates or updates the 21 editable outline assets without deleting unexpected stale assets.
+- `Assets/Editor/ProjectTideline/PlayableLeadPrefabAudit.cs`: requires distinct animated hero prefabs with three LODs and locomotion/interaction clips.
+- `Assets/ProjectTideline/Scripts/Player/PlayableLeadSwitcher.cs` and `Assets/ProjectTideline/Scripts/UI/PlayableLeadSwitcherUI.cs`: control transfer and mobile switching UI.
 
 ## Non-negotiable implementation rule
 

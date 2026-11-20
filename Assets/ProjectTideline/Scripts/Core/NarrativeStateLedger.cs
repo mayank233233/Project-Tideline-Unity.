@@ -53,12 +53,13 @@ namespace ProjectTideline
             return _flags.TryGetValue(flagId, out int value) ? value : 0;
         }
 
-        public void SetFlag(string flagId, int value)
+        public void SetFlag(string flagId, int value, bool publishMissionSignal = true)
         {
             if (string.IsNullOrWhiteSpace(flagId)) return;
             _flags[flagId] = value;
             FlagChanged?.Invoke(flagId, value);
-            MissionSignalBus.Publish("story.flag.changed", 1);
+            if (publishMissionSignal)
+                MissionSignalBus.Publish("story.flag.changed", 1);
         }
 
         public void ClearFlag(string flagId)

@@ -31,6 +31,14 @@ namespace ProjectTideline
             viewOrigin = newViewOrigin;
         }
 
+        /// <summary>Clears a visible interaction prompt before this lead becomes inactive.</summary>
+        public void ResetForLeadHandoff()
+        {
+            if (!CanSwitchLead) return;
+            SetFocus(null);
+            HidePrompt();
+        }
+
         private void Awake()
         {
             if (actorRoot == null)

@@ -116,7 +116,7 @@ The Unity Editor menu **Project Tideline → 11 — Audit Mission Assets and Bra
 - mismatch between legacy builder asset creation names and MissionDirector load names;
 - the current PORT SABLE MissionDefinition completion gap.
 
-It also runs 15 deterministic in-process tests against the production `MissionBranchEvaluator`. The menu has been authored but has **not** been run in Unity yet; those 13 cases are therefore a test harness, not a claimed pass.
+It also runs 15 deterministic in-process tests against the production `MissionBranchEvaluator`. The menu has been authored but has **not** been run in Unity yet; those 15 cases are therefore a test harness, not a claimed pass.
 
 ## 5. Required next implementation gates
 

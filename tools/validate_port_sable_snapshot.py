@@ -227,11 +227,14 @@ def run() -> int:
 
     save = read("Assets/ProjectTideline/Scripts/Core/SaveSnapshot.cs")
     session = read("Assets/ProjectTideline/Scripts/Core/SessionSaveCoordinator.cs")
-    for schema, key in ((3, "project_tideline.save.v3"),
-                        (2, "project_tideline.save.v2"),
-                        (1, "project_tideline.save.v1")):
-        check(f"schemaVersion != {schema}" in save, f"Save reader is missing schema {schema} validation")
+    for schema, key, field in (
+        (3, "project_tideline.save.v3", "SaveKeyV3"),
+        (2, "project_tideline.save.v2", "LegacySaveKeyV2"),
+        (1, "project_tideline.save.v1", "LegacySaveKeyV1"),
+    ):
         check(key in save, f"Save key for schema {schema} is missing")
+        check(f"TryReadKey({field}, {schema}, out snapshot)" in save,
+              f"Save reader does not map {field} to schema {schema}")
     check("snapshot.schemaVersion = 3" in save, "Save writer does not force schema v3")
     check("schemaVersion = 3" in session, "Session coordinator does not create v3 snapshots")
     check("CaptureLeadTransforms()" in session and "RestoreLeadTransforms(" in session,

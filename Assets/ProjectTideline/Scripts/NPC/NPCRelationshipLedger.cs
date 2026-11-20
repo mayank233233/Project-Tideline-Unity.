@@ -46,6 +46,11 @@ namespace ProjectTideline
             _metCharacters.Add(characterId);
         }
 
+        public bool HasValue(string characterId)
+        {
+            return !string.IsNullOrWhiteSpace(characterId) && _values.ContainsKey(characterId);
+        }
+
         public int GetValue(string characterId)
         {
             if (string.IsNullOrWhiteSpace(characterId)) return 0;

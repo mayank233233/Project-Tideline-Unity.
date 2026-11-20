@@ -30,6 +30,7 @@ namespace ProjectTideline.Editor
                 "Districts: " + CampaignCanon.Districts.Count,
                 "Missions: " + CampaignCanon.Missions.Count,
                 "Endings: " + CampaignCanon.Endings.Count,
+                "Institutions: " + CampaignCanon.Institutions.Count,
                 "",
                 "Notes:",
                 "This audit validates narrative metadata only. It does not prove that these missions, characters, districts or endings are implemented in a Unity scene."

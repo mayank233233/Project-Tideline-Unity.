@@ -206,7 +206,7 @@ def run() -> int:
         check(graph_id in dialogue_audit, f"Dialogue audit does not expect graph ID: {graph_id}")
 
     required_flags = {
-        "mara_delivery_choice": (1, 2),
+        "mara_race_choice": (1, 2),
         "rafi_event_choice": (1, 2),
         "rafi_staff_responsibility": (1, 2),
         "elias_settlement_choice": (1, 2),

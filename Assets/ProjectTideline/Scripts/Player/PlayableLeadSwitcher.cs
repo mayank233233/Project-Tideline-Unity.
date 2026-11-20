@@ -206,6 +206,7 @@ namespace ProjectTideline
                 RuntimeSlot current = _runtimeSlots[_activeIndex];
                 if (current == target) return true;
                 if (IsControlHandoffBlocked() || !current.Interactor.CanSwitchLead) return false;
+                current.Interactor.ResetForLeadHandoff();
                 current.Interactor.enabled = false;
                 current.Motor.enabled = false;
                 current.AnimationDriver.enabled = false;

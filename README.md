@@ -12,7 +12,7 @@ The campaign follows three playable leads tied together by a failed waterfront s
 
 The city is **Port Sable**, with seven planned districts, six major factions, eight named supporting characters, one investigative institution, three lead prologues, eighteen core missions and three endings. The story's shared-history event is Tideglass; its present-day inciting incident is Harbour Exchange.
 
-Read the complete canon in [PORT_SABLE_STORY_CANON.md](PORT_SABLE_STORY_CANON.md), the [visual direction / mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), and the [three-lead prefab and control-handoff specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md), the [criminal ecosystem and rival-crew brief](docs/PORT_SABLE_CRIMINAL_ECOSYSTEM.md), and the [opening campaign mission design](docs/PORT_SABLE_OPENING_CAMPAIGN.md).
+Read the [full story canon](PORT_SABLE_STORY_CANON.md), [visual direction and mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), [three-lead integration specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md), [criminal ecosystem and rival-crew brief](docs/PORT_SABLE_CRIMINAL_ECOSYSTEM.md), [opening campaign mission design](docs/PORT_SABLE_OPENING_CAMPAIGN.md), and [narrative-state/save contract](docs/PORT_SABLE_NARRATIVE_STATE.md).
 
 ## Campaign data tools
 
@@ -21,12 +21,18 @@ The source includes:
 - `CampaignCanon.cs`: machine-checkable leads, supporting cast, factions, districts, mission goals, gameplay verbs, character complications, player choices and persistent consequences.
 - `CampaignCanonAudit.cs`: Unity Editor validation for missing/duplicate IDs, incomplete campaign structure and the separate institution registry.
 - `PortSablePrologueDialogueBuilder.cs`: creates the three lead-specific dialogue graph assets; scene/NPC wiring is still required.
+- `PortSablePrologueDialogueAudit.cs`: checks graph IDs, node links, reachability and required saved choice flags.
+- `NarrativeStateLedger.cs`, `DialogueController.cs` and `MissionDirector.cs`: persist dialogue choice flags and evaluate later mission branches.
+- `SaveSnapshot.cs` / `SessionSaveCoordinator.cs`: schema v3 saves the active lead, all lead positions and narrative flags, while reading v1/v2 legacy saves.
 - `CampaignMissionOutline.cs`: separate narrative-outline data type, intentionally not a playable `MissionDefinition`.
 - `CampaignOutlineAssetBuilder.cs`: Unity Editor command to create/update 21 editable campaign outline assets without deleting stale records.
 
 Unity menu commands:
 - **Project Tideline → 6 — Audit Campaign Canon**
 - **Project Tideline → 7 — Generate Campaign Outline Assets**
+- **Project Tideline → 8 — Audit Bespoke Lead Prefabs**
+- **Project Tideline → 9 — Generate PORT SABLE Prologue Dialogue**
+- **Project Tideline → 10 — Audit PORT SABLE Prologue Dialogue**
 
 Generated outlines are design records, not playable missions. Do not attach them to `MissionDirector`.
 
@@ -38,7 +44,7 @@ The old Ari Solis / Ghost Fleet Old Quay scenario is retained only as a legacy t
 
 ## Current implementation truth
 
-**Implemented in source:** recovered player/movement/vehicle/NPC/dialogue/save/mission systems, CC0 asset installer and audits, campaign registry, campaign audit and outline-asset generator.
+**Present in this selected source snapshot:** the campaign registry and audits, prologue dialogue graph builder/audit, dialogue-choice state ledger, mission branch handling, three-lead handoff/save source, and selected player/vehicle/NPC systems. These files have not yet been compiled together in Unity.
 
 **Not yet implemented or verified:** the Mara prologue in Unity, Rafi/Elias playable profiles, real character switching, new campaign dialogue playback, faction simulation, the full seven-district world, campaign mission triggers/objectives, endings, cinematic scene pipeline, Unity compilation, Play Mode, Android APK launch and Vivo performance/thermal testing.
 
@@ -46,7 +52,7 @@ The campaign registry and story bible are content/design groundwork, not a claim
 
 ## Source and asset recovery status
 
-The connected GitHub repository currently contains the narrative canon and selected campaign source/tool files, not the complete recovered Unity project tree. The full source bundle remains the authoritative recovery package until the entire Unity source tree, project settings, packages and required assets are imported to GitHub.
+The connected GitHub repository contains a selected campaign/source snapshot plus the recovered Unity version, package manifest, runtime assembly definition and ignore rules. It does **not** yet contain the complete recovered Unity source tree, all project settings, all scenes/prefabs, stable .meta GUIDs or required art assets. The uploaded bundle remains the authoritative v0.4.9 recovery package until that complete tree is imported.
 
 The pinned 48 GLB LOD variants are not embedded here. The Unity Editor installer downloads and verifies the CC0 assets by byte length and SHA-256 when run.
 
@@ -58,7 +64,7 @@ From the full recovered Unity source folder:
 python tools/validate_static.py
 ```
 
-The static validator checks source structure, project inventory, legacy testbed wiring and new campaign-registry invariants. It does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
+The original bundle's static validator passed against the recovered v0.4.9 working tree. It has not yet been rerun against the selected GitHub source snapshot. It does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
 
 ## Target device and quality bar
 

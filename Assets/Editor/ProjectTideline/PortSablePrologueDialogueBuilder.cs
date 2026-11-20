@@ -124,7 +124,7 @@ namespace ProjectTideline.Editor
                 Node("protect_headline", "RAFI",
                     "The headliner stays. That's the decision. The question is who takes the call.",
                     Choice("I'll take it.", "mina_reply",
-                        "prologue.rafi.take_responsibility", "mina_sato", 1),
+                        "prologue.rafi.take_responsibility", "mina_sato", 1, "rafi_staff_responsibility", 1),
                     Choice("Mina, tell them.", "mina_reply",
                         "prologue.rafi.shift_burden", "mina_sato", -3, "rafi_staff_responsibility", 2)),
                 Node("mina_reply", "MINA",

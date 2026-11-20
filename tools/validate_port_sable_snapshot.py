@@ -296,6 +296,16 @@ def run() -> int:
           "MissionDirector can still auto-complete an empty placeholder mission")
     check("Refusing to auto-complete it." in mission_director,
           "Empty mission placeholder rejection is missing")
+    check("HasValidObjectives(candidate)" in mission_director
+          and "HasValidObjectives(mission)" in mission_director,
+          "MissionDirector must validate objective data on both start and restore")
+    objective_guard = mission_director.split("private bool HasValidObjectives", 1)[-1].split(
+        "private void OnSignal(string signalId, int amount)", 1)[0]
+    for token in ("objective == null", "objective.objectiveId", "objective.description",
+                  "objective.completionSignal", "objective.requiredCount < 1",
+                  "objectiveIds.Add(objective.objectiveId)"):
+        check(token in objective_guard,
+              f"MissionDirector runtime objective guard is missing: {token}")
 
     mission_audit = read("Assets/Editor/ProjectTideline/MissionAssetAudit.cs")
     for token in (

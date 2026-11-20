@@ -7,6 +7,7 @@
 - [PORT SABLE visual target](PORT_SABLE_VISUAL_TARGET.md): district art direction, character/vehicle standards, lighting, weather and mobile rendering budgets.
 - [Three-lead system](PORT_SABLE_THREE_LEAD_SYSTEM.md): required hero prefabs, component contracts, scene wiring, switch locks and device test plan.
 - [Narrative state and save contract](PORT_SABLE_NARRATIVE_STATE.md): persistent prologue flags, mission-branch conditions, v3 saves, legacy migration and vehicle-save guard.
+- [Mission asset and branch audit](MISSION_ASSET_BRANCH_AUDIT.md): recovered Old Quay filename mismatch, reachable legacy ending gates, zero PORT SABLE MissionDefinition assets and Unity verification steps.
 - [ALL THE WAY DOWN — signature score](PORT_SABLE_SIGNATURE_SCORE_ALL_THE_WAY_DOWN.md): full three-lead prep, crew selection, seven mission beats, three outcomes and test criteria.
 - [Hero character art bible](PORT_SABLE_HERO_CHARACTER_BIBLE.md): unique lead identities, recurring cast designs, facial/gesture language, hero rig contract and mobile LOD starting budgets.
 
@@ -21,6 +22,8 @@
 - `Assets/ProjectTideline/Scripts/Core/NarrativeStateLedger.cs`: persistent choice flags.
 - `Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs`: evaluates story-flag and relationship branches.
 - `Assets/Editor/ProjectTideline/PortSablePrologueDialogueBuilder.cs` / `PortSablePrologueDialogueAudit.cs`: generates and validates the three prologue graphs.
+- `Assets/Editor/ProjectTideline/MissionAssetAudit.cs`: audits actual mission ScriptableObjects, builder asset-name wiring and branch/fallback conditions.
+- `Assets/ProjectTideline/Scripts/Missions/MissionBranchEvaluator.cs`: deterministic condition evaluation used by MissionDirector.
 
 ## Non-negotiable implementation rule
 
@@ -28,3 +31,6 @@ The v0.4.9 Old Quay Ari Solis scene is a legacy technical testbed only. Do not p
 
 - [Opening campaign design](PORT_SABLE_OPENING_CAMPAIGN.md): separate lead prologues, THE CUT sequence, choice/consequence matrix and narrative QA criteria.
 - [Criminal ecosystem](PORT_SABLE_CRIMINAL_ECOSYSTEM.md): six factions, rival crew Nika Vale, law-pressure institution and side-story arcs.
+
+- [Legacy Old Quay filename patch](../patches/0001-fix-oldquay-mission-asset-load-names.patch): fixes two stale asset names in ConfigureMissionDirector.
+- `../tools/validate_legacy_mission_sequence.py`: checks mission creation names against the configured campaign list when the complete recovered builder is present.

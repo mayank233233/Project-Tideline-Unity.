@@ -76,8 +76,7 @@ namespace ProjectTideline
             new Character("bash_rahal", "Bash Rahal", "Harbour mechanic and skipper", "Breaker Island contact with personal boundaries"),
             new Character("anika_bose", "Anika Bose", "Investigator", "Persistent pressure and a grounded counterpoint to the crew"),
             new Character("nico_okoye", "Nico Okoye", "Southline driver and rival", "Can become ally, rival or recurring complication"),
-            new Character("nika_vale", "Nika Vale", "Leader of the Cutwater Circle; former Elias protégé", "Recurring rival/ally whose breakaway crew challenges the House"),
-            new Character("port_sable_major_crimes", "Port Sable Major Crimes Unit", "Investigative institution associated with Anika Bose", "Persistent narrative pressure; not an omniscient or corrupt stock enemy")
+            new Character("nika_vale", "Nika Vale", "Leader of the Cutwater Circle; former Elias protégé", "Recurring rival/ally whose breakaway crew challenges the House")
         };
 
         private static readonly string[] FactionEntries =
@@ -229,6 +228,12 @@ namespace ProjectTideline
                 "Resolves as THE EMPTY CHAIR, THE NEW HOUSE or CLEAN EXIT with distinct city and character epilogues.")
         };
 
+        // Institutions are not characters or criminal factions; keep law pressure in its own registry.
+        private static readonly string[] InstitutionEntries =
+        {
+            "port_sable_major_crimes"
+        };
+
         private static readonly string[] EndingEntries =
         {
             "the_empty_chair", "the_new_house", "clean_exit"
@@ -240,6 +245,7 @@ namespace ProjectTideline
         public static IReadOnlyList<string> Districts => Array.AsReadOnly(DistrictEntries);
         public static IReadOnlyList<Mission> Missions => Array.AsReadOnly(MissionEntries);
         public static IReadOnlyList<string> Endings => Array.AsReadOnly(EndingEntries);
+        public static IReadOnlyList<string> Institutions => Array.AsReadOnly(InstitutionEntries);
 
         public static void CollectValidationIssues(List<string> issues)
         {
@@ -250,6 +256,7 @@ namespace ProjectTideline
             if (FactionEntries.Length < 6) issues.Add("Campaign must define at least five major factions.");
             if (DistrictEntries.Length < 7) issues.Add("Campaign must define at least seven districts.");
             if (EndingEntries.Length != 3) issues.Add("Campaign must define exactly three ending routes.");
+            if (InstitutionEntries.Length < 1) issues.Add("Campaign must define its investigative/law-pressure institution separately from character entries.");
 
             var characterIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (Character character in CharacterEntries)
@@ -261,6 +268,23 @@ namespace ProjectTideline
                 }
                 if (!characterIds.Add(character.Id)) issues.Add("Duplicate playable lead ID: " + character.Id);
             }
+
+            var supportingIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (Character character in SupportingCharacterEntries)
+            {
+                if (character == null || string.IsNullOrWhiteSpace(character.Id) || string.IsNullOrWhiteSpace(character.DisplayName))
+                {
+                    issues.Add("A supporting character has a missing ID or display name.");
+                    continue;
+                }
+                if (characterIds.Contains(character.Id) || !supportingIds.Add(character.Id))
+                    issues.Add("Duplicate character ID across leads/supporting cast: " + character.Id);
+            }
+
+            var institutionIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string institution in InstitutionEntries)
+                if (string.IsNullOrWhiteSpace(institution) || !institutionIds.Add(institution))
+                    issues.Add("Institution registry contains a blank or duplicate ID.");
 
             var districtIds = new HashSet<string>(DistrictEntries, StringComparer.Ordinal);
             var missionIds = new HashSet<string>(StringComparer.Ordinal);

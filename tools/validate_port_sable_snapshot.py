@@ -245,6 +245,8 @@ def run() -> int:
     mission_director = read("Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs")
     branch_evaluator = read("Assets/ProjectTideline/Scripts/Missions/MissionBranchEvaluator.cs")
     relationship_ledger = read("Assets/ProjectTideline/Scripts/NPC/NPCRelationshipLedger.cs")
+    narrative_ledger = read("Assets/ProjectTideline/Scripts/Core/NarrativeStateLedger.cs")
+    dialogue_controller = read("Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs")
     check("MissionBranchEvaluator.ConditionsMatch" in mission_director,
           "MissionDirector does not delegate branch decisions to the shared evaluator")
     check("NarrativeStateLedger.Instance" in mission_director and "HasFlag(flag)" in mission_director,
@@ -255,6 +257,21 @@ def run() -> int:
           "Missing relationship/story state must not be treated as numeric zero")
     check("public bool HasValue(string characterId)" in relationship_ledger,
           "Relationship ledger cannot distinguish absent values from explicit zero")
+    check("bool publishMissionSignal = true" in relationship_ledger
+          and "if (publishMissionSignal)" in relationship_ledger,
+          "Relationship ledger cannot suppress mission signals during an atomic dialogue choice")
+    check("bool publishMissionSignal = true" in narrative_ledger
+          and "if (publishMissionSignal)" in narrative_ledger,
+          "Narrative ledger cannot suppress mission signals during an atomic dialogue choice")
+    relationship_write = dialogue_controller.find("choice.relationshipCharacterId, choice.relationshipDelta, false);")
+    flag_write = dialogue_controller.find("choice.storyFlagId, choice.storyFlagValue, false);")
+    choice_signal = dialogue_controller.find("MissionSignalBus.Publish(choice.signalId, Mathf.Max(1, choice.signalAmount));")
+    check(relationship_write >= 0 and flag_write >= 0 and choice_signal >= 0
+          and relationship_write < choice_signal and flag_write < choice_signal,
+          "Dialogue choice must persist relationship and story-flag results before publishing its mission signal")
+    check('MissionSignalBus.Publish("relationship.changed." + choice.relationshipCharacterId, 1);' in dialogue_controller
+          and 'MissionSignalBus.Publish("story.flag.changed", 1);' in dialogue_controller,
+          "Dialogue choices without an explicit signal must retain generic ledger mission signals")
     check("candidate.objectives == null || candidate.objectives.Length == 0" in mission_director,
           "MissionDirector can still auto-complete an empty placeholder mission")
     check("Refusing to auto-complete it." in mission_director,

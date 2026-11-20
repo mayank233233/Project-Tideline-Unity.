@@ -34,6 +34,7 @@ Its three rules are: every favour has a price; no crew owns a district alone; an
 
 ### Factions
 - **The House:** brokers, fixers and legacy crews; some want reform, others total control.
+- **The Cutwater Circle:** a breakaway alliance of independent crews led by Nika Vale. It challenges the House's monopoly, but its willingness to impose costs on bystanders makes it an uneasy ally rather than a clean freedom movement.
 - **The Breakers:** a loose waterfront alliance of salvage operators, yard crews and boat people. Personal loyalty matters more than a uniform.
 - **The Velvet Circuit:** club owners, event producers, promoters and people who control access to nightlife. Their currency is reputation, invitation and embarrassment.
 - **Southline Motors:** a loose car and street-culture network of rival crews, skilled drivers and mechanics. Not every member is a criminal.
@@ -84,6 +85,7 @@ The three leads must have separate lives, relationships and personal missions. F
 - **Bash Rahal:** harbour mechanic and skipper. Generous, funny and unwilling to be treated as disposable transport.
 - **Anika Bose:** persistent investigator. Not a corrupt stock villain; she tracks patterns and the consequences of the crew's choices.
 - **Nico Okoye:** gifted Southline driver and rival. Can become an ally, rival or recurring complication depending on the player's conduct.
+- **Nika Vale:** leader of the Cutwater Circle and Elias's former protégé. She believes Elias taught the House to disguise coercion as stability; she wants to break its hold, but can treat other people's losses as acceptable costs.
 
 ## The history beneath the first mission
 
@@ -103,11 +105,21 @@ Tideglass must not be revealed through one convenient document. Its truth is fra
 
 ### The inciting event — Harbour Exchange
 
-The House's annual **Harbour Exchange** is a private gathering where rival operators renew agreements and settle old obligations. This year, Silas intends to transfer the House's influence into Crownline's corporate network. The three leads are hired separately for different, apparently ordinary roles around the event: Mara is responsible for a high-value vehicle presentation, Rafi is running the headline venue programme, and Elias is asked to witness a settlement.
+The House's annual **Harbour Exchange** is the city's largest private underworld sale and settlement night. Publicly it looks like a luxury waterfront event; privately, rival operators bargain over valuable assets and old obligations. This year, Silas intends to transfer the House's influence into Crownline's corporate network. The three leads are hired separately for different roles: Mara is responsible for a valuable vehicle presentation, Rafi runs the headline venue programme, and Elias is asked to witness a settlement.
 
-A public-facing handover collapses. A set of legacy agreements disappears from the event, the House's public account names the three leads as responsible, and their access to the old network is cut off. The incident is a cinematic failure that reveals the House's power to decide whose story becomes official. The three survive because each sees a different part of the same event—and because none of them has the whole truth.
+During a staged collapse, a high-value physical consignment and its payment disappear. The House publicly blames Mara, Rafi and Elias before they can compare what each saw. A rival crew is glimpsed in the confusion, but the evidence is incomplete. The missing legacy agreements still matter because they show who benefits from the old system; they are one clue among people who were paid to keep quiet, conflicting promises, Crownline's planned acquisition and the Cutwater Circle's campaign against the House. The three leads each witness a different fragment, and none has the whole truth.
 
 Silas expected their old resentments to stop them cooperating. He underestimated how much they have all lost. Elias knows the House's accusation is staged but initially hides how close he was to the decision. That omission becomes the crew's first internal betrayal, not a late-game surprise invented to shock the player.
+
+
+
+## The second criminal pole — Cutwater Circle
+
+The Cutwater Circle is the House's most consequential breakaway rival. It is a loose alliance of crews, not a single uniform gang. Some members want independent work and freedom from old debts; others want to replace the House with their own authority. Its leader, Nika Vale, was once Elias's protégé. Their relationship turns the Circle into a personal challenge to the man who helped build the House.
+
+Nika has history with Rafi from Lowlight's early years. She can be a compelling ally, a dangerous rival or a recurring source of complications, depending on how the crew treats the people caught between the two organisations. She must appear and develop well before the finale; do not introduce her as a last-minute boss.
+
+The Port Sable Major Crimes Unit, where Anika Bose works, provides persistent narrative pressure. It is not a playable faction or a guide to avoiding authorities. It represents consequences: witnesses remember the crew, public events react to scandals, and Anika's view changes as she learns more.
 
 ## Relationship engine
 

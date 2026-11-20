@@ -219,6 +219,28 @@ def run() -> int:
             check(re.search(pattern, builder) is not None,
                   f"Dialogue builder does not write {flag}={value}")
 
+    required_choice_outcomes = {
+        "prologue.mara.accept_challenge": ("mara_race_choice", 1),
+        "prologue.mara.decline_challenge": ("mara_race_choice", 2),
+        "prologue.rafi.honour_first_slot": ("rafi_event_choice", 1),
+        "prologue.rafi.protect_headline": ("rafi_event_choice", 2),
+        "prologue.rafi.own_promise": ("rafi_staff_responsibility", 1),
+        "prologue.rafi.take_responsibility": ("rafi_staff_responsibility", 1),
+        "prologue.rafi.shift_burden": ("rafi_staff_responsibility", 2),
+        "prologue.elias.accept_invitation": ("elias_settlement_choice", 1),
+        "prologue.elias.refuse_signature": ("elias_settlement_choice", 2),
+    }
+    for signal, (flag, value) in required_choice_outcomes.items():
+        pattern = (
+            re.escape(f'"{signal}"') + r'\\s*,\\s*'
+            + r'"[^"]+"' + r'\\s*,\\s*-?\\d+' + r'\\s*,\\s*'
+            + re.escape(f'"{flag}"') + r'\\s*,\\s*' + str(value) + r'\\s*\\)'
+        )
+        check(re.search(pattern, builder) is not None,
+              f"Dialogue choice {signal} must write {flag}={value}")
+        check(signal in dialogue_audit,
+              f"Dialogue audit must validate the specific choice {signal}")
+
     mission_director = read("Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs")
     check("NarrativeStateLedger.Instance" in mission_director and "HasFlag(condition.storyFlagId)" in mission_director,
           "MissionDirector is missing persistent story-flag branch evaluation")

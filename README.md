@@ -10,16 +10,17 @@ The campaign follows three playable leads tied together by a failed waterfront s
 - **Rafi Sayegh** — nightlife promoter and operator of Lowlight.
 - **Elias Ward** — former mediator for the underworld institution called the House.
 
-The city is **Port Sable**, with seven planned districts, five major factions, seven named supporting characters, three lead prologues, eighteen core missions and three endings. The story's shared-history event is Tideglass; its present-day inciting incident is Harbour Exchange.
+The city is **Port Sable**, with seven planned districts, six major factions, eight named supporting characters, one investigative institution, three lead prologues, eighteen core missions and three endings. The story's shared-history event is Tideglass; its present-day inciting incident is Harbour Exchange.
 
-Read the complete canon in [PORT_SABLE_STORY_CANON.md](PORT_SABLE_STORY_CANON.md), the [visual direction / mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), and the [three-lead prefab and control-handoff specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md).
+Read the complete canon in [PORT_SABLE_STORY_CANON.md](PORT_SABLE_STORY_CANON.md), the [visual direction / mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), and the [three-lead prefab and control-handoff specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md), the [criminal ecosystem and rival-crew brief](docs/PORT_SABLE_CRIMINAL_ECOSYSTEM.md), and the [opening campaign mission design](docs/PORT_SABLE_OPENING_CAMPAIGN.md).
 
 ## Campaign data tools
 
 The source includes:
 
 - `CampaignCanon.cs`: machine-checkable leads, supporting cast, factions, districts, mission goals, gameplay verbs, character complications, player choices and persistent consequences.
-- `CampaignCanonAudit.cs`: Unity Editor validation for missing/duplicate IDs and incomplete campaign structure.
+- `CampaignCanonAudit.cs`: Unity Editor validation for missing/duplicate IDs, incomplete campaign structure and the separate institution registry.
+- `PortSablePrologueDialogueBuilder.cs`: creates the three lead-specific dialogue graph assets; scene/NPC wiring is still required.
 - `CampaignMissionOutline.cs`: separate narrative-outline data type, intentionally not a playable `MissionDefinition`.
 - `CampaignOutlineAssetBuilder.cs`: Unity Editor command to create/update 21 editable campaign outline assets without deleting stale records.
 

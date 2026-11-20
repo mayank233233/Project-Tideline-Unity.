@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "com.unity.ai.navigation": "2.0.16",
+    "com.unity.cinemachine": "3.1.7",
+    "com.unity.render-pipelines.universal": "17.3.0",
+    "com.unity.ugui": "2.0.0",
+    "com.unity.modules.ai": "1.0.0",
+    "com.unity.modules.animation": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.physics": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.inputsystem": "1.20.1",
+    "com.unity.addressables": "2.10.3",
+    "com.unity.cloud.gltfast": "6.20.0",
+    "com.unity.cloud.ktx": "3.7.1",
+    "com.unity.meshopt.decompress": "0.2.0-exp.1"
+  }
+}

@@ -242,10 +242,38 @@ def run() -> int:
               f"Dialogue audit must validate the specific choice {signal}")
 
     mission_director = read("Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs")
-    check("NarrativeStateLedger.Instance" in mission_director and "HasFlag(condition.storyFlagId)" in mission_director,
+    branch_evaluator = read("Assets/ProjectTideline/Scripts/Missions/MissionBranchEvaluator.cs")
+    relationship_ledger = read("Assets/ProjectTideline/Scripts/NPC/NPCRelationshipLedger.cs")
+    check("MissionBranchEvaluator.ConditionsMatch" in mission_director,
+          "MissionDirector does not delegate branch decisions to the shared evaluator")
+    check("NarrativeStateLedger.Instance" in mission_director and "HasFlag(flag)" in mission_director,
           "MissionDirector is missing persistent story-flag branch evaluation")
-    check("usesRelationship == usesStoryFlag" in mission_director,
+    check("usesRelationship == usesStoryFlag" in branch_evaluator,
           "Mission branch condition must require exactly one condition source")
+    check("if (!actual.HasValue) return false;" in branch_evaluator,
+          "Missing relationship/story state must not be treated as numeric zero")
+    check("public bool HasValue(string characterId)" in relationship_ledger,
+          "Relationship ledger cannot distinguish absent values from explicit zero")
+    check("candidate.objectives == null || candidate.objectives.Length == 0" in mission_director,
+          "MissionDirector can still auto-complete an empty placeholder mission")
+    check("Refusing to auto-complete it." in mission_director,
+          "Empty mission placeholder rejection is missing")
+
+    mission_audit = read("Assets/Editor/ProjectTideline/MissionAssetAudit.cs")
+    for token in (
+        'AssetDatabase.FindAssets("t:MissionDefinition")',
+        "completionBranches",
+        "fallbackNextMissionId",
+        "endsCampaign",
+        "storyFlagsUsedByMissions",
+        "RunEvaluatorSelfTests()",
+        "PORT SABLE is not playable yet",
+    ):
+        check(token in mission_audit, f"Mission asset audit is missing required check: {token}")
+    check("MissionBranchEvaluator.ConditionsMatch" in mission_audit,
+          "Editor audit is not exercising the production mission-branch evaluator")
+    check("unconditional branch" in mission_audit,
+          "Mission asset audit does not detect catch-all branches shadowing later branches")
 
     save = read("Assets/ProjectTideline/Scripts/Core/SaveSnapshot.cs")
     session = read("Assets/ProjectTideline/Scripts/Core/SessionSaveCoordinator.cs")

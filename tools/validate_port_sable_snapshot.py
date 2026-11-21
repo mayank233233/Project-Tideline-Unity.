@@ -254,6 +254,12 @@ def run() -> int:
           and "while (PendingSignals.Count > 0)" in mission_signal_bus
           and "if (IsDispatching)" in mission_signal_bus,
           "MissionSignalBus must drain nested signals through a queue before completing dispatch")
+    check("handlers.GetInvocationList()" in mission_signal_bus
+          and "Debug.LogException(exception)" in mission_signal_bus,
+          "MissionSignalBus must isolate subscriber exceptions and continue dispatching other listeners")
+    check("MaxSignalsPerBatch = 4096" in mission_signal_bus
+          and "PendingSignals.Clear();" in mission_signal_bus,
+          "MissionSignalBus must cap runaway nested signal loops and clear the abandoned batch")
     check("MissionSignalBus.DispatchCompleted += OnSignalDispatchCompleted;" in mission_director
           and "MissionSignalBus.DispatchCompleted -= OnSignalDispatchCompleted;" in mission_director,
           "MissionDirector must subscribe and unsubscribe from signal-batch completion")

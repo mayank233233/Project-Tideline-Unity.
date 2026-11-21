@@ -250,7 +250,7 @@ def run() -> int:
     dialogue_controller = read("Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs")
     check("MissionBranchEvaluator.ConditionsMatch" in mission_director,
           "MissionDirector does not delegate branch decisions to the shared evaluator")
-    check("DispatchCompleted?.Invoke();" in mission_signal_bus
+    check("InvokeDispatchCompletedSafely();" in mission_signal_bus
           and "while (PendingSignals.Count > 0)" in mission_signal_bus
           and "if (IsDispatching)" in mission_signal_bus,
           "MissionSignalBus must drain nested signals through a queue before completing dispatch")

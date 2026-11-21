@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ProjectTideline
 {
@@ -17,6 +18,7 @@ namespace ProjectTideline
             }
         }
 
+        private const int MaxSignalsPerBatch = 4096;
         private static readonly Queue<PendingSignal> PendingSignals = new Queue<PendingSignal>();
         private static bool IsDispatching;
 
@@ -38,24 +40,70 @@ namespace ProjectTideline
                 return;
 
             IsDispatching = true;
+            int dispatched = 0;
             try
             {
-                while (true)
+                while (PendingSignals.Count > 0)
                 {
                     while (PendingSignals.Count > 0)
                     {
+                        if (dispatched >= MaxSignalsPerBatch)
+                        {
+                            Debug.LogError("MissionSignalBus aborted a signal batch after " +
+                                MaxSignalsPerBatch + " events. Check for a cyclic signal publisher.");
+                            PendingSignals.Clear();
+                            return;
+                        }
+
                         PendingSignal next = PendingSignals.Dequeue();
-                        Raised?.Invoke(next.SignalId, next.Amount);
+                        dispatched++;
+                        InvokeRaisedSafely(next.SignalId, next.Amount);
                     }
 
-                    DispatchCompleted?.Invoke();
-                    if (PendingSignals.Count == 0)
-                        break;
+                    InvokeDispatchCompletedSafely();
+                    // A DispatchCompleted listener may publish another signal; drain it
+                    // in the same batch before allowing another interaction to begin.
                 }
             }
             finally
             {
                 IsDispatching = false;
+            }
+        }
+
+        private static void InvokeRaisedSafely(string signalId, int amount)
+        {
+            Action<string, int> handlers = Raised;
+            if (handlers == null) return;
+
+            foreach (Delegate subscriber in handlers.GetInvocationList())
+            {
+                try
+                {
+                    ((Action<string, int>)subscriber).Invoke(signalId, amount);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                }
+            }
+        }
+
+        private static void InvokeDispatchCompletedSafely()
+        {
+            Action handlers = DispatchCompleted;
+            if (handlers == null) return;
+
+            foreach (Delegate subscriber in handlers.GetInvocationList())
+            {
+                try
+                {
+                    ((Action)subscriber).Invoke();
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                }
             }
         }
     }

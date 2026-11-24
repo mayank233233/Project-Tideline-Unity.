@@ -29,6 +29,9 @@ The source includes:
 - `DialogueInteractable.cs` and `CinematicConfrontationInteractable.cs`: open authored dialogue and the non-graphic confrontation sequence through the existing proximity-interaction path; their scene references still need to be assigned.
 - `RouteRaceStartInteractable.cs`, `RouteRaceController.cs` and `RouteRaceCheckpoint.cs`: ordered player-driven route checkpoints with start/checkpoint/finish/cancel signals. This prototype has no rival timing, placement result or outcome-choice layer.
 - `MissionSignalBus.cs`: FIFO nested dispatch, exception-isolated listeners, batch publication for multiple outcomes from one action, and runaway-batch abort recovery. The unused generic `IInteractable.SignalId` API has been removed.
+- `MaraWorkshopOrderController.cs` / `MaraWorkshopTaskInteractable.cs`: three distinct final vehicle checks; the mission only advances after all three tasks complete.
+- `MaraDeliveryRouteCompletionRelay.cs`: emits `mara.delivery.finished` only after the assigned route has fully drained its final signal batch.
+- `MaraPrologueMissionBuilder.cs`: generates one three-objective `two_minutes_to_close` MissionDefinition after both Mara dialogue graphs exist.
 - `SaveSnapshot.cs` / `SessionSaveCoordinator.cs`: schema v3 saves the active lead, all lead positions and narrative flags, while reading v1/v2 legacy saves.
 - `CampaignMissionOutline.cs`: separate narrative-outline data type, intentionally not a playable `MissionDefinition`.
 - `CampaignOutlineAssetBuilder.cs`: Unity Editor command to create/update 21 editable campaign outline assets without deleting stale records.
@@ -40,6 +43,7 @@ Unity menu commands:
 - **Project Tideline → 9 — Generate PORT SABLE Prologue Dialogue**
 - **Project Tideline → 10 — Audit PORT SABLE Prologue Dialogue**
 - **Project Tideline → 11 — Audit Mission Assets and Branches**
+- **Project Tideline → 12 — Generate Mara Prologue Mission** (run after dialogue generation; creates one Mara MissionDefinition asset)
 
 Generated outlines are design records, not playable missions. Do not attach them to `MissionDirector`.
 
@@ -51,9 +55,9 @@ The old Ari Solis / Ghost Fleet Old Quay scenario is retained only as a legacy t
 
 ## Current implementation truth
 
-**Present in this selected source snapshot:** the campaign registry and audits, prologue dialogue graph builder/audit, dialogue and confrontation proximity-interaction components, ordered route-race prototype, dialogue-choice state ledger, mission branch evaluator/audit, three-lead handoff/save source, and selected player/vehicle/NPC systems. Same-action multi-signal outcomes are batched so mission transitions cannot occur between signals from one interaction. These files have not yet been compiled together in Unity.
+**Present in this selected source snapshot:** the campaign registry and audits, four prologue dialogue graph definitions across three leads, dialogue/confrontation proximity-interaction components, a vehicle-bound ordered route controller, Mara's three-stage workshop/delivery/choice objective source, a Mara MissionDefinition asset generator, dialogue-choice state ledger, mission branch evaluator/audit, three-lead handoff/save source, and selected player/vehicle/NPC systems. Same-action multi-signal outcomes are batched; route completion is signalled only after its batch drains. These files have not yet been compiled together in Unity.
 
-**Not yet implemented or verified:** actual PORT SABLE scenes and NPC prefab wiring; the Mara prologue in Unity; Rafi/Elias playable profiles; real character switching; generated dialogue graphs assigned to playable NPCs; competitive race timing/rival outcomes; the venue/job/hub/faction/score gameplay systems; all 21 executable campaign mission definitions and their objective contracts; endings; cinematic scene pipeline; Unity compilation; Play Mode; Android APK launch; and Vivo performance/thermal testing.
+**Not yet implemented or verified:** any tracked PORT SABLE scene or NPC/player/vehicle prefab wiring; the generated MissionDefinition asset for Mara (the Editor generator is present but has not been run); Rafi/Elias playable profiles; real character switching; competitive race timing/rival outcomes; the venue/job/hub/faction/score gameplay systems; the remaining 20 executable campaign mission definitions; endings; cinematic scene pipeline; Unity compilation; Play Mode; Android APK launch; and Vivo performance/thermal testing.
 
 The campaign registry and story bible are content/design groundwork, not a claim of playable content. The lead handoff code also requires three original hero prefabs and scene wiring before it can run.
 
@@ -71,7 +75,7 @@ For the selected GitHub snapshot:
 python tools/validate_port_sable_snapshot.py
 ```
 
-The GitHub Action runs this check on every push and pull request. Latest verified run at this revision: **PASS — 175 checks, 38 C# files scanned** ([run 45347066115](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45347066115)). The separate legacy mission sequence check reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present in this selected snapshot. This validates repository consistency only; it does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
+The GitHub Action runs this check on every push and pull request. Latest verified run at this revision: **PASS — 198 checks, 42 C# files scanned** ([run 45348029021](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45348029021)). The separate legacy mission sequence check reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present in this selected snapshot. This validates repository consistency only; it does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
 
 The recovered v0.4.9 working tree also passed its original `python tools/validate_static.py` before these new campaign files were added. That original validator is in the complete recovery bundle, not yet mirrored into this selected GitHub snapshot.
 

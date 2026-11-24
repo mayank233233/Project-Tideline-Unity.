@@ -15,7 +15,11 @@ namespace ProjectTideline
         {
             get
             {
-                if (workshopOrder == null || !workshopOrder.IsComplete)
+                if (workshopOrder == null)
+                    return "Workshop order unavailable";
+                if (!workshopOrder.IsUnlocked)
+                    return "Speak to Juno first";
+                if (!workshopOrder.IsComplete)
                     return "Finish the three workshop checks";
                 if (deliveryRoute == null)
                     return "Delivery route unavailable";

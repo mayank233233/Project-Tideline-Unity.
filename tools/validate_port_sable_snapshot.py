@@ -200,7 +200,8 @@ def run() -> int:
     mara_mission_builder = read("Assets/Editor/ProjectTideline/MaraPrologueMissionBuilder.cs")
     mara_workshop = read("Assets/ProjectTideline/Scripts/World/MaraWorkshopOrderController.cs")
     mara_workshop_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MaraWorkshopTaskInteractable.cs")
-    mara_delivery_relay = read("Assets/ProjectTideline/Scripts/Interaction/MaraDeliveryRouteCompletionRelay.cs")
+    mara_handoff_controller = read("Assets/ProjectTideline/Scripts/World/MaraDeliveryHandoffController.cs")
+    mara_customer_handoff = read("Assets/ProjectTideline/Scripts/Interaction/MaraCustomerHandoffInteractable.cs")
     mara_delivery_start = read("Assets/ProjectTideline/Scripts/Interaction/MaraDeliveryStartInteractable.cs")
     mara_nico_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MaraPostDeliveryDialogueInteractable.cs")
     for graph_id in (
@@ -385,9 +386,16 @@ def run() -> int:
           "Mara workshop final task must batch completion and roll back on signal-batch abort")
     check("orderController.TryCompleteTask(taskId, actor);" in mara_workshop_interactable,
           "Mara workshop inspection stations must route through their shared order controller")
-    check("routeController.Finished += OnRouteFinished;" in mara_delivery_relay
-          and 'MissionSignalBus.Publish("mara.delivery.finished", 1);' in mara_delivery_relay,
-          "Mara delivery relay must publish the mission-specific route-finish signal")
+    check('MissionSignalBus.Publish("mara.delivery.finished", 1);' in mara_handoff_controller
+          and "deliveryRoute == null || !deliveryRoute.HasFinished" in mara_handoff_controller
+          and "_handoffPending" in mara_handoff_controller,
+          "Mara customer handoff must require an actually finished route and publish the mission-specific delivery signal")
+    check("MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;" in mara_handoff_controller
+          and "_handedOff = false;" in mara_handoff_controller
+          and "MissionProgressHasPassedHandoff" in mara_handoff_controller,
+          "Mara handoff must roll back on an aborted batch and restore from saved mission objective progress")
+    check("handoffController.TryCompleteHandoff(actor);" in mara_customer_handoff,
+          "Mara customer handoff interactable must call the one-time handoff controller")
     check("public event Action Finished;" in route_race
           and "MissionSignalBus.DispatchCompleted += OnSignalDispatchCompleted;" in route_race
           and "MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;" in route_race
@@ -403,13 +411,15 @@ def run() -> int:
     check("!deliveryRoute.HasFinished" in mara_delivery_start
           and "deliveryRoute.IsActive" in mara_delivery_start,
           "Mara delivery route must not start twice or while already active")
-    check("!deliveryRoute.HasFinished" not in mara_nico_interactable
-          and "deliveryRoute == null || !deliveryRoute.HasFinished" in mara_nico_interactable
+    check("handoffController == null || !handoffController.HasHandedOff" in mara_nico_interactable
           and "dialogueController.Begin(dialogueGraph);" in mara_nico_interactable,
-          "Nico's follow-up dialogue must remain locked until the delivery route has fully finished")
+          "Nico's follow-up dialogue must remain locked until customer handoff is complete or restored")
     check("public bool HasFinished { get; private set; }" in route_race
           and "if (_isActive || HasFinished || !HasValidRoute())" in route_race,
           "Route completion state must gate follow-up dialogue and prevent route replay")
+    check("MissionProgressHasPassedWorkOrder" in mara_workshop
+          and "missionDirector.CurrentObjectiveIndex >= 1" in mara_workshop,
+          "Mara workshop tasks must remain completed after restoring a save at the delivery objective")
     for token in ("complete_customer_work_order", "mara.workshop.order.completed",
                   "deliver_customer_vehicle", "mara.delivery.finished",
                   "resolve_nico_challenge", "prologue.mara.complete"):

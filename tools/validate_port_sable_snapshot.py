@@ -788,13 +788,20 @@ def run() -> int:
         "BRAKE TO 3 KM/H",
         "PARKING SPEED OK",
         "Mathf.RoundToInt(speed)",
+        "SetDeliveryBay(VehicleDeliveryCheckpoint bay)",
+        "deliveryBay.HasArrived",
+        "GetDeliveryBayHint()",
+        "BAY CLOSE — STOP INSIDE MARKINGS",
+        "EXIT VEHICLE TO HAND OVER",
     ):
         check(token in mission_status_display,
               f"Vehicle speedometer/parking feedback is missing: {token}")
     for token in (
         "Vehicle speedometer panel",
         "Vehicle speed and parking guidance",
+        "new Vector2(340f, 154f)",
         "missionDisplay.SetVehicleStatus(deliveryVehicle, vehicleStatusPanel.gameObject, vehicleSpeedText)",
+        "missionDisplay.SetDeliveryBay(deliveryBay)",
     ):
         check(token in blockout_builder,
               f"Generated driving HUD speedometer wiring is missing: {token}")

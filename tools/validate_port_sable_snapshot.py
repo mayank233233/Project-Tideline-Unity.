@@ -702,6 +702,16 @@ def run() -> int:
         check(token in blockout_builder,
               f"Generated drivable delivery sequence is missing: {token}")
     for token in (
+        "float[] checkpointLateralOffsets = { 0f, -3f, 3f }",
+        "trigger.size = new Vector3(3.4f, 3f, 2.6f)",
+        "checkpointX - 3.5f",
+        "checkpointX + 3.5f",
+        "S-bend lane guide",
+        "Delivery route lane guidance",
+    ):
+        check(token in blockout_builder,
+              f"Delivery route must have a readable, steerable S-bend: {token}")
+    for token in (
         "race.long_loop.started",
         "vehicle.entered",
         "race.long_loop.finished",

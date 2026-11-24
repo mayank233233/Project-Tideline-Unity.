@@ -711,6 +711,15 @@ def run() -> int:
         check(token in route_start_interactable,
               f"Delivery route start objective gate is missing: {token}")
 
+    check("_arrivalPending" in delivery_checkpoint
+          and "_arrivalAborted" in delivery_checkpoint
+          and "MissionSignalBus.DispatchAborted += OnSignalDispatchAborted" in delivery_checkpoint,
+          "Delivery-bay arrival must roll back when its signal batch aborts")
+    check("_startSignalPending" in route_controller
+          and "_startSignalAborted" in route_controller
+          and "could not start because its mission-signal batch aborted" in route_controller,
+          "Delivery route start must roll back if its start signal batch aborts")
+
     mission_status_display = read("Assets/ProjectTideline/Scripts/UI/MissionStatusDisplay.cs")
     for token in (
         "public event Action<int, int> ProgressChanged",
@@ -738,6 +747,10 @@ def run() -> int:
               f"Visible delivery route/bay guidance is missing: {token}")
 
     mission_signal_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MissionSignalInteractable.cs")
+    check("_dispatchPending" in mission_signal_interactable
+          and "_dispatchAborted" in mission_signal_interactable
+          and "MissionSignalBus.DispatchAborted += OnSignalDispatchAborted" in mission_signal_interactable,
+          "One-shot ledger interactions must be re-armed after an aborted signal batch")
     mission_status_display = read("Assets/ProjectTideline/Scripts/UI/MissionStatusDisplay.cs")
     mission_dialogue_sequence = read("Assets/ProjectTideline/Scripts/Interaction/MissionDialogueSequenceInteractable.cs")
     for token in (

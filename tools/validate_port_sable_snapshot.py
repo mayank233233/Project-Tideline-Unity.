@@ -576,6 +576,27 @@ def run() -> int:
         check(token in blockout_builder,
               f"Generated scene is missing mobile HUD wiring: {token}")
 
+    mission_dialogue_sequence = read("Assets/ProjectTideline/Scripts/Interaction/MissionDialogueSequenceInteractable.cs")
+    for token in (
+        "public sealed class MissionDialogueSequenceInteractable",
+        "MissionDefinition mission = missionDirector.CurrentMission",
+        "MissionObjective objective = missionDirector.CurrentObjective",
+        "string.Equals(step.objectiveId, objective.objectiveId",
+        "dialogueController.Begin(step.graph)",
+    ):
+        check(token in mission_dialogue_sequence,
+              f"Objective-aware NPC dialogue sequence is missing: {token}")
+    for token in (
+        "old_quay.juno_debrief",
+        "old_quay.juno_debrief_completed",
+        "return_to_juno",
+        "TutorialDebriefDialoguePath",
+        "MissionDialogueSequenceInteractable",
+        "Report back to Juno",
+    ):
+        check(token in blockout_builder,
+              f"Opening mission debrief sequence is missing: {token}")
+
     pedestrian_walker = read("Assets/ProjectTideline/Scripts/World/AmbientPedestrianWalker.cs")
     for token in (
         "public sealed class AmbientPedestrianWalker",

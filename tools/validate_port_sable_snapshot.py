@@ -427,7 +427,7 @@ def run() -> int:
           and "HasAttentionBandPattern" in mission_audit
           and "RouteRacePrefix" in mission_audit,
           "Mission signal catalog must recognize literal, batched and documented dynamic producer patterns")
-    check("AssetDatabase.FindAssets(\\"t:DialogueGraph\\")" in mission_audit
+    check('AssetDatabase.FindAssets("t:DialogueGraph")' in mission_audit
           and "choice.signalId" in mission_audit
           and "source/data presence does not prove that a producer component is wired into a playable scene." in mission_audit,
           "Signal catalog must include generated dialogue choices and disclose the scene-wiring limitation")

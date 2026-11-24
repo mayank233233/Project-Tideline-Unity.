@@ -132,3 +132,11 @@ The recovered v0.4.9 working tree also passed its original `python tools/validat
 ## Target device and quality bar
 
 The target phone is Vivo T2x 5G (Dimensity 6020 / Mali-G57 MC2). The visual goal is an authored mobile experience with strong environment composition, credible lighting and materials, clear character silhouettes, disciplined LOD/streaming and measured frame pacing. Literal GTA VI / RDR2 parity is not a realistic mobile promise. Quality must be demonstrated with actual scene captures, device profiling and blind playtests—not declared in a story document.
+
+### Market Ledger — consequence-driven follow-up
+
+The fourth Old Quay mission now evaluates the vendor and cafe-owner choices after its final dialogue choice has been applied. The positive route requires both promise/context story flags and both character relationship values to meet their thresholds. When all four conditions match, the campaign starts **A Place at the Table**: collect the supplies the market has reserved for Kade Motor Works. If any condition is missing or below threshold, the fallback is **No More Favors**: collect a replacement order from an independent quay supplier.
+
+Both routes are separate executable MissionDefinition assets with objective-gated world interactions. The branch is evaluated by the existing MissionBranchEvaluator; it is not a dialogue-only cosmetic difference. The narrative and relationship ledgers expose JSON export/import and are included in the session save snapshot. The Old Quay blockout builder creates both follow-up assets and places both route interactions in the scene; mission-ID gates ensure only the active route can be used.
+
+This remains a short two-way consequence test, not a full branching campaign. It has not been verified in Unity Play Mode in this environment.

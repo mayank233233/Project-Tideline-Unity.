@@ -261,6 +261,7 @@ def run() -> int:
         check(signal in dialogue_audit,
               f"Dialogue audit must validate the specific choice {signal}")
 
+    input_router = read("Assets/ProjectTideline/Scripts/Input/PlayerInputRouter.cs")
     mission_director = read("Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs")
     mission_signal_bus = read("Assets/ProjectTideline/Scripts/Missions/MissionSignalBus.cs")
     branch_evaluator = read("Assets/ProjectTideline/Scripts/Missions/MissionBranchEvaluator.cs")
@@ -373,6 +374,16 @@ def run() -> int:
           and "graph == null || IsOpen" in dialogue_controller
           and "graph.FindNode(graph.startNodeId)" in dialogue_controller,
           "DialogueController must reject missing, malformed-start or overlapping dialogue graphs")
+    check("HashSet<object> _gameplayBlockOwners" in input_router
+          and "AcquireGameplayBlock(object owner)" in input_router
+          and "ReleaseGameplayBlock(object owner)" in input_router
+          and "GameplayBlocked => _legacyGameplayBlocked || _gameplayBlockOwners.Count > 0" in input_router,
+          "PlayerInputRouter must track independently owned gameplay input blocks")
+    check("_inputBlockRouter = PlayerInputRouter.Instance;" in dialogue_controller
+          and "_inputBlockRouter.AcquireGameplayBlock(this);" in dialogue_controller
+          and "_inputBlockRouter.ReleaseGameplayBlock(this);" in dialogue_controller
+          and "SetGameplayBlocked(false)" not in dialogue_controller,
+          "DialogueController must release only its own gameplay input block")
     check("_focused.Interact(actorRoot.gameObject);" in proximity_interactor,
           "ProximityInteractor must dispatch focused dialogue interactions through IInteractable")
     check("MissionSignalBus.Publish(choice.signalId, Mathf.Max(1, choice.signalAmount));" in dialogue_controller,

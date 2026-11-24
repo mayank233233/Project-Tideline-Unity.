@@ -54,8 +54,9 @@ Previously, `MissionSignalBus.Publish()` invoked the event immediately and recur
 - Ignores additional signals while that completion is pending.
 - Advances the objective only from `DispatchCompleted`, after the current queue has drained.
 - Clears the pending state when a mission is started or progress is restored.
+- Subscribes to the bus's internal abort notification. If the 4,096-event cap discards a batch while an objective is completion-pending, the director clears the pending state and rolls the count back to at most `requiredCount - 1`. The objective must receive a fresh matching signal after the signal loop is fixed; a later unrelated batch cannot silently advance it.
 
-This keeps one signal-dispatch batch attached to the objective that was active when the batch began. Branch evaluation occurs after nested state changes have been applied.
+This keeps one signal-dispatch batch attached to the objective that was active when the batch began. Branch evaluation occurs after nested state changes have been applied. The abort notification itself is exception-isolated and does not raise `DispatchCompleted`.
 
 ## 3. Current source-level signal producers
 
@@ -71,7 +72,9 @@ The inspected selected-snapshot sources currently include these explicit signal 
 | `CinematicConfrontationController` | `confrontation.resolved`, `confrontation.withdrawn`, `confrontation.failed` | confrontation outcome |
 | `PublicAttentionState` | `world.attention.band.calm`, `world.attention.band.noticed`, `world.attention.band.escalated` | attention changes across a configured band boundary |
 
-The signal list is a runtime source inventory, not proof that any campaign mission consumes those signals.
+The signal list is a runtime source inventory, not proof that any campaign mission consumes those signals. One additional interface gap was found: `IInteractable.SignalId` is stored by `InteractableBase`, but `ProximityInteractor` does not read or publish it. The property must not be treated as a working generic mission signal.
+
+See the separate [Mission Signal Producer Inventory](MISSION_SIGNAL_PRODUCER_INVENTORY.md) for emission conditions, repeatability, interaction wiring, per-mission gaps and save/restore behaviour.
 
 ## 4. Remaining content and wiring gap
 
@@ -88,7 +91,7 @@ The next implementation gate is:
 
 ## 5. Verification
 
-The latest verified GitHub run is [44768084908](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/44768084908): **PASS — 126 checks, 33 C# files scanned**. The static validator checks source structure and ordering contracts; it does not execute Unity code.
+The static validator checks source structure, signal-producer declarations and ordering contracts; it does not execute Unity code. The latest Actions result should be read from the repository's [workflow history](../actions) after the current commits.
 
 The legacy Old Quay sequence validator still reports `SKIP` on the selected GitHub snapshot because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present there. The local recovered-tree pass from the previous audit remains a separate result.
 

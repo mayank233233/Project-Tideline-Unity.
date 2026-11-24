@@ -714,7 +714,7 @@ namespace ProjectTideline.Editor
             RouteRaceController route = routeObject.AddComponent<RouteRaceController>();
 
             float[] checkpointPositions = { 0f, 18f, 36f };
-            float[] checkpointLateralOffsets = { 0f, -3f, 3f };
+            float[] checkpointLateralOffsets = { 0f, -3.2f, 3.2f };
             RouteRaceCheckpoint[] checkpoints = new RouteRaceCheckpoint[checkpointPositions.Length];
             Material gatePaint = MakeMaterial("Delivery route checkpoint marker", new Color(0.86f, 0.48f, 0.13f));
             Material routePaint = MakeMaterial("Delivery route lane guidance", new Color(0.84f, 0.75f, 0.52f));
@@ -726,7 +726,7 @@ namespace ProjectTideline.Editor
                 checkpointObject.transform.position = new Vector3(checkpointX, 1.2f, checkpointPositions[i]);
                 BoxCollider trigger = checkpointObject.AddComponent<BoxCollider>();
                 trigger.isTrigger = true;
-                trigger.size = new Vector3(3.4f, 3f, 2.6f);
+                trigger.size = new Vector3(2.8f, 3f, 2.6f);
 
                 RouteRaceCheckpoint checkpoint = checkpointObject.AddComponent<RouteRaceCheckpoint>();
                 SerializedObject checkpointSerialized = new SerializedObject(checkpoint);
@@ -735,12 +735,12 @@ namespace ProjectTideline.Editor
                 checkpointSerialized.ApplyModifiedPropertiesWithoutUndo();
                 checkpoints[i] = checkpoint;
 
-                MakeBlock("Route gate post — left", new Vector3(checkpointX - 3.5f, 1.2f, checkpointPositions[i]),
+                MakeBlock("Route gate post — left", new Vector3(checkpointX - 2.8f, 1.2f, checkpointPositions[i]),
                     new Vector3(0.32f, 2.4f, 0.32f), gatePaint, false);
-                MakeBlock("Route gate post — right", new Vector3(checkpointX + 3.5f, 1.2f, checkpointPositions[i]),
+                MakeBlock("Route gate post — right", new Vector3(checkpointX + 2.8f, 1.2f, checkpointPositions[i]),
                     new Vector3(0.32f, 2.4f, 0.32f), gatePaint, false);
                 MakeBlock("Route gate crossbar", new Vector3(checkpointX, 2.48f, checkpointPositions[i]),
-                    new Vector3(7f, 0.28f, 0.32f), gatePaint, false);
+                    new Vector3(5.6f, 0.28f, 0.32f), gatePaint, false);
 
                 if (i > 0)
                 {
@@ -750,7 +750,7 @@ namespace ProjectTideline.Editor
                         new Vector3(midpointX, 0.105f, midpointZ),
                         new Vector3(0.16f, 0.025f, 3.4f), routePaint, false);
                     laneGuide.transform.rotation = Quaternion.Euler(0f,
-                        checkpointLateralOffsets[i] > checkpointLateralOffsets[i - 1] ? -13f : 13f, 0f);
+                        checkpointLateralOffsets[i] > checkpointLateralOffsets[i - 1] ? -18f : 18f, 0f);
                 }
             }
 

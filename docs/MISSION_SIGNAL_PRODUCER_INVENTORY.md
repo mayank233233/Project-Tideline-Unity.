@@ -77,7 +77,7 @@ This is deliberate: the old `void Interact(GameObject actor)` contract cannot re
 | Vehicle seats | `ProximityInteractor` finds `IInteractable` components and calls `VehicleSeatInteractable.Interact`; the seat component emits its three specific signals on successful transitions. | No tracked scene/prefab proves a configured seat, vehicle controller, driver seat, exit point, camera rig or NPC takeover setup. |
 | Vehicle collision | `VehicleDriveController` contains a Unity collision callback and publishes `vehicle.collision` when its conditions pass. | No tracked vehicle prefab/scene proves Rigidbody, colliders, wheel bindings or player-driven collision setup. |
 | Dialogue | `ProximityInteractor` dispatches focused `IInteractable` instances; the new `DialogueInteractable` calls `DialogueController.Begin(dialogueGraph)` using Inspector-assigned references. The controller rejects missing/invalid start nodes and overlapping conversations. | The code path now exists, but no tracked NPC prefab or scene assigns the graph/controller references. The prologue builder still explicitly says its generated graphs are not assigned to scene NPCs or mission triggers, and generated graph assets are not included in this source snapshot. |
-| Confrontation | `CinematicConfrontationController.Begin(actor, opponentAnimator)` is a callable entry point; `Finish` emits outcomes. | The controller is not an `IInteractable`, `ProximityInteractor` has no confrontation route, and no scene/call-site/UnityEvent evidence is included. Treat its signals as code paths, not verified playable interactions. |
+| Confrontation | `ProximityInteractor` dispatches `CinematicConfrontationInteractable`, which calls `CinematicConfrontationController.Begin(actor, opponentAnimator)`; `Finish` emits the result after the sequence. | The source-level path now exists, but no tracked scene/prefab assigns the controller or opponent Animator. This is not verified playable scene wiring. |
 | Relationships and story flags | Both ledgers store and serialize their state; dialogue choices apply consequences before publishing their explicit signal. | No scene/bootstrap asset proves that the persistent ledger instances and dialogue UI are configured in a playable PORT SABLE scene. |
 | Public attention | A persistent component listens to upstream mission signals and emits band-transition signals. | No tracked scene proves that the component exists or that a playable objective can cause the required transition. |
 
@@ -105,7 +105,7 @@ The current source now raises an internal `DispatchAborted` notification after c
 
 1. Decide whether generic interactions should publish an authored signal. If yes, implement it once at the interaction boundary with explicit duplicate/failed-interaction semantics; otherwise remove or clearly deprecate the unused `SignalId` property.
 2. Attach `DialogueInteractable` to each prologue NPC in a real scene/prefab and assign its DialogueController and generated graph references; then test each prologue end-to-end.
-3. Give the confrontation controller a real, tested entry path or keep its outcome signals out of the campaign contract.
+3. Attach and configure `CinematicConfrontationInteractable` on the intended opponent in a real scene/prefab, assign its controller and Animator, and test success, timeout/failure, withdrawal and disable cleanup.
 4. Implement the missing gameplay domains required by the campaign: race checkpoints/results, venue event state, job lifecycle, hub upgrades/resources, recruit selection, faction standing, score stages and pursuit/set-piece stages.
 5. For every objective, record: stable objective ID, exact signal ID, producer class/method, world interaction path, required count, whether it can repeat, whether it can be missed, and how partial progress survives save/restore.
 6. Extend the Unity Editor audit to resolve each objective signal against an explicit producer declaration and generated dialogue data. A source registry alone must not claim scene wiring.
@@ -115,6 +115,7 @@ The current source now raises an internal `DispatchAborted` notification after c
 
 - Removed the unused generic `IInteractable.SignalId` API rather than emitting false-positive completion events for failed interactions.
 - Added `DialogueInteractable`, which uses the existing proximity-interaction route to open a configured dialogue graph.
+- Added `CinematicConfrontationInteractable`, which uses the same route to start a configured non-graphic confrontation sequence; its controller still owns outcome signal emission.
 - Changed `DialogueController.Begin` to return success/failure, reject overlapping conversations and reject graphs whose start node is missing. Disabling the controller now closes the active graph and releases the gameplay input lock.
 - These are reusable source components only. No PORT SABLE scene or NPC prefab is included or claimed wired.
 

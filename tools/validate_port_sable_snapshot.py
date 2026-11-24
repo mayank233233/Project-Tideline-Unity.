@@ -599,6 +599,11 @@ def run() -> int:
           and 'BuildAmbientTrafficVehicle("Old Quay traffic — northbound B"' in blockout_builder
           and 'BuildAmbientTrafficVehicle("Old Quay traffic — southbound A"' in blockout_builder
           and 'BuildAmbientTrafficVehicle("Old Quay traffic — southbound B"' in blockout_builder
+          and 'BuildAmbientTrafficVehicle("Old Quay traffic — eastbound"' in blockout_builder
+          and 'BuildAmbientTrafficVehicle("Old Quay traffic — westbound"' in blockout_builder
+          and "BuildOldQuayJunction(" in blockout_builder
+          and "Old Quay southern cross street" in blockout_builder
+          and "ConfigureSignal(signal, stopLine, usesMainRoadSignal)" in blockout_builder
           and "AddComponent<VehicleDriveController>()" in blockout_builder
           and "AddComponent<TrafficVehicleDriver>()" in blockout_builder
           and 'FindProperty("cruisingSpeedKph").floatValue = 25f' in blockout_builder
@@ -606,6 +611,18 @@ def run() -> int:
           and "MakeEmissiveMaterial(name + \" — headlamp lens\"" in blockout_builder
           and "MakeEmissiveMaterial(name + \" — tail lamp lens\"" in blockout_builder,
           "Old Quay builder must create four staggered WheelCollider traffic cars with waypoint AI, grouped routes and visible lamp details")
+    traffic_signal = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficSignalController.cs")
+    for token in ("IsMainRoadGreen", "IsCrossStreetGreen", "firstClearanceDuration",
+                  "crossStreetGreenDuration", "ApplyPhase", "Time.time"):
+        check(token in traffic_signal, f"Timed traffic signal controller is missing: {token}")
+    for token in ("ConfigureSignal(", "IsTrafficSignalBlocking()", "signalStopLine",
+                  "signalApproachDistance", "signedDistance >= -1.5f"):
+        check(token in traffic_driver, f"Traffic stop-line integration is missing: {token}")
+    check("BuildTrafficSignalHead(" in blockout_builder
+          and "MakeTrafficStopLine(" in blockout_builder
+          and "controller.Configure(mainRed, mainGreen, crossRed, crossGreen" in blockout_builder,
+          "Old Quay junction must build visible signal heads and assign directional stop lines")
+
     check("AddComponent<PoliceResponseDirector>()" in blockout_builder
           and "responseDirector.Configure(attentionState, player.transform, responseText);" in blockout_builder
           and 'CreateTouchImage(hudRoot, "Police response HUD background"' in blockout_builder,

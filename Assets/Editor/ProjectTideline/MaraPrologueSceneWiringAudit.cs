@@ -57,6 +57,13 @@ namespace ProjectTideline.Editor
             if (narrative == null) rows.Add("Narrative state ledger: MISSING");
             if (relationships == null) rows.Add("NPC relationship ledger: MISSING");
 
+            if (director != null)
+            {
+                SerializedObject directorData = new SerializedObject(director);
+                if (!directorData.FindProperty("autoStart").boolValue)
+                    issues.Add("MissionDirector autoStart is disabled; the Mara prologue scene has no authored start trigger in this wiring contract.");
+            }
+
             MissionDefinition mission = FindMission(director, issues);
             DialogueGraph introGraph = FindGraph(IntroGraphId, issues);
             DialogueGraph nicoGraph = FindGraph(NicoGraphId, issues);
@@ -69,7 +76,11 @@ namespace ProjectTideline.Editor
                 DialogueGraph graph = serialized.FindProperty("dialogueGraph")?.objectReferenceValue as DialogueGraph;
                 DialogueController controller = serialized.FindProperty("dialogueController")?.objectReferenceValue as DialogueController;
                 if (graph != null && graph.graphId == IntroGraphId && controller == dialogue)
+                {
                     introBindings++;
+                    if (!HasSolidInteractionCollider(interactable))
+                        issues.Add("Mara's opening DialogueInteractable on '" + interactable.name + "' needs a non-trigger collider for ProximityInteractor.");
+                }
             }
             if (introBindings != 1)
                 issues.Add("Expected exactly one DialogueInteractable assigned to the Mara opening graph and the scene DialogueController; found " + introBindings + ".");
@@ -87,7 +98,11 @@ namespace ProjectTideline.Editor
                 SerializedObject serialized = new SerializedObject(start);
                 if (serialized.FindProperty("workshopOrder")?.objectReferenceValue == workshop
                     && serialized.FindProperty("deliveryRoute")?.objectReferenceValue == route)
+                {
                     validStarts++;
+                    if (!HasSolidInteractionCollider(start))
+                        issues.Add("MaraDeliveryStartInteractable on '" + start.name + "' needs a non-trigger collider.");
+                }
             }
             if (validStarts != 1)
                 issues.Add("Expected exactly one MaraDeliveryStartInteractable wired to the audited workshop order and route; found " + validStarts + ".");
@@ -108,7 +123,11 @@ namespace ProjectTideline.Editor
             {
                 SerializedObject serialized = new SerializedObject(interactable);
                 if (serialized.FindProperty("handoffController")?.objectReferenceValue == handoff)
+                {
                     validHandoffs++;
+                    if (!HasSolidInteractionCollider(interactable))
+                        issues.Add("MaraCustomerHandoffInteractable on '" + interactable.name + "' needs a non-trigger collider.");
+                }
             }
             if (validHandoffs != 1)
                 issues.Add("Expected exactly one MaraCustomerHandoffInteractable wired to the MaraDeliveryHandoffController; found " + validHandoffs + ".");
@@ -123,7 +142,11 @@ namespace ProjectTideline.Editor
                 MaraDeliveryHandoffController linkedHandoff =
                     serialized.FindProperty("handoffController")?.objectReferenceValue as MaraDeliveryHandoffController;
                 if (graph == nicoGraph && controller == dialogue && linkedHandoff == handoff)
+                {
                     validNico++;
+                    if (!HasSolidInteractionCollider(interactable))
+                        issues.Add("MaraPostDeliveryDialogueInteractable on '" + interactable.name + "' needs a non-trigger collider.");
+                }
             }
             if (validNico != 1)
                 issues.Add("Expected exactly one MaraPostDeliveryDialogueInteractable wired to Nico's graph, the shared DialogueController and handoff gate; found " + validNico + ".");
@@ -266,6 +289,9 @@ namespace ProjectTideline.Editor
 
             MaraWorkshopTaskInteractable[] stations = FindAll<MaraWorkshopTaskInteractable>();
             var found = new HashSet<string>(StringComparer.Ordinal);
+            if (stations.Length != expected.Length)
+                issues.Add("Expected exactly three MaraWorkshopTaskInteractable stations; found " + stations.Length + ".");
+
             foreach (MaraWorkshopTaskInteractable station in stations)
             {
                 SerializedObject stationData = new SerializedObject(station);
@@ -273,7 +299,11 @@ namespace ProjectTideline.Editor
                 MaraWorkshopOrderController linked =
                     stationData.FindProperty("orderController")?.objectReferenceValue as MaraWorkshopOrderController;
                 if (linked == workshop && !string.IsNullOrWhiteSpace(taskId))
+                {
                     found.Add(taskId);
+                    if (!HasSolidInteractionCollider(station))
+                        issues.Add("Workshop station '" + taskId + "' needs a non-trigger collider for proximity interaction.");
+                }
             }
             foreach (string taskId in expected)
                 if (!found.Contains(taskId))
@@ -297,7 +327,11 @@ namespace ProjectTideline.Editor
                 {
                     SerializedObject seatData = new SerializedObject(seat);
                     if (seatData.FindProperty("vehicle")?.objectReferenceValue == vehicle)
+                    {
                         matchingSeats++;
+                        if (!HasSolidInteractionCollider(seat))
+                            issues.Add("VehicleSeatInteractable on '" + seat.name + "' needs a non-trigger collider for proximity interaction.");
+                    }
                 }
                 if (matchingSeats != 1)
                     issues.Add("Expected exactly one VehicleSeatInteractable wired to the route's designated player vehicle; found " + matchingSeats + ".");
@@ -339,9 +373,19 @@ namespace ProjectTideline.Editor
         {
             List<T> result = new List<T>();
             foreach (T component in Resources.FindObjectsOfTypeAll<T>())
-                if (component != null && component.gameObject.scene.IsValid() && component.gameObject.scene.isLoaded)
+                if (component != null && component.isActiveAndEnabled
+                    && component.gameObject.scene.IsValid() && component.gameObject.scene.isLoaded)
                     result.Add(component);
             return result.ToArray();
+        }
+
+        private static bool HasSolidInteractionCollider(Component component)
+        {
+            if (component == null) return false;
+            Collider[] colliders = component.GetComponentsInChildren<Collider>(true);
+            foreach (Collider collider in colliders)
+                if (collider != null && !collider.isTrigger) return true;
+            return false;
         }
 
         private static int CountLoadedScenes()

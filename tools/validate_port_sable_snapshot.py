@@ -409,11 +409,6 @@ def run() -> int:
           and "AttentionBand.Escalated" in pressure_hud
           and "AttentionBand.Noticed" in pressure_hud,
           "Police-pressure HUD must map the existing attention bands into readable response tiers")
-    check('new GameObject("Public Attention / Police Pressure State")' in blockout_builder
-          and "AddComponent<PublicAttentionState>()" in blockout_builder
-          and "AddComponent<PolicePressureHUD>()" in blockout_builder
-          and "pressureHud.Configure(attentionState, pressureText);" in blockout_builder,
-          "Old Quay scene builder must wire the public-attention state into the police-pressure HUD")
     check("SignalId" not in interactable and "interaction.generic" not in interactable
           and "SignalId" not in proximity_interactor,
           "Unused generic interaction signal metadata must not remain in the interaction interface")
@@ -544,6 +539,11 @@ def run() -> int:
           and 'HasFlag("mara_work_order_accepted")' in mara_workshop,
           "Graph documentation and workshop interaction must enforce the persistent Juno acceptance gate")
     blockout_builder = read("Assets/Editor/ProjectTideline/PortSableBlockoutSceneBuilder.cs")
+    check('new GameObject("Public Attention / Police Pressure State")' in blockout_builder
+          and "AddComponent<PublicAttentionState>()" in blockout_builder
+          and "AddComponent<PolicePressureHUD>()" in blockout_builder
+          and "pressureHud.Configure(attentionState, pressureText);" in blockout_builder,
+          "Old Quay scene builder must wire the public-attention state into the police-pressure HUD")
     check("old_quay.saltline_customer_handoff" in blockout_builder
           and "CustomerHandoffDialoguePath" in blockout_builder
           and 'signalId = "mara.delivery.finished"' in blockout_builder

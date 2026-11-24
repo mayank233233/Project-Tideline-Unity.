@@ -26,8 +26,8 @@ namespace ProjectTideline
 
         private void OnDisable()
         {
-            // A scene transition or UI disable must never leave movement/vehicle input locked.
-            if (PlayerInputRouter.Instance != null) PlayerInputRouter.Instance.SetGameplayBlocked(false);
+            // Disabling the dialogue view closes the active graph and releases gameplay input.
+            Close();
         }
 
         private void OnDestroy()
@@ -35,12 +35,23 @@ namespace ProjectTideline
             if (closeButton != null) closeButton.onClick.RemoveListener(Close);
         }
 
-        public void Begin(DialogueGraph graph)
+        public bool Begin(DialogueGraph graph)
         {
-            if (graph == null) return;
+            if (graph == null || IsOpen) return false;
+
+            DialogueGraph.DialogueNode startNode = graph.FindNode(graph.startNodeId);
+            if (startNode == null)
+            {
+                Debug.LogError("Cannot begin dialogue graph '" + graph.graphId +
+                    "': its startNodeId does not resolve to a dialogue node.", graph);
+                return false;
+            }
+
             _graph = graph;
-            if (PlayerInputRouter.Instance != null) PlayerInputRouter.Instance.SetGameplayBlocked(true);
-            ShowNode(_graph.FindNode(_graph.startNodeId));
+            if (PlayerInputRouter.Instance != null)
+                PlayerInputRouter.Instance.SetGameplayBlocked(true);
+            ShowNode(startNode);
+            return true;
         }
 
         public void Close()

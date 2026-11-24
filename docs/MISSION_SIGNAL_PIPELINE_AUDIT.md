@@ -97,7 +97,7 @@ The next implementation gate is:
 
 ## 5. Verification
 
-The latest verified GitHub Actions run for the signal-producer audit pass is [45346398771](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45346398771), on commit `5bf77bc`: **PASS — 171 checks, 38 C# files scanned**. The legacy mission sequence validator reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is absent from this selected snapshot. The static validator checks repository structure and selected source contracts; it does not execute Unity code.
+The latest verified GitHub Actions run for the signal-producer audit pass is [45346602713](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45346602713), on commit `526185e`: **PASS — 173 checks, 38 C# files scanned**. The legacy mission sequence validator reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is absent from this selected snapshot. The static validator checks repository structure and selected source contracts; it does not execute Unity code.
 
 The legacy Old Quay sequence validator still reports `SKIP` on the selected GitHub snapshot because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present there. The local recovered-tree pass from the previous audit remains a separate result.
 

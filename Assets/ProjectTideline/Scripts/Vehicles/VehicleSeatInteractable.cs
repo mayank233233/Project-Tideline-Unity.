@@ -18,6 +18,7 @@ namespace ProjectTideline
         [SerializeField] private MissionDirector missionDirector;
         [SerializeField] private string requiredMissionId;
         [SerializeField] private string requiredObjectiveId;
+        [SerializeField] private string alternateAllowedObjectiveId;
         [Header("NPC vehicle state")]
         [SerializeField] private bool startsWithNpcDriver;
         [SerializeField] private GameObject npcDriverVisual;
@@ -47,11 +48,13 @@ namespace ProjectTideline
         public bool IsOccupied => _occupant != null;
         public bool IsOccupiedBy(GameObject actor) => actor != null && _occupant == actor;
 
-        public void ConfigureMissionGate(MissionDirector director, string missionId, string objectiveId)
+        public void ConfigureMissionGate(MissionDirector director, string missionId, string objectiveId,
+            string alternateObjectiveId = "")
         {
             missionDirector = director;
             requiredMissionId = missionId;
             requiredObjectiveId = objectiveId;
+            alternateAllowedObjectiveId = alternateObjectiveId;
         }
 
         private bool IsCurrentMissionObjective()
@@ -64,7 +67,9 @@ namespace ProjectTideline
             MissionObjective objective = missionDirector.CurrentObjective;
             return mission != null && objective != null
                 && string.Equals(mission.missionId, requiredMissionId, System.StringComparison.Ordinal)
-                && string.Equals(objective.objectiveId, requiredObjectiveId, System.StringComparison.Ordinal);
+                && (string.Equals(objective.objectiveId, requiredObjectiveId, System.StringComparison.Ordinal)
+                    || (!string.IsNullOrWhiteSpace(alternateAllowedObjectiveId)
+                        && string.Equals(objective.objectiveId, alternateAllowedObjectiveId, System.StringComparison.Ordinal)));
         }
 
         private void Awake()

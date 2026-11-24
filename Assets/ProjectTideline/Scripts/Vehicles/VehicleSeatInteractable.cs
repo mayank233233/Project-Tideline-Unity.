@@ -143,7 +143,7 @@ namespace ProjectTideline
             else actor.transform.position += transform.right * 1.8f + Vector3.up * 0.05f;
             if (_characterController != null) _characterController.enabled = true;
             if (_motor != null) _motor.enabled = true;
-            if (cameraRig != null) cameraRig.SetTarget(actor.transform, new Vector3(0f, 1.45f, 0f));
+            if (cameraRig != null) cameraRig.SetTarget(actor.transform, new Vector3(0f, 1.45f, 0f), true);
             _occupant = null;
             _characterController = null;
             _motor = null;

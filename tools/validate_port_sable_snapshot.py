@@ -422,6 +422,11 @@ def run() -> int:
           and "MissionSignalBus.PublishBatch(" in mission_audit
           and "observed.SequenceEqual" in mission_audit,
           "Editor audit must include FIFO and nested-signal batch regression cases")
+    check("RunSignalProducerCatalogSelfTests()" in mission_audit
+          and "catalog.TryResolve(\\"relationship.changed.mina_sato\\""
+          and "catalog.TryResolve(\\"world.attention.band.noticed\\""
+          and "catalog.TryResolve(\\"race.long_loop.finished\\"",
+          "Editor audit must include regression cases for exact and dynamic signal producer matching")
     check("dispatchCompletedCount == 1" in mission_audit
           and "if (EditorApplication.isPlaying)" in mission_audit,
           "Signal bus Editor tests must verify one completion callback and skip active Play Mode")

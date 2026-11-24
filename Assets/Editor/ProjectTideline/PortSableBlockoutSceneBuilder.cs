@@ -491,13 +491,24 @@ namespace ProjectTideline.Editor
             juno.transform.position = new Vector3(-15f, 1f, -5f);
             juno.GetComponent<Renderer>().sharedMaterial =
                 MakeMaterial("Juno Placeholder Material", new Color(0.24f, 0.38f, 0.40f));
-            DialogueInteractable junoInteractable = juno.AddComponent<DialogueInteractable>();
-            SerializedObject junoSerialized = new SerializedObject(junoInteractable);
-            junoSerialized.FindProperty("dialogueController").objectReferenceValue = dialogueController;
-            junoSerialized.FindProperty("dialogueGraph").objectReferenceValue = graph;
-            junoSerialized.FindProperty("talkPrompt").stringValue = "Talk to Juno";
-            junoSerialized.FindProperty("oneShot").boolValue = true;
-            junoSerialized.ApplyModifiedPropertiesWithoutUndo();
+            MissionDialogueSequenceInteractable junoInteractable =
+                juno.AddComponent<MissionDialogueSequenceInteractable>();
+            junoInteractable.Configure(missionDirector, dialogueController, "old_quay_first_steps",
+                new[]
+                {
+                    new MissionDialogueSequenceInteractable.DialogueStep
+                    {
+                        objectiveId = "meet_juno",
+                        graph = graph,
+                        prompt = "Talk to Juno"
+                    },
+                    new MissionDialogueSequenceInteractable.DialogueStep
+                    {
+                        objectiveId = "return_to_juno",
+                        graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(TutorialDebriefDialoguePath),
+                        prompt = "Report back to Juno"
+                    }
+                });
 
             GameObject ledger = MakeBlock("HARBOUR OFFICE — shipment ledger",
                 new Vector3(7f, 0.9f, 47f), new Vector3(1.6f, 1.8f, 1.2f),

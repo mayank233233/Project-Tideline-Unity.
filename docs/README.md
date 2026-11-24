@@ -23,6 +23,7 @@
 - `Assets/ProjectTideline/Scripts/Core/NarrativeStateLedger.cs`: persistent choice flags.
 - `Assets/ProjectTideline/Scripts/Interaction/DialogueInteractable.cs`: proximity-interaction entry point for Inspector-assigned dialogue graphs; scene/prefab references still need to be wired.
 - `Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationInteractable.cs`: proximity-interaction entry point for the non-graphic confrontation sequence; scene/prefab references still need to be wired.
+- `Assets/ProjectTideline/Scripts/Interaction/RouteRaceStartInteractable.cs`, `Assets/ProjectTideline/Scripts/World/RouteRaceController.cs` and `RouteRaceCheckpoint.cs`: ordered player-driven route checkpoints and route-finish signals; scene setup and competitive race results are not implemented.
 - `Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs`: rejects malformed or overlapping graphs and releases the input lock when disabled.
 - `Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs`: evaluates story-flag and relationship branches.
 - `Assets/Editor/ProjectTideline/PortSablePrologueDialogueBuilder.cs` / `PortSablePrologueDialogueAudit.cs`: generates and validates the three prologue graphs.

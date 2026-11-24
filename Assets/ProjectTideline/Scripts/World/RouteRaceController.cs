@@ -16,6 +16,8 @@ namespace ProjectTideline
 
         private bool _isActive;
         private int _nextCheckpointIndex;
+        private bool _startSignalPending;
+        private bool _startSignalAborted;
         private bool _finishSignalPending;
 
         public bool IsActive => _isActive;
@@ -45,8 +47,18 @@ namespace ProjectTideline
 
             _nextCheckpointIndex = 0;
             _isActive = true;
+            _startSignalPending = true;
+            _startSignalAborted = false;
             NotifyProgressChanged();
             MissionSignalBus.Publish(signalPrefix + ".started", 1);
+            _startSignalPending = false;
+            if (_startSignalAborted)
+            {
+                _isActive = false;
+                _nextCheckpointIndex = 0;
+                NotifyProgressChanged();
+                return false;
+            }
             return true;
         }
 
@@ -106,6 +118,18 @@ namespace ProjectTideline
 
         private void OnSignalDispatchAborted(int dispatched)
         {
+            if (_startSignalPending)
+            {
+                _startSignalAborted = true;
+                _isActive = false;
+                _nextCheckpointIndex = 0;
+                NotifyProgressChanged();
+                Debug.LogWarning("Route race '" + signalPrefix +
+                    "' could not start because its mission-signal batch aborted after " +
+                    dispatched + " events. Interact with the delivery board again after the signal loop is fixed.", this);
+                return;
+            }
+
             if (!_finishSignalPending) return;
 
             _finishSignalPending = false;

@@ -189,13 +189,13 @@ namespace ProjectTideline.Editor
             lookImage.gameObject.AddComponent<MobileTouchControl>()
                 .Configure(MobileTouchControlMode.LookPad, null, 0.055f);
 
-            CreateActionButton(canvas.transform, "JUMP", MobileTouchControlMode.JumpButton,
+            CreateActionButton(canvas.transform, "JUMP / HANDBRAKE", MobileTouchControlMode.JumpButton,
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
                 new Vector2(142f, 142f), new Vector2(-170f, 170f));
             CreateActionButton(canvas.transform, "INTERACT", MobileTouchControlMode.InteractButton,
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
                 new Vector2(126f, 126f), new Vector2(-340f, 126f));
-            CreateActionButton(canvas.transform, "SPRINT", MobileTouchControlMode.SprintButton,
+            CreateActionButton(canvas.transform, "SPRINT / THROTTLE", MobileTouchControlMode.SprintButton,
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
                 new Vector2(126f, 126f), new Vector2(-170f, 350f));
             return canvas.transform;
@@ -467,6 +467,34 @@ namespace ProjectTideline.Editor
             reportBoard.AddComponent<MissionSignalInteractable>().Configure(
                 MissionSignalInteractable.WorkshopReportSignal, "Report findings to Juno", true,
                 missionDirector, "old_quay_first_steps", "report_to_juno");
+
+            VehicleSeatInteractable deliverySeat = null;
+            VehicleDriveController deliveryVehicle = BuildDeliveryVehicle(cameraTransform, out deliverySeat);
+
+            // The marked bay only accepts the configured car after it has stopped with the player aboard.
+            MakeBlock("Customer bay — left stop line", new Vector3(-2.1f, 0.095f, 32f),
+                new Vector3(0.12f, 0.035f, 7f), MakeMaterial("Customer Bay Marking", new Color(0.83f, 0.48f, 0.12f)), false);
+            MakeBlock("Customer bay — right stop line", new Vector3(2.1f, 0.095f, 32f),
+                new Vector3(0.12f, 0.035f, 7f), MakeMaterial("Customer Bay Marking", new Color(0.83f, 0.48f, 0.12f)), false);
+            for (int z = 24; z <= 30; z += 3)
+                MakeBlock("Delivery route road chevron", new Vector3(0f, 0.096f, z),
+                    new Vector3(1.1f, 0.025f, 0.18f), MakeMaterial("Delivery Route Paint", new Color(0.78f, 0.72f, 0.55f)), false);
+
+            GameObject bay = new GameObject("CUSTOMER HANDOFF BAY — stop the delivery car here");
+            bay.transform.position = new Vector3(0f, 0.9f, 32f);
+            BoxCollider bayTrigger = bay.AddComponent<BoxCollider>();
+            bayTrigger.isTrigger = true;
+            bayTrigger.size = new Vector3(4.4f, 2.2f, 7f);
+            VehicleDeliveryCheckpoint checkpoint = bay.AddComponent<VehicleDeliveryCheckpoint>();
+            checkpoint.Configure(deliveryVehicle, deliverySeat);
+
+            GameObject customer = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            customer.name = "CUSTOMER — delivery recipient placeholder";
+            customer.transform.position = new Vector3(-1.8f, 1f, 35.5f);
+            customer.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial("Customer Placeholder Material", new Color(0.42f, 0.48f, 0.38f));
+            CustomerHandoffInteractable handoff = customer.AddComponent<CustomerHandoffInteractable>();
+            handoff.Configure(checkpoint, deliverySeat);
         }
 
 

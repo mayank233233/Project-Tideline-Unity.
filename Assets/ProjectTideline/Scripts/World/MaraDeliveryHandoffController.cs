@@ -3,8 +3,8 @@ using UnityEngine;
 namespace ProjectTideline
 {
     /// <summary>
-    /// Commits the customer's vehicle handoff after the assigned route has finished
-    /// and, when configured, the vehicle has stopped inside its delivery bay.
+    /// Commits the customer's vehicle handoff after the assigned route has finished,
+    /// the vehicle has stopped in its delivery bay, and the player has exited it.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class MaraDeliveryHandoffController : MonoBehaviour
@@ -12,6 +12,7 @@ namespace ProjectTideline
         [SerializeField] private RouteRaceController deliveryRoute;
         [SerializeField] private MissionDirector missionDirector;
         [SerializeField] private VehicleDeliveryCheckpoint deliveryBay;
+        [SerializeField] private VehicleSeatInteractable deliverySeat;
 
         private bool _handedOff;
         private bool _handoffPending;
@@ -19,13 +20,17 @@ namespace ProjectTideline
 
         public bool HasHandedOff => _handedOff || MissionProgressHasPassedHandoff;
         public bool CanCompleteHandoff => deliveryRoute != null && deliveryRoute.HasFinished
-            && (deliveryBay == null || deliveryBay.HasArrived) && !HasHandedOff && !_handoffPending;
+            && deliveryBay != null && deliveryBay.HasArrived
+            && deliverySeat != null && !deliverySeat.IsOccupied
+            && !HasHandedOff && !_handoffPending;
 
-        public void Configure(RouteRaceController route, MissionDirector director, VehicleDeliveryCheckpoint bay = null)
+        public void Configure(RouteRaceController route, MissionDirector director,
+            VehicleDeliveryCheckpoint bay, VehicleSeatInteractable seat)
         {
             deliveryRoute = route;
             missionDirector = director;
             deliveryBay = bay;
+            deliverySeat = seat;
         }
 
         private bool MissionProgressHasPassedHandoff
@@ -33,8 +38,14 @@ namespace ProjectTideline
             get
             {
                 MissionDefinition mission = missionDirector != null ? missionDirector.CurrentMission : null;
-                return mission != null && mission.missionId == "two_minutes_to_close"
-                    && missionDirector.CurrentObjectiveIndex >= 2;
+                if (mission == null) return false;
+
+                if (mission.missionId == "two_minutes_to_close")
+                    return missionDirector.CurrentObjectiveIndex >= 2;
+                if (mission.missionId == "old_quay_first_steps")
+                    return missionDirector.CurrentObjectiveIndex >= 7;
+
+                return false;
             }
         }
 

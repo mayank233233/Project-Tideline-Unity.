@@ -778,6 +778,15 @@ def run() -> int:
           and "new Vector3(0f, 0f, 90f)" in blockout_builder,
           "Generated cylindrical tyre meshes must apply the WheelCollider axis correction")
 
+    for token in (
+        'new Vector3(1.84f, 0.26f, 1.02f), bodyPaint, false)',
+        'new Vector3(1.78f, 0.22f, 0.92f), trim, false)',
+        'new Vector3(1.98f, 0.18f, 0.18f), trim, false)',
+        'new Vector3(0.12f, 0.22f, 1.55f), trim, false)',
+    ):
+        check(token in blockout_builder,
+              f"Delivery vehicle visual geometry must not add overlapping physics colliders: {token}")
+
     for token in ("ProgressChanged", "MissionCompleted", "objective.description", "mission.title"):
         check(token in mission_status_display,
               f"Mission objective HUD is missing event-driven display behavior: {token}")

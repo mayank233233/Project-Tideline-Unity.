@@ -427,6 +427,10 @@ def run() -> int:
           and 'catalog.TryResolve("world.attention.band.noticed"'
           and 'catalog.TryResolve("race.long_loop.finished"',
           "Editor audit must include regression cases for exact and dynamic signal producer matching")
+    check("evaluatorSelfTests.Any" in mission_audit
+          and "signalBusSelfTests.Any" in mission_audit
+          and "producerCatalogSelfTests.Any" in mission_audit,
+          "Mission audit status must fail when any Editor regression self-test fails")
     check("dispatchCompletedCount == 1" in mission_audit
           and "if (EditorApplication.isPlaying)" in mission_audit,
           "Signal bus Editor tests must verify one completion callback and skip active Play Mode")

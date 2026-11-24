@@ -46,6 +46,29 @@ The gameplay verbs below are copied from `CampaignCanon`. The final column descr
 | THE LAST COLLECTION | Branching multi-lead score with crew support | **Not authored.** No score-stage, crew-support or collection-completion producer is present. |
 | NO CLEAN EXIT | Final multi-lead confrontation and authored epilogue | **Not authored.** Generic confrontation outcomes exist in code, but their call path is not established and no finale MissionDefinition/branch assets exist. |
 
+## 2. Mara prologue — first objective contract
+
+The Mara prologue is the first campaign slice with a concrete source-level objective sequence.
+
+| Order | Objective | Completion signal | Producer |
+|---:|---|---|---|
+| 1 | Inspect steering, driver's door latch and engine rattle | `mara.workshop.order.completed` | `MaraWorkshopOrderController`, after all three distinct task IDs have been completed |
+| 2 | Deliver the customer's vehicle through the configured Old Quay-to-Saltline route | `mara.delivery.finished` | `MaraDeliveryRouteCompletionRelay`, after the assigned `RouteRaceController` drains its final checkpoint/finish batch |
+| 3 | Resolve Nico's challenge and close the shop | `prologue.mara.complete` | Final choice in `prologue.mara.nico_challenge` |
+
+The workshop task IDs are `steering_check`, `door_latch_check` and `engine_rattle_check`. Each is one-shot per controller instance; duplicate interactions do not count twice. The final task batches `mara.workshop.task.completed` and `mara.workshop.order.completed` atomically. If that batch aborts, the last task is rolled back and can be repeated.
+
+The route controller now requires a specific `VehicleDriveController` reference, so a different driven vehicle cannot satisfy this route. On final checkpoint, it publishes the generic route checkpoint/finish signals, then raises its `Finished` event only after `DispatchCompleted`. The Mara relay converts that event into `mara.delivery.finished`. If the batch aborts, the final checkpoint is re-armed and the mission-specific completion signal is not emitted.
+
+The dialogue builder now creates two Mara graphs: the Juno/work-order conversation and a separate Nico follow-up intended for the delivery endpoint. The post-delivery choice writes `mara_race_choice=1` or `2`, and the final choice publishes `prologue.mara.complete`.
+
+**Generation order in Unity:**
+1. Run **Project Tideline → 9 — Generate PORT SABLE Prologue Dialogue**.
+2. Run **Project Tideline → 12 — Generate Mara Prologue Mission**.
+3. Run **Project Tideline → 10 — Audit PORT SABLE Prologue Dialogue** and **Project Tideline → 11 — Audit Mission Assets and Branches**.
+
+This creates dialogue and mission ScriptableObjects only. A playable scene still needs a Mara hero prefab, customer vehicle prefab, PlayerInputRouter, ProximityInteractor, DialogueController/UI, Juno and Nico dialogue interactables, three workshop task stations, a workshop order controller, an assigned route controller with sequential trigger checkpoints, a route-start interaction, and a delivery completion relay. None of those scene/prefab instances is tracked in the current repository snapshot.
+
 ## 3. Existing signal producer inventory
 
 These are signals the current source can emit. Their existence does not establish that they are used by a PORT SABLE mission.

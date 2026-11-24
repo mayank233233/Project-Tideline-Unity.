@@ -777,9 +777,15 @@ def run() -> int:
           and "VehicleControlModeChanged?.Invoke(value)" in input_router,
           "Vehicle entry/exit must notify the mobile HUD of control-mode changes")
     check("contextualLabel.text = inVehicle ? \"ACCEL\" : \"SPRINT\"" in mobile_controls
-          and "contextualLabel.text = inVehicle ? \"BRAKE\" : \"JUMP\"" in mobile_controls
+          and "contextualLabel.text = inVehicle ? \"BRAKE / REV\" : \"JUMP\"" in mobile_controls
           and "VehicleControlModeChanged += OnVehicleControlModeChanged" in mobile_controls,
-          "Touch pedal labels must show accelerator and brake functions while driving")
+          "Touch pedal labels must show accelerator and brake/reverse functions while driving")
+    check("maxReverseSpeedKph" in vehicle_drive
+          and "reverseEngageSpeedKph" in vehicle_drive
+          and "reverseTorqueMultiplier" in vehicle_drive
+          and "longitudinalSpeedKph <= reverseEngageSpeedKph" in vehicle_drive
+          and "longitudinalSpeedKph > -Mathf.Max(1f, maxReverseSpeedKph)" in vehicle_drive,
+          "Player vehicle must have a speed-limited reverse mode that engages after braking")
     check('binding.FindPropertyRelative("driven").boolValue = i >= 2;' in blockout_builder
           and 'binding.FindPropertyRelative("steer").boolValue = i < 2;' in blockout_builder,
           "Generated delivery vehicle must have front steering and rear-wheel drive")

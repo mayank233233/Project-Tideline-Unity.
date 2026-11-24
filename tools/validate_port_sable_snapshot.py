@@ -462,8 +462,10 @@ def run() -> int:
           and "_handedOff = false;" in mara_handoff_controller
           and "MissionProgressHasPassedHandoff" in mara_handoff_controller,
           "Mara handoff must roll back on an aborted batch and restore from saved mission objective progress")
-    check("handoffController.TryCompleteHandoff(actor);" in mara_customer_handoff,
-          "Mara customer handoff interactable must call the one-time handoff controller")
+    check("handoffController.CanCompleteHandoffFor(actor)" in mara_customer_handoff
+          and "dialogueController.Begin(dialogueGraph);" in mara_customer_handoff
+          and "handoffController.TryCompleteHandoff(actor);" in mara_customer_handoff,
+          "Mara customer handoff must validate the assigned driver, open authored dialogue and retain its transactional fallback")
     check("public event Action Finished;" in route_race
           and "MissionSignalBus.DispatchCompleted += OnSignalDispatchCompleted;" in route_race
           and "MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;" in route_race
@@ -482,6 +484,14 @@ def run() -> int:
     check("handoffController == null || !handoffController.HasHandedOff" in mara_nico_interactable
           and "dialogueController.Begin(dialogueGraph);" in mara_nico_interactable,
           "Nico's follow-up dialogue must remain locked until customer handoff is complete or restored")
+    check("old_quay.saltline_customer_handoff" in blockout_builder
+          and "CustomerHandoffDialoguePath" in blockout_builder
+          and 'signalId = "mara.delivery.finished"' in blockout_builder
+          and 'relationshipCharacterId = "saltline_customer"' in blockout_builder
+          and "relationshipDelta = 2" in blockout_builder
+          and "relationshipDelta = -1" in blockout_builder
+          and 'FindProperty("dialogueGraph")' in blockout_builder,
+          "Generated Saltline customer dialogue must offer two persistent relationship outcomes and publish handoff only on choice")
     check("public bool HasFinished { get; private set; }" in route_race
           and "if (_isActive || HasFinished || !HasValidRoute())" in route_race,
           "Route completion state must gate follow-up dialogue and prevent route replay")

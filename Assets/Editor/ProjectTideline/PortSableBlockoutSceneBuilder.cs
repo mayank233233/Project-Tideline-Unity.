@@ -1456,12 +1456,9 @@ namespace ProjectTideline.Editor
                 node.transform.position = new Vector3(i == 0 ? -9f : 9f, 1f, -23f);
                 route[i] = node.transform;
             }
-            GameObject pedestrian = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            pedestrian.name = "DOCK WORKER — signal-gated crosswalk pedestrian";
-            pedestrian.transform.position = route[0].position;
-            pedestrian.transform.localScale = new Vector3(0.72f, 1f, 0.72f);
-            pedestrian.GetComponent<Renderer>().sharedMaterial =
-                MakeMaterial("Crosswalk pedestrian — muted ochre", new Color(0.58f, 0.39f, 0.24f));
+            GameObject pedestrian = BuildPedestrianCharacter(
+                "DOCK WORKER — signal-gated crosswalk pedestrian",
+                route[0].position, new Color(0.58f, 0.39f, 0.24f));
             AmbientPedestrianWalker walker = pedestrian.AddComponent<AmbientPedestrianWalker>();
             walker.Configure(route, 2f, 18f);
             walker.ConfigureCrossingSignal(signals);
@@ -1481,12 +1478,7 @@ namespace ProjectTideline.Editor
                 route[i] = node.transform;
             }
 
-            GameObject pedestrian = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            pedestrian.name = name;
-            pedestrian.transform.position = route[0].position;
-            pedestrian.transform.localScale = new Vector3(0.72f, 1f, 0.72f);
-            pedestrian.GetComponent<Renderer>().sharedMaterial =
-                MakeMaterial(name + " — placeholder material", clothingColor);
+            GameObject pedestrian = BuildPedestrianCharacter(name, route[0].position, clothingColor);
             pedestrian.AddComponent<AmbientPedestrianWalker>()
                 .Configure(route, walkingSpeed, 1.1f);
         }
@@ -1506,14 +1498,68 @@ namespace ProjectTideline.Editor
                 route[i] = node.transform;
             }
 
-            GameObject pedestrian = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            pedestrian.name = name;
-            pedestrian.transform.position = route[0].position;
-            pedestrian.transform.localScale = new Vector3(0.72f, 1f, 0.72f);
-            pedestrian.GetComponent<Renderer>().sharedMaterial =
-                MakeMaterial(name + " — placeholder material", clothingColor);
+            GameObject pedestrian = BuildPedestrianCharacter(name, route[0].position, clothingColor);
             pedestrian.AddComponent<AmbientPedestrianWalker>()
                 .Configure(route, walkingSpeed, 1.35f, startDelay);
+        }
+
+
+        private static GameObject BuildPedestrianCharacter(string name, Vector3 position, Color clothingColor)
+        {
+            // A single root collider preserves crossing occupancy; child visual parts have no colliders.
+            GameObject root = new GameObject(name);
+            root.transform.position = position;
+            CapsuleCollider bodyCollider = root.AddComponent<CapsuleCollider>();
+            bodyCollider.height = 1.85f;
+            bodyCollider.radius = 0.31f;
+            bodyCollider.center = new Vector3(0f, 0.02f, 0f);
+
+            Material clothing = MakeMaterial(name + " — workwear", clothingColor);
+            Material skin = MakeMaterial(name + " — skin", new Color(0.63f, 0.45f, 0.34f));
+            Material trousers = MakeMaterial(name + " — trousers", new Color(0.13f, 0.16f, 0.18f));
+            Material shoes = MakeMaterial(name + " — shoes", new Color(0.055f, 0.06f, 0.065f));
+
+            CreatePedestrianPart(root.transform, name + " — torso", PrimitiveType.Capsule,
+                new Vector3(0f, 0.12f, 0f), new Vector3(0.52f, 0.72f, 0.34f), clothing);
+            CreatePedestrianPart(root.transform, name + " — head", PrimitiveType.Sphere,
+                new Vector3(0f, 0.91f, 0f), new Vector3(0.36f, 0.39f, 0.34f), skin);
+
+            Transform[] arms = new Transform[2];
+            Transform[] legs = new Transform[2];
+            for (int side = 0; side < 2; side++)
+            {
+                float sign = side == 0 ? -1f : 1f;
+                GameObject arm = new GameObject(side == 0 ? "Left arm pivot" : "Right arm pivot");
+                arm.transform.SetParent(root.transform, false);
+                arm.transform.localPosition = new Vector3(sign * 0.34f, 0.39f, 0f);
+                arms[side] = arm.transform;
+                CreatePedestrianPart(arm.transform, name + " — sleeve", PrimitiveType.Capsule,
+                    new Vector3(0f, -0.27f, 0f), new Vector3(0.17f, 0.34f, 0.17f), clothing);
+
+                GameObject leg = new GameObject(side == 0 ? "Left leg pivot" : "Right leg pivot");
+                leg.transform.SetParent(root.transform, false);
+                leg.transform.localPosition = new Vector3(sign * 0.15f, -0.38f, 0f);
+                legs[side] = leg.transform;
+                CreatePedestrianPart(leg.transform, name + " — trouser leg", PrimitiveType.Capsule,
+                    new Vector3(0f, -0.27f, 0f), new Vector3(0.19f, 0.36f, 0.20f), trousers);
+                CreatePedestrianPart(leg.transform, name + " — shoe", PrimitiveType.Cube,
+                    new Vector3(0f, -0.57f, 0.075f), new Vector3(0.22f, 0.11f, 0.36f), shoes);
+            }
+
+            root.AddComponent<AmbientPedestrianAnimation>().Configure(arms, legs);
+            return root;
+        }
+
+        private static void CreatePedestrianPart(Transform parent, string name, PrimitiveType shape,
+            Vector3 localPosition, Vector3 localScale, Material material)
+        {
+            GameObject part = GameObject.CreatePrimitive(shape);
+            part.name = name;
+            part.transform.SetParent(parent, false);
+            part.transform.localPosition = localPosition;
+            part.transform.localScale = localScale;
+            part.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>());
         }
 
         private static VehicleDriveController BuildCustomerDeliveryVehicle(Transform cameraTransform,

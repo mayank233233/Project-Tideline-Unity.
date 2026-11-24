@@ -67,6 +67,14 @@ These are signals the current source can emit. Their existence does not establis
 | `race.long_loop.checkpoint` | `RouteRaceController.TryRegisterCheckpoint` | The player-driven vehicle enters the exact next configured checkpoint | Once per checkpoint per run. Skipped, repeated, out-of-order and NPC-driven vehicle entries are ignored. |
 | `race.long_loop.finished` | `RouteRaceController.TryRegisterCheckpoint` | The final configured checkpoint is accepted | Once per successful run. This means the route was completed; it does not encode time, rank, rival outcome or player choice. |
 | `race.long_loop.cancelled` | `RouteRaceController.CancelRace` | An active route is explicitly cancelled by a caller | Once per cancellation. No UI cancellation control or scene caller is currently wired. |
+| `race.long_loop.started` | `RouteRaceController.BeginRace` | A configured route with at least one valid ordered trigger starts through `RouteRaceStartInteractable` | Once per start. Invalid route configuration or an already-active event is rejected. |
+| `race.long_loop.checkpoint` | `RouteRaceController.TryRegisterCheckpoint` | The player-driven vehicle enters the exact next configured checkpoint | Once per checkpoint per run. Skipped, repeated, out-of-order and NPC-driven vehicle entries are ignored. |
+| `race.long_loop.finished` | `RouteRaceController.TryRegisterCheckpoint` | The final configured checkpoint is accepted | Once per successful run. This means the route was completed; it does not encode time, rank, rival outcome or player choice. |
+| `race.long_loop.cancelled` | `RouteRaceController.CancelRace` | An active route is explicitly cancelled by a caller | Once per cancellation. No UI cancellation control or scene caller is currently wired. |
+
+### Same-action signal batching
+
+`MissionSignalBus.PublishBatch` now queues all valid signals from one gameplay action before dispatch starts. It is used for dialogue choices that need both generic ledger notifications, NPC vehicle takeovers (`vehicle.entered` plus `vehicle.taken`), and the final race checkpoint (`.checkpoint` plus `.finished`). This prevents the first signal from advancing the MissionDirector before the second signal belonging to the same action is delivered.
 
 ### Generic interaction signal metadata removed
 

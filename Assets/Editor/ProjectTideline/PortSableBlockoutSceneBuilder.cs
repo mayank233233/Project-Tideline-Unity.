@@ -703,7 +703,7 @@ namespace ProjectTideline.Editor
             seatSerialized.FindProperty("cameraRig").objectReferenceValue =
                 cameraTransform.GetComponent<ThirdPersonCameraRig>();
             seatSerialized.ApplyModifiedPropertiesWithoutUndo();
-            seat.ConfigureMissionGate(missionDirector, "old_quay_first_steps", "enter_delivery_vehicle", "drive_customer_delivery_route");
+            seat.ConfigureMissionGate(missionDirector, "old_quay_first_steps", "enter_delivery_vehicle", "drive_customer_delivery_route", "park_in_delivery_bay");
 
             return driveController;
         }

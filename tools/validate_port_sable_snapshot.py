@@ -248,6 +248,12 @@ def run() -> int:
     relationship_ledger = read("Assets/ProjectTideline/Scripts/NPC/NPCRelationshipLedger.cs")
     narrative_ledger = read("Assets/ProjectTideline/Scripts/Core/NarrativeStateLedger.cs")
     dialogue_controller = read("Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs")
+    vehicle_seat = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleSeatInteractable.cs")
+    vehicle_drive = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDriveController.cs")
+    confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
+    attention = read("Assets/ProjectTideline/Scripts/World/PublicAttentionState.cs")
+    proximity_interactor = read("Assets/ProjectTideline/Scripts/Interaction/ProximityInteractor.cs")
+    interactable = read("Assets/ProjectTideline/Scripts/Interaction/IInteractable.cs")
     check("MissionBranchEvaluator.ConditionsMatch" in mission_director,
           "MissionDirector does not delegate branch decisions to the shared evaluator")
     check("InvokeDispatchCompletedSafely();" in mission_signal_bus
@@ -260,9 +266,24 @@ def run() -> int:
     check("MaxSignalsPerBatch = 4096" in mission_signal_bus
           and "PendingSignals.Clear();" in mission_signal_bus,
           "MissionSignalBus must cap runaway nested signal loops and clear the abandoned batch")
+    check("internal static event Action<int> DispatchAborted;" in mission_signal_bus
+          and "InvokeDispatchAbortedSafely(dispatched);" in mission_signal_bus,
+          "MissionSignalBus must notify the mission director when a signal batch is aborted")
+    check("private static void InvokeDispatchAbortedSafely(int dispatched)" in mission_signal_bus
+          and "((Action<int>)subscriber).Invoke(dispatched);" in mission_signal_bus,
+          "MissionSignalBus must isolate exceptions raised by abort notification listeners")
     check("MissionSignalBus.DispatchCompleted += OnSignalDispatchCompleted;" in mission_director
           and "MissionSignalBus.DispatchCompleted -= OnSignalDispatchCompleted;" in mission_director,
           "MissionDirector must subscribe and unsubscribe from signal-batch completion")
+    check("MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;" in mission_director
+          and "MissionSignalBus.DispatchAborted -= OnSignalDispatchAborted;" in mission_director,
+          "MissionDirector must subscribe and unsubscribe from aborted signal batches")
+    abort_handler = mission_director.split("private void OnSignalDispatchAborted(int dispatched)", 1)[-1].split(
+        "private void AdvanceObjective()", 1)[0]
+    check("_objectiveCompletionPending = false;" in abort_handler
+          and "_currentCount = Mathf.Min(_currentCount, required - 1);" in abort_handler
+          and "PublishProgress();" in abort_handler,
+          "MissionDirector must roll back a pending completion after an aborted signal batch")
     check("_objectiveCompletionPending" in mission_director
           and "objective == null || _objectiveCompletionPending ||" in mission_director,
           "MissionDirector must prevent repeated signals from advancing a completed objective twice")
@@ -298,6 +319,29 @@ def run() -> int:
     check('MissionSignalBus.Publish("relationship.changed." + choice.relationshipCharacterId, 1);' in dialogue_controller
           and 'MissionSignalBus.Publish("story.flag.changed", 1);' in dialogue_controller,
           "Dialogue choices without an explicit signal must retain generic ledger mission signals")
+    check('MissionSignalBus.Publish("vehicle.taken", 1);' in vehicle_seat
+          and 'MissionSignalBus.Publish("vehicle.entered", 1);' in vehicle_seat
+          and 'MissionSignalBus.Publish("vehicle.exited", 1);' in vehicle_seat,
+          "Vehicle seat producer must retain its three documented transition signals")
+    check('MissionSignalBus.Publish("vehicle.collision", 1);' in vehicle_drive
+          and "collision.relativeVelocity.sqrMagnitude < 64f" in vehicle_drive
+          and "_nextCollisionSignalAt = Time.time + 2.5f;" in vehicle_drive,
+          "Vehicle collision signal must retain its speed threshold and cooldown")
+    for signal in ("confrontation.resolved", "confrontation.withdrawn", "confrontation.failed"):
+        check(f'MissionSignalBus.Publish("{signal}", 1);' in confrontation,
+              f"Confrontation producer is missing {signal}")
+    check('"world.attention.band." + nextBand.ToString().ToLowerInvariant()' in attention,
+          "Public-attention producer must publish only configured band transitions")
+    check("public string SignalId => signalId;" in interactable
+          and "_focused.SignalId" not in proximity_interactor
+          and "MissionSignalBus.Publish" not in proximity_interactor,
+          "Audit note: generic IInteractable.SignalId is not currently emitted by ProximityInteractor")
+    check("MissionSignalBus.Publish(choice.signalId, Mathf.Max(1, choice.signalAmount));" in dialogue_controller,
+          "DialogueController must publish authored choice signals")
+    check("objectiveCount = missionDirector != null ? missionDirector.CurrentObjectiveCount : 0" in session,
+          "Session save must persist partial objective counts")
+    check("Mathf.Max(1, objective.requiredCount) - 1" in mission_director,
+          "Mission progress restore must clamp an active objective below its completion threshold")
     check("candidate.objectives == null || candidate.objectives.Length == 0" in mission_director,
           "MissionDirector can still auto-complete an empty placeholder mission")
     check("Refusing to auto-complete it." in mission_director,

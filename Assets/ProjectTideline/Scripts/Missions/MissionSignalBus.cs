@@ -30,6 +30,9 @@ namespace ProjectTideline
         /// </summary>
         public static event Action DispatchCompleted;
 
+        /// <summary>Raised when a runaway batch is discarded before normal completion.</summary>
+        internal static event Action<int> DispatchAborted;
+
         public static void Publish(string signalId, int amount = 1)
         {
             if (string.IsNullOrWhiteSpace(signalId) || amount <= 0)
@@ -52,6 +55,7 @@ namespace ProjectTideline
                             Debug.LogError("MissionSignalBus aborted a signal batch after " +
                                 MaxSignalsPerBatch + " events. Check for a cyclic signal publisher.");
                             PendingSignals.Clear();
+                            InvokeDispatchAbortedSafely(dispatched);
                             return;
                         }
 
@@ -81,6 +85,24 @@ namespace ProjectTideline
                 try
                 {
                     ((Action<string, int>)subscriber).Invoke(signalId, amount);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                }
+            }
+        }
+
+        private static void InvokeDispatchAbortedSafely(int dispatched)
+        {
+            Action<int> handlers = DispatchAborted;
+            if (handlers == null) return;
+
+            foreach (Delegate subscriber in handlers.GetInvocationList())
+            {
+                try
+                {
+                    ((Action<int>)subscriber).Invoke(dispatched);
                 }
                 catch (Exception exception)
                 {

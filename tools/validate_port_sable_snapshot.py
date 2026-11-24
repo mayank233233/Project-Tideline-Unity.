@@ -1278,6 +1278,33 @@ def run() -> int:
           and "campaign.GetArrayElementAtIndex(2).objectReferenceValue = paperTrailMission" in blockout_builder,
           "MissionDirector campaign must progress from the first score into The Paper Trail")
 
+    check("EnsureMarketLedgerMission()" in blockout_builder
+          and 'mission.missionId = "old_quay_market_ledger";' in blockout_builder
+          and 'mission.title = "The Market Ledger";' in blockout_builder
+          and "BuildMarketLedgerWorld(missionDirector);" in blockout_builder,
+          "Fourth Old Quay mission must be generated and its world interactions wired")
+    for token in (
+        "meet_market_vendor",
+        "recover_stock_tally",
+        "return_stock_tally",
+        "old_quay.market_ledger.vendor_met",
+        "old_quay.market_ledger.tally_recovered",
+        "old_quay.market_ledger.tally_returned",
+        "BREAKWATER PIER MARKET — stock tally vendor",
+        "STOCK TALLY — pier storage crate",
+        "BREAKWATER CAFE — owner awaiting stock tally",
+    ):
+        check(token in blockout_builder,
+              f"Market Ledger objective or interaction is missing: {token}")
+    check("campaign.arraySize = 4;" in blockout_builder
+          and "campaign.GetArrayElementAtIndex(3).objectReferenceValue = marketLedgerMission" in blockout_builder,
+          "Old Quay campaign must chain into The Market Ledger as its fourth mission")
+    check('mission.missionId = "old_quay_paper_trail";' in blockout_builder
+          and 'mission.endsCampaign = false;' in blockout_builder
+          and 'mission.missionId = "old_quay_market_ledger";' in blockout_builder
+          and 'mission.endsCampaign = true;' in blockout_builder,
+          "Paper Trail must lead into the final Old Quay Market Ledger mission")
+
     cs_files = sorted((ROOT / "Assets").rglob("*.cs"))
     check(len(cs_files) >= 20, "Too few C# files are present in the source snapshot")
     for file_path in cs_files:

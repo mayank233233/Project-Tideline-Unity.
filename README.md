@@ -51,6 +51,19 @@ Unity menu commands:
 
 Generated outlines are design records, not playable missions. Do not attach them to `MissionDirector`.
 
+## Generated Old Quay tutorial scene
+
+Run **Project Tideline → 14 — Build Playable Old Quay Blockout** from the Unity Editor after the runtime scripts have compiled. The command creates `Assets/ProjectTideline/Scenes/PortSable_OldQuay_Blockout.unity`, creates the tutorial DialogueGraph and MissionDefinition assets, adds the scene to Build Settings, and opens it.
+
+The generated first-play loop is:
+
+1. Find Juno outside Kade Motor Works and interact.
+2. Choose one of two responses. Both continue the objective; the choice changes Juno's relationship value.
+3. Walk to the harbour office kiosk and inspect the shipment ledger.
+4. Return to the workshop report board and report back.
+
+The scene includes a mission HUD, proximity prompt, dialogue panel, keyboard controls and touch controls. The world, Juno and player are primitive placeholders. There is no vehicle gameplay, pedestrian simulation, final character rig, save flow, cinematic presentation or Android performance validation in this generated tutorial. The menu command must still be run in Unity; the repository's static CI does not execute it or prove that the scene compiles or plays.
+
 ## Recovered technical foundation
 
 The recovered v0.4.9 bundle identifies source checkpoint `ba72e8d7ebec35f2158e318dab8afad75bf518b0`, Unity `6000.3.28f1`, URP 17.3, the Android target and a CC0 model installer. The original bundle's `v0.4.9` annotated tag peels to the same commit as `main`.

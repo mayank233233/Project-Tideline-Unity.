@@ -26,6 +26,73 @@ namespace ProjectTideline.Editor
             public string MissionId;
         }
 
+        private sealed class SignalProducerCatalog
+        {
+            private readonly Dictionary<string, HashSet<string>> exactSignals =
+                new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+
+            public bool HasRelationshipPattern;
+            public bool HasAttentionBandPattern;
+            public string RouteRacePrefix;
+            public int ExactSignalCount => exactSignals.Count;
+
+            public void Add(string signalId, string producer)
+            {
+                if (string.IsNullOrWhiteSpace(signalId)) return;
+                if (!exactSignals.TryGetValue(signalId, out HashSet<string> producers))
+                {
+                    producers = new HashSet<string>(StringComparer.Ordinal);
+                    exactSignals.Add(signalId, producers);
+                }
+                producers.Add(producer);
+            }
+
+            public bool TryResolve(string signalId, out string producer)
+            {
+                producer = string.Empty;
+                if (string.IsNullOrWhiteSpace(signalId)) return false;
+
+                if (exactSignals.TryGetValue(signalId, out HashSet<string> exact))
+                {
+                    producer = string.Join(", ", exact.OrderBy(x => x, StringComparer.Ordinal));
+                    return true;
+                }
+
+                const string relationshipPrefix = "relationship.changed.";
+                if (HasRelationshipPattern && signalId.StartsWith(relationshipPrefix, StringComparison.Ordinal)
+                    && signalId.Length > relationshipPrefix.Length)
+                {
+                    producer = "NPCRelationshipLedger.ChangeValue (dynamic character ID)";
+                    return true;
+                }
+
+                const string attentionPrefix = "world.attention.band.";
+                if (HasAttentionBandPattern && signalId.StartsWith(attentionPrefix, StringComparison.Ordinal))
+                {
+                    string band = signalId.Substring(attentionPrefix.Length);
+                    if (band == "calm" || band == "noticed" || band == "escalated")
+                    {
+                        producer = "PublicAttentionState.SetAttention (band transition)";
+                        return true;
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(RouteRacePrefix))
+                {
+                    foreach (string suffix in new[] { "started", "checkpoint", "finished", "cancelled" })
+                    {
+                        if (string.Equals(signalId, RouteRacePrefix + "." + suffix, StringComparison.Ordinal))
+                        {
+                            producer = "RouteRaceController (" + suffix + ")";
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
         [MenuItem("Project Tideline/11 — Audit Mission Assets and Branches", priority = 11)]
         public static void RunAudit()
         {
@@ -34,6 +101,9 @@ namespace ProjectTideline.Editor
             var rows = new List<string>();
 
             Dictionary<string, int> legacyOrder = AuditLegacyBuilderContract(errors, rows);
+            SignalProducerCatalog signalProducers = CollectSignalProducerCatalog();
+            int objectiveSignalsWithProducers = 0;
+            int objectiveSignalsMissingProducers = 0;
             var portSableOrder = new Dictionary<string, int>(StringComparer.Ordinal);
             for (int i = 0; i < CampaignCanon.Missions.Count; i++)
                 portSableOrder[CampaignCanon.Missions[i].Id] = i;
@@ -105,7 +175,22 @@ namespace ProjectTideline.Editor
                         if (string.IsNullOrWhiteSpace(objective.description))
                             errors.Add(mission.missionId + "/" + objective.objectiveId + ": objective description is blank.");
                         if (string.IsNullOrWhiteSpace(objective.completionSignal))
+                        {
                             errors.Add(mission.missionId + "/" + objective.objectiveId + ": completionSignal is blank.");
+                        }
+                        else if (signalProducers.TryResolve(objective.completionSignal, out string producer))
+                        {
+                            objectiveSignalsWithProducers++;
+                            rows.Add("Signal source: " + mission.missionId + "/" +
+                                objective.objectiveId + " -> " + objective.completionSignal + " [" + producer + "]");
+                        }
+                        else
+                        {
+                            objectiveSignalsMissingProducers++;
+                            errors.Add(mission.missionId + "/" + objective.objectiveId +
+                                ": completionSignal '" + objective.completionSignal +
+                                "' has no matching source-code publisher or generated dialogue choice.");
+                        }
                         if (objective.requiredCount < 1)
                             errors.Add(mission.missionId + "/" + objective.objectiveId + ": requiredCount must be at least one.");
                     }
@@ -219,6 +304,10 @@ namespace ProjectTideline.Editor
             rows.Add("MissionDefinition assets discovered: " + assets.Count);
             rows.Add("Objectives discovered: " + objectiveCount);
             rows.Add("Branch records discovered: " + branchCount);
+            rows.Add("Objective signals with source/data producers: " + objectiveSignalsWithProducers);
+            rows.Add("Objective signals without source/data producers: " + objectiveSignalsMissingProducers);
+            rows.Add("Exact signal IDs in source/data: " + signalProducers.ExactSignalCount);
+            rows.Add("Signal catalog limitation: source/data presence does not prove that a producer component is wired into a playable scene.");
             rows.Add("PORT SABLE MissionDefinition assets: " + portSableAssetCount + "/" + CampaignCanon.Missions.Count);
             rows.Add("Campaign outline assets (design only): " + outlineCount + "/" + CampaignCanon.Missions.Count);
             if (portSableMissing > 0)
@@ -278,6 +367,77 @@ namespace ProjectTideline.Editor
                 "\nErrors: " + errors.Count +
                 "\nWarnings: " + warnings.Count +
                 "\n\nReport: " + ReportPath, "OK");
+        }
+
+        private static SignalProducerCatalog CollectSignalProducerCatalog()
+        {
+            var catalog = new SignalProducerCatalog();
+            string[] sourcePaths = Directory.GetFiles("Assets", "*.cs", SearchOption.AllDirectories);
+
+            foreach (string sourcePath in sourcePaths)
+            {
+                string source;
+                try
+                {
+                    source = File.ReadAllText(sourcePath);
+                }
+                catch (IOException)
+                {
+                    continue;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    continue;
+                }
+
+                string producer = sourcePath.Replace('\\', '/');
+                foreach (Match match in Regex.Matches(source,
+                    @"MissionSignalBus\\.Publish\\s*\\(\\s*""(?<signal>[^""]+)"""))
+                    catalog.Add(match.Groups["signal"].Value, producer);
+
+                foreach (Match match in Regex.Matches(source,
+                    @"new\\s+MissionSignalBus\\.Signal\\s*\\(\\s*""(?<signal>[^""]+)"""))
+                    catalog.Add(match.Groups["signal"].Value, producer);
+
+                if (source.Contains("MissionSignalBus.Publish(\\"relationship.changed.\\" +"))
+                    catalog.HasRelationshipPattern = true;
+                if (source.Contains("MissionSignalBus.Publish(\\"world.attention.band.\\" +"))
+                    catalog.HasAttentionBandPattern = true;
+
+                if (Path.GetFileName(sourcePath) == "RouteRaceController.cs")
+                {
+                    Match prefix = Regex.Match(source,
+                        @"signalPrefix\\s*=\\s*""(?<prefix>[^""]+)""");
+                    if (prefix.Success
+                        && source.Contains('"' + ".started" + '"')
+                        && source.Contains('"' + ".checkpoint" + '"')
+                        && source.Contains('"' + ".finished" + '"')
+                        && source.Contains('"' + ".cancelled" + '"'))
+                        catalog.RouteRacePrefix = prefix.Groups["prefix"].Value;
+                }
+            }
+
+            // Dialogue choice signal IDs are data-driven; include generated graph assets
+            // rather than treating arbitrary dynamic strings as registered producers.
+            string[] dialogueGuids = AssetDatabase.FindAssets("t:DialogueGraph");
+            foreach (string guid in dialogueGuids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                DialogueGraph graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(path);
+                if (graph == null || graph.nodes == null) continue;
+
+                foreach (DialogueGraph.DialogueNode node in graph.nodes)
+                {
+                    if (node == null || node.choices == null) continue;
+                    foreach (DialogueGraph.DialogueChoice choice in node.choices)
+                    {
+                        if (choice != null && !string.IsNullOrWhiteSpace(choice.signalId))
+                            catalog.Add(choice.signalId, "DialogueGraph " + graph.graphId);
+                    }
+                }
+            }
+
+            return catalog;
         }
 
         private static Dictionary<string, int> AuditLegacyBuilderContract(List<string> errors, List<string> rows)

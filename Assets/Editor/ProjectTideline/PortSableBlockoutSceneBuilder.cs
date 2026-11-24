@@ -819,6 +819,26 @@ namespace ProjectTideline.Editor
                 new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
             BuildAmbientPedestrian("LOCAL RESIDENT — west sidewalk", -9.35f,
                 new[] { 49f, 20f, -5f, -29f }, new Color(0.30f, 0.39f, 0.52f), 1.05f);
+            BuildAmbientPedestrianRoute("BREAKWATER CAFE CUSTOMER", new[]
+            {
+                new Vector3(-44f, 1f, -43.2f), new Vector3(-24f, 1f, -43.2f),
+                new Vector3(-24f, 1f, -42.4f), new Vector3(-44f, 1f, -42.4f)
+            }, new Color(0.48f, 0.28f, 0.34f), 0.92f, 1.1f);
+            BuildAmbientPedestrianRoute("QUAY TOOL AND TACKLE CUSTOMER", new[]
+            {
+                new Vector3(24f, 1f, -43.2f), new Vector3(44f, 1f, -43.2f),
+                new Vector3(44f, 1f, -42.4f), new Vector3(24f, 1f, -42.4f)
+            }, new Color(0.28f, 0.43f, 0.38f), 1.0f, 2.4f);
+            BuildAmbientPedestrianRoute("PIER MARKET VENDOR", new[]
+            {
+                new Vector3(18f, 1f, 57f), new Vector3(38f, 1f, 57f),
+                new Vector3(38f, 1f, 75f), new Vector3(18f, 1f, 75f)
+            }, new Color(0.55f, 0.43f, 0.25f), 0.82f, 0.7f);
+            BuildAmbientPedestrianRoute("DOCK PORTER — pier approach", new[]
+            {
+                new Vector3(15f, 1f, 52f), new Vector3(42f, 1f, 52f),
+                new Vector3(42f, 1f, 78f), new Vector3(15f, 1f, 78f)
+            }, new Color(0.26f, 0.36f, 0.48f), 1.12f, 3.2f);
         }
 
         private static void BuildFirstScoreWorld(VehicleDriveController getawayVehicle,
@@ -1143,6 +1163,31 @@ namespace ProjectTideline.Editor
                 MakeMaterial(name + " — placeholder material", clothingColor);
             pedestrian.AddComponent<AmbientPedestrianWalker>()
                 .Configure(route, walkingSpeed, 1.1f);
+        }
+
+
+        private static void BuildAmbientPedestrianRoute(string name, Vector3[] routePositions,
+            Color clothingColor, float walkingSpeed, float startDelay)
+        {
+            if (routePositions == null || routePositions.Length < 2) return;
+            Transform[] route = new Transform[routePositions.Length];
+            GameObject routeRoot = new GameObject(name + " — waypoint route");
+            for (int i = 0; i < routePositions.Length; i++)
+            {
+                GameObject node = new GameObject("Walk node " + (i + 1));
+                node.transform.SetParent(routeRoot.transform, false);
+                node.transform.position = routePositions[i];
+                route[i] = node.transform;
+            }
+
+            GameObject pedestrian = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            pedestrian.name = name;
+            pedestrian.transform.position = route[0].position;
+            pedestrian.transform.localScale = new Vector3(0.72f, 1f, 0.72f);
+            pedestrian.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial(name + " — placeholder material", clothingColor);
+            pedestrian.AddComponent<AmbientPedestrianWalker>()
+                .Configure(route, walkingSpeed, 1.35f, startDelay);
         }
 
         private static VehicleDriveController BuildCustomerDeliveryVehicle(Transform cameraTransform,

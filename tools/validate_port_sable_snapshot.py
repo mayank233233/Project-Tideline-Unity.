@@ -275,6 +275,7 @@ def run() -> int:
     route_checkpoint = read("Assets/ProjectTideline/Scripts/World/RouteRaceCheckpoint.cs")
     vehicle_seat = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleSeatInteractable.cs")
     vehicle_drive = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDriveController.cs")
+    traffic_driver = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficVehicleDriver.cs")
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
     attention = read("Assets/ProjectTideline/Scripts/World/PublicAttentionState.cs")
     proximity_interactor = read("Assets/ProjectTideline/Scripts/Interaction/ProximityInteractor.cs")
@@ -358,6 +359,18 @@ def run() -> int:
           and "collision.relativeVelocity.sqrMagnitude < 64f" in vehicle_drive
           and "_nextCollisionSignalAt = Time.time + 2.5f;" in vehicle_drive,
           "Vehicle collision signal must retain its speed threshold and cooldown")
+    check("obstacleCheckInterval = 0.12f" in traffic_driver
+          and "private bool IsObstacleBlocking()" in traffic_driver
+          and "Time.fixedTime < _nextObstacleCheckTime" in traffic_driver
+          and "_cachedObstacleBlocked" in traffic_driver
+          and "_obstacleCheckPhase" in traffic_driver
+          and "Physics.SphereCastNonAlloc(" in traffic_driver,
+          "Traffic obstacle sensing must reuse cached results between staggered, non-allocating physics samples")
+    traffic_fixed_update = traffic_driver.split("private void FixedUpdate()", 1)[-1].split(
+        "private bool IsObstacleBlocking()", 1)[0]
+    check("IsObstacleBlocking()" in traffic_fixed_update
+          and "Physics.SphereCastNonAlloc(" not in traffic_fixed_update,
+          "Traffic steering must not issue an obstacle physics query on every FixedUpdate tick")
     for signal in ("confrontation.resolved", "confrontation.withdrawn", "confrontation.failed"):
         check(f'MissionSignalBus.Publish("{signal}", 1);' in confrontation,
               f"Confrontation producer is missing {signal}")

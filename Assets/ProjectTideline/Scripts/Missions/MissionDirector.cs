@@ -45,12 +45,14 @@ namespace ProjectTideline
         {
             MissionSignalBus.Raised += OnSignal;
             MissionSignalBus.DispatchCompleted += OnSignalDispatchCompleted;
+            MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;
         }
 
         private void OnDisable()
         {
             MissionSignalBus.Raised -= OnSignal;
             MissionSignalBus.DispatchCompleted -= OnSignalDispatchCompleted;
+            MissionSignalBus.DispatchAborted -= OnSignalDispatchAborted;
         }
 
         private void Start()
@@ -167,6 +169,26 @@ namespace ProjectTideline
             MissionObjective objective = CurrentObjective;
             if (objective != null && _currentCount >= Mathf.Max(1, objective.requiredCount))
                 AdvanceObjective();
+        }
+
+        private void OnSignalDispatchAborted(int dispatched)
+        {
+            if (!_objectiveCompletionPending) return;
+
+            MissionObjective objective = CurrentObjective;
+            _objectiveCompletionPending = false;
+
+            if (objective != null)
+            {
+                // Fail closed: the batch did not drain, so require one fresh matching
+                // signal rather than leaving the objective pending until an unrelated batch.
+                int required = Mathf.Max(1, objective.requiredCount);
+                _currentCount = Mathf.Min(_currentCount, required - 1);
+                PublishProgress();
+            }
+
+            Debug.LogWarning("Mission objective completion was rolled back because the signal batch aborted after " +
+                dispatched + " events. Resolve the signal loop and repeat the objective action.", this);
         }
 
         private void AdvanceObjective()

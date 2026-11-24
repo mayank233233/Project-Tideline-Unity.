@@ -436,6 +436,9 @@ def run() -> int:
           "Mara scene audit must inspect actual components in loaded Unity scenes, not prefab assets")
     for scene_contract in (
         "ValidateDialogueView(dialogue, issues)",
+        "ValidateDialogueCapacity(dialogue, introGraph, nicoGraph, issues)",
+        "MaxChoiceCount(introGraph)",
+        "MaxChoiceCount(nicoGraph)",
         "choiceButtons and choiceLabels",
         "MaraWorkshopTaskInteractable",
         "VehicleSeatInteractable",

@@ -576,6 +576,57 @@ def run() -> int:
         check(token in blockout_builder,
               f"Generated scene is missing mobile HUD wiring: {token}")
 
+    delivery_checkpoint = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDeliveryCheckpoint.cs")
+    customer_handoff = read("Assets/ProjectTideline/Scripts/Interaction/CustomerHandoffInteractable.cs")
+    for token in (
+        'DeliveryArrivedSignal = "old_quay.delivery_arrived"',
+        "OnTriggerStay(Collider other)",
+        "candidateBody != deliveryVehicle.GetComponent<Rigidbody>()",
+        "!driverSeat.IsOccupied",
+        "deliveryVehicle.SpeedKph > maximumHandoffSpeedKph",
+        'MissionSignalBus.Publish("old_quay.delivery_arrived", 1)',
+    ):
+        check(token in delivery_checkpoint,
+              f"Delivery bay checkpoint is missing: {token}")
+    for token in (
+        'HandoffAcceptedSignal = "old_quay.customer_handoff_accepted"',
+        "deliveryCheckpoint.HasArrived",
+        "deliverySeat.IsOccupiedBy(actor)",
+        'MissionSignalBus.Publish("old_quay.customer_handoff_accepted", 1)',
+    ):
+        check(token in customer_handoff,
+              f"Customer handoff interaction is missing: {token}")
+    for token in (
+        "public bool IsOccupied => _occupant != null",
+        "SetVehicleControlMode(true)",
+        "SetVehicleControlMode(false)",
+    ):
+        check(token in vehicle_seat,
+              f"Vehicle seat/input integration is missing: {token}")
+    for token in (
+        "WheelCollider",
+        "wheelCollider.radius = 0.36f",
+        "VehicleDriveController drive = vehicleObject.AddComponent<VehicleDriveController>()",
+        "new WheelBindingSetup(-0.86f, 1.28f, true, false",
+        "new WheelBindingSetup(0.86f, -1.28f, false, true",
+        "VehicleSeatInteractable",
+        "Customer bay — left stop line",
+        "checkpoint.Configure(deliveryVehicle, deliverySeat)",
+        "handoff.Configure(checkpoint, deliverySeat)",
+    ):
+        check(token in blockout_builder,
+              f"Generated drivable delivery sequence is missing: {token}")
+    for objective in (
+        "enter_delivery_car",
+        "deliver_to_customer",
+        "customer_handoff",
+        "vehicle.entered",
+        "old_quay.delivery_arrived",
+        "old_quay.customer_handoff_accepted",
+    ):
+        check(objective in blockout_builder,
+              f"Generated tutorial mission is missing delivery objective/signal: {objective}")
+
     mission_signal_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MissionSignalInteractable.cs")
     dialogue_interactable = read("Assets/ProjectTideline/Scripts/Interaction/DialogueInteractable.cs")
     mission_status_display = read("Assets/ProjectTideline/Scripts/UI/MissionStatusDisplay.cs")

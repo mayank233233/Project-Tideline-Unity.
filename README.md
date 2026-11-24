@@ -12,7 +12,7 @@ The campaign follows three playable leads tied together by a failed waterfront s
 
 The city is **Port Sable**, with seven planned districts, six major factions, eight named supporting characters, one investigative institution, three lead prologues, eighteen core missions and three endings. The story's shared-history event is Tideglass; its present-day inciting incident is Harbour Exchange.
 
-Read the [full story canon](PORT_SABLE_STORY_CANON.md), [visual direction and mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), [three-lead integration specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md), [criminal ecosystem and rival-crew brief](docs/PORT_SABLE_CRIMINAL_ECOSYSTEM.md), [opening campaign mission design](docs/PORT_SABLE_OPENING_CAMPAIGN.md), [narrative-state/save contract](docs/PORT_SABLE_NARRATIVE_STATE.md), the [signature score design](docs/PORT_SABLE_SIGNATURE_SCORE_ALL_THE_WAY_DOWN.md), and the [mission asset/branch audit](docs/MISSION_ASSET_BRANCH_AUDIT.md), the [mission signal pipeline audit](docs/MISSION_SIGNAL_PIPELINE_AUDIT.md), and the [mission signal producer inventory](docs/MISSION_SIGNAL_PRODUCER_INVENTORY.md).
+Read the [prologue dialogue graph and scene wiring reference](docs/PORT_SABLE_PROLOGUE_DIALOGUE_GRAPHS.md), the [full story canon](PORT_SABLE_STORY_CANON.md), [visual direction and mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), [three-lead integration specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md), [criminal ecosystem and rival-crew brief](docs/PORT_SABLE_CRIMINAL_ECOSYSTEM.md), [opening campaign mission design](docs/PORT_SABLE_OPENING_CAMPAIGN.md), [narrative-state/save contract](docs/PORT_SABLE_NARRATIVE_STATE.md), the [signature score design](docs/PORT_SABLE_SIGNATURE_SCORE_ALL_THE_WAY_DOWN.md), and the [mission asset/branch audit](docs/MISSION_ASSET_BRANCH_AUDIT.md), the [mission signal pipeline audit](docs/MISSION_SIGNAL_PIPELINE_AUDIT.md), and the [mission signal producer inventory](docs/MISSION_SIGNAL_PRODUCER_INVENTORY.md).
 
 ## Campaign data tools
 
@@ -22,7 +22,7 @@ The source includes:
 - `CampaignCanonAudit.cs`: Unity Editor validation for missing/duplicate IDs, incomplete campaign structure and the separate institution registry.
 - `MissionAssetAudit.cs`: scans serialized MissionDefinition assets, objective signals against actual source/data producers, branches, fallbacks, ending flags, unconsumed story flags and legacy builder filename wiring. A source match is not proof of scene/prefab wiring.
 - `MissionBranchEvaluator.cs`: shared branch-condition evaluator; missing relationship/story values are not coerced to zero.
-- `PortSablePrologueDialogueBuilder.cs`: creates four dialogue graphs across three lead prologues; Mara's Juno/work-order opening and Nico post-delivery scene are separate graphs, and scene/NPC wiring is still required.
+- `PortSablePrologueDialogueBuilder.cs`: creates four dialogue graphs across three lead prologues; Mara's Juno/work-order opening and Nico post-delivery conversation are separate graphs. See the [exact graph/node/choice reference](docs/PORT_SABLE_PROLOGUE_DIALOGUE_GRAPHS.md).
 - `PortSablePrologueDialogueAudit.cs`: checks graph IDs, node links, reachability and required saved choice flags.
 - `PlayableLeadPrefabAudit.cs`: blocks missing or reused hero meshes, invalid animation rigs, missing locomotion clips and inadequate LOD setup.
 - `NarrativeStateLedger.cs`, `DialogueController.cs` and `MissionDirector.cs`: persist dialogue choice flags and evaluate later mission branches.
@@ -31,8 +31,9 @@ The source includes:
 - `MissionSignalBus.cs`: FIFO nested dispatch, exception-isolated listeners, batch publication for multiple outcomes from one action, and runaway-batch abort recovery. The unused generic `IInteractable.SignalId` API has been removed.
 - `MaraWorkshopOrderController.cs` / `MaraWorkshopTaskInteractable.cs`: three distinct final vehicle checks; the mission only advances after all three tasks complete.
 - `MaraDeliveryRouteCompletionRelay.cs`: emits `mara.delivery.finished` only after the assigned route has fully drained its final signal batch.
-- `MaraDeliveryStartInteractable.cs` / `MaraPostDeliveryDialogueInteractable.cs`: gate the drive until workshop checks pass and gate Nico's graph until the route is fully complete.
+- `MaraDeliveryStartInteractable.cs` / `MaraPostDeliveryDialogueInteractable.cs`: gate route start until the workshop order is complete and gate Nico's graph until customer handoff is complete.
 - `MaraPrologueMissionBuilder.cs`: generates one three-objective `two_minutes_to_close` MissionDefinition after both Mara dialogue graphs exist.
+- `MaraPrologueSceneWiringAudit.cs`: checks actual loaded-scene references for the player, input, dialogue UI/graphs, three workshop stations, vehicle seat, ordered delivery checkpoints, customer handoff and mission objective signals. It reports missing wiring; it does not create a fake scene.
 - `SaveSnapshot.cs` / `SessionSaveCoordinator.cs`: schema v3 saves the active lead, all lead positions and narrative flags, while reading v1/v2 legacy saves.
 - `CampaignMissionOutline.cs`: separate narrative-outline data type, intentionally not a playable `MissionDefinition`.
 - `CampaignOutlineAssetBuilder.cs`: Unity Editor command to create/update 21 editable campaign outline assets without deleting stale records.
@@ -45,6 +46,7 @@ Unity menu commands:
 - **Project Tideline → 10 — Audit PORT SABLE Prologue Dialogue**
 - **Project Tideline → 11 — Audit Mission Assets and Branches**
 - **Project Tideline → 12 — Generate Mara Prologue Mission** (run after dialogue generation; creates one Mara MissionDefinition asset)
+- **Project Tideline → 13 — Audit Mara Prologue Scene Wiring** (run with the Mara scene loaded; checks serialized scene references without modifying the scene)
 
 Generated outlines are design records, not playable missions. Do not attach them to `MissionDirector`.
 

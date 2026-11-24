@@ -6,6 +6,18 @@ namespace ProjectTideline
 {
     public static class MissionSignalBus
     {
+        public readonly struct Signal
+        {
+            public readonly string SignalId;
+            public readonly int Amount;
+
+            public Signal(string signalId, int amount = 1)
+            {
+                SignalId = signalId;
+                Amount = amount;
+            }
+        }
+
         private readonly struct PendingSignal
         {
             public readonly string SignalId;
@@ -39,7 +51,32 @@ namespace ProjectTideline
                 return;
 
             PendingSignals.Enqueue(new PendingSignal(signalId, amount));
-            if (IsDispatching)
+            DispatchPendingSignals();
+        }
+
+        /// <summary>
+        /// Enqueues every valid signal before dispatch begins. Use this when one gameplay action
+        /// has multiple outcomes so the mission director cannot advance between those outcomes.
+        /// </summary>
+        public static void PublishBatch(params Signal[] signals)
+        {
+            if (signals == null || signals.Length == 0)
+                return;
+
+            foreach (Signal signal in signals)
+            {
+                if (string.IsNullOrWhiteSpace(signal.SignalId) || signal.Amount <= 0)
+                    continue;
+
+                PendingSignals.Enqueue(new PendingSignal(signal.SignalId, signal.Amount));
+            }
+
+            DispatchPendingSignals();
+        }
+
+        private static void DispatchPendingSignals()
+        {
+            if (IsDispatching || PendingSignals.Count == 0)
                 return;
 
             IsDispatching = true;

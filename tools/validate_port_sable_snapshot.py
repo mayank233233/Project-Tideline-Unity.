@@ -204,6 +204,8 @@ def run() -> int:
     mara_customer_handoff = read("Assets/ProjectTideline/Scripts/Interaction/MaraCustomerHandoffInteractable.cs")
     mara_delivery_start = read("Assets/ProjectTideline/Scripts/Interaction/MaraDeliveryStartInteractable.cs")
     mara_nico_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MaraPostDeliveryDialogueInteractable.cs")
+    mara_scene_audit = read("Assets/Editor/ProjectTideline/MaraPrologueSceneWiringAudit.cs")
+    prologue_graph_docs = read("docs/PORT_SABLE_PROLOGUE_DIALOGUE_GRAPHS.md")
     for graph_id in (
         "prologue.mara.two_minutes_to_close",
         "prologue.mara.nico_challenge",
@@ -420,6 +422,35 @@ def run() -> int:
     check("MissionProgressHasPassedWorkOrder" in mara_workshop
           and "missionDirector.CurrentObjectiveIndex >= 1" in mara_workshop,
           "Mara workshop tasks must remain completed after restoring a save at the delivery objective")
+    check("[MenuItem(\"Project Tideline/13 — Audit Mara Prologue Scene Wiring\"" in mara_scene_audit
+          and "Resources.FindObjectsOfTypeAll<T>()" in mara_scene_audit
+          and "gameObject.scene.isLoaded" in mara_scene_audit,
+          "Mara scene audit must inspect actual components in loaded Unity scenes, not prefab assets")
+    for scene_contract in (
+        "ValidateDialogueView(dialogue, issues)",
+        "choiceButtons and choiceLabels",
+        "MaraWorkshopTaskInteractable",
+        "VehicleSeatInteractable",
+        "RouteRaceCheckpoint",
+        "MaraCustomerHandoffInteractable",
+        "MaraPostDeliveryDialogueInteractable",
+        "MissionProgressHasPassedHandoff",
+    ):
+        check(scene_contract in mara_scene_audit or scene_contract in mara_workshop + mara_handoff_controller,
+              f"Mara scene wiring audit is missing required validation: {scene_contract}")
+    for graph_id in (
+        "prologue.mara.two_minutes_to_close",
+        "prologue.mara.nico_challenge",
+        "prologue.rafi.last_song_first_lie",
+        "prologue.elias.the_old_terms",
+    ):
+        check(graph_id in prologue_graph_docs, f"Prologue graph documentation is missing {graph_id}")
+    check("four `DialogueGraph` assets" in prologue_graph_docs
+          and "The four assets are intentionally not three" in prologue_graph_docs,
+          "Prologue graph documentation must explain four assets across three leads")
+    check("MaraDeliveryRouteCompletionRelay" not in read("README.md")
+          and "MaraDeliveryHandoffController.cs" in read("README.md"),
+          "README must describe the real Mara handoff producer rather than a nonexistent route relay")
     for token in ("complete_customer_work_order", "mara.workshop.order.completed",
                   "deliver_customer_vehicle", "mara.delivery.finished",
                   "resolve_nico_challenge", "prologue.mara.complete"):

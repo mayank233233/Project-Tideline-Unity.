@@ -714,14 +714,19 @@ namespace ProjectTideline.Editor
             RouteRaceController route = routeObject.AddComponent<RouteRaceController>();
 
             float[] checkpointPositions = { 0f, 18f, 36f };
+            float[] checkpointLateralOffsets = { 0f, -3f, 3f };
             RouteRaceCheckpoint[] checkpoints = new RouteRaceCheckpoint[checkpointPositions.Length];
+            Material gatePaint = MakeMaterial("Delivery route checkpoint marker", new Color(0.86f, 0.48f, 0.13f));
+            Material routePaint = MakeMaterial("Delivery route lane guidance", new Color(0.84f, 0.75f, 0.52f));
+
             for (int i = 0; i < checkpointPositions.Length; i++)
             {
+                float checkpointX = checkpointLateralOffsets[i];
                 GameObject checkpointObject = new GameObject("Delivery checkpoint " + (i + 1));
-                checkpointObject.transform.position = new Vector3(0f, 1.2f, checkpointPositions[i]);
+                checkpointObject.transform.position = new Vector3(checkpointX, 1.2f, checkpointPositions[i]);
                 BoxCollider trigger = checkpointObject.AddComponent<BoxCollider>();
                 trigger.isTrigger = true;
-                trigger.size = new Vector3(10f, 3f, 2.6f);
+                trigger.size = new Vector3(3.4f, 3f, 2.6f);
 
                 RouteRaceCheckpoint checkpoint = checkpointObject.AddComponent<RouteRaceCheckpoint>();
                 SerializedObject checkpointSerialized = new SerializedObject(checkpoint);
@@ -730,13 +735,23 @@ namespace ProjectTideline.Editor
                 checkpointSerialized.ApplyModifiedPropertiesWithoutUndo();
                 checkpoints[i] = checkpoint;
 
-                Material gatePaint = MakeMaterial("Delivery route checkpoint marker", new Color(0.86f, 0.48f, 0.13f));
-                MakeBlock("Route gate post — left", new Vector3(-5.55f, 1.2f, checkpointPositions[i]),
+                MakeBlock("Route gate post — left", new Vector3(checkpointX - 3.5f, 1.2f, checkpointPositions[i]),
                     new Vector3(0.32f, 2.4f, 0.32f), gatePaint, false);
-                MakeBlock("Route gate post — right", new Vector3(5.55f, 1.2f, checkpointPositions[i]),
+                MakeBlock("Route gate post — right", new Vector3(checkpointX + 3.5f, 1.2f, checkpointPositions[i]),
                     new Vector3(0.32f, 2.4f, 0.32f), gatePaint, false);
-                MakeBlock("Route gate crossbar", new Vector3(0f, 2.48f, checkpointPositions[i]),
-                    new Vector3(11.1f, 0.28f, 0.32f), gatePaint, false);
+                MakeBlock("Route gate crossbar", new Vector3(checkpointX, 2.48f, checkpointPositions[i]),
+                    new Vector3(7f, 0.28f, 0.32f), gatePaint, false);
+
+                if (i > 0)
+                {
+                    float midpointZ = (checkpointPositions[i - 1] + checkpointPositions[i]) * 0.5f;
+                    float midpointX = (checkpointLateralOffsets[i - 1] + checkpointLateralOffsets[i]) * 0.5f;
+                    GameObject laneGuide = MakeBlock("S-bend lane guide " + i,
+                        new Vector3(midpointX, 0.105f, midpointZ),
+                        new Vector3(0.16f, 0.025f, 3.4f), routePaint, false);
+                    laneGuide.transform.rotation = Quaternion.Euler(0f,
+                        checkpointLateralOffsets[i] > checkpointLateralOffsets[i - 1] ? -13f : 13f, 0f);
+                }
             }
 
             SerializedObject routeSerialized = new SerializedObject(route);

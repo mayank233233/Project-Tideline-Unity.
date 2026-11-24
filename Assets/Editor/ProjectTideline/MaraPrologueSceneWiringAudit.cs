@@ -33,12 +33,27 @@ namespace ProjectTideline.Editor
             NPCRelationshipLedger relationships = FindSingle<NPCRelationshipLedger>("NPCRelationshipLedger", issues);
 
             if (interactors.Length == 0)
+            {
                 issues.Add("No ProximityInteractor exists in a loaded scene; no player can invoke the authored dialogue or workshop interactions.");
+            }
             else
+            {
                 rows.Add("ProximityInteractor instances: " + interactors.Length);
+                if (interactors.Length != 1)
+                    issues.Add("Mara's vertical slice expects exactly one active ProximityInteractor; found " + interactors.Length + ".");
+                foreach (ProximityInteractor interactor in interactors)
+                {
+                    SerializedObject interactorData = new SerializedObject(interactor);
+                    if (interactorData.FindProperty("actorRoot")?.objectReferenceValue == null)
+                        issues.Add("ProximityInteractor on '" + interactor.name + "' has no actorRoot reference.");
+                    if (interactorData.FindProperty("viewOrigin")?.objectReferenceValue == null)
+                        issues.Add("ProximityInteractor on '" + interactor.name + "' has no viewOrigin reference.");
+                }
+            }
 
             if (input == null) rows.Add("Player input: MISSING");
             if (dialogue == null) rows.Add("Dialogue controller: MISSING");
+            if (dialogue != null) ValidateDialogueView(dialogue, issues);
             if (narrative == null) rows.Add("Narrative state ledger: MISSING");
             if (relationships == null) rows.Add("NPC relationship ledger: MISSING");
 
@@ -60,7 +75,7 @@ namespace ProjectTideline.Editor
                 issues.Add("Expected exactly one DialogueInteractable assigned to the Mara opening graph and the scene DialogueController; found " + introBindings + ".");
 
             MaraWorkshopOrderController workshop = FindSingle<MaraWorkshopOrderController>("MaraWorkshopOrderController", issues);
-            ValidateWorkshop(workshop, issues, rows);
+            ValidateWorkshop(workshop, director, issues, rows);
 
             RouteRaceController route = FindSingle<RouteRaceController>("Mara delivery RouteRaceController", issues);
             ValidateRoute(route, issues, rows);
@@ -165,6 +180,34 @@ namespace ProjectTideline.Editor
                 string.Join("\n", rows) + (issues.Count > 0 ? "\n\n" + string.Join("\n", issues) : ""), "OK");
         }
 
+        private static void ValidateDialogueView(DialogueController dialogue, List<string> issues)
+        {
+            SerializedObject serialized = new SerializedObject(dialogue);
+            if (serialized.FindProperty("panel")?.objectReferenceValue == null)
+                issues.Add("DialogueController has no CanvasGroup panel reference.");
+            if (serialized.FindProperty("speakerText")?.objectReferenceValue == null)
+                issues.Add("DialogueController has no speaker Text reference.");
+            if (serialized.FindProperty("lineText")?.objectReferenceValue == null)
+                issues.Add("DialogueController has no dialogue-line Text reference.");
+            if (serialized.FindProperty("closeButton")?.objectReferenceValue == null)
+                issues.Add("DialogueController has no close Button reference.");
+
+            SerializedProperty buttons = serialized.FindProperty("choiceButtons");
+            SerializedProperty labels = serialized.FindProperty("choiceLabels");
+            if (buttons == null || labels == null || !buttons.isArray || !labels.isArray
+                || buttons.arraySize == 0 || buttons.arraySize != labels.arraySize)
+            {
+                issues.Add("DialogueController choiceButtons and choiceLabels must be non-empty arrays of equal length.");
+                return;
+            }
+            for (int i = 0; i < buttons.arraySize; i++)
+            {
+                if (buttons.GetArrayElementAtIndex(i).objectReferenceValue == null
+                    || labels.GetArrayElementAtIndex(i).objectReferenceValue == null)
+                    issues.Add("DialogueController choice button/label slot " + i + " is unassigned.");
+            }
+        }
+
         private static MissionDefinition FindMission(MissionDirector director, List<string> issues)
         {
             if (director == null) return null;
@@ -204,11 +247,13 @@ namespace ProjectTideline.Editor
             return found;
         }
 
-        private static void ValidateWorkshop(MaraWorkshopOrderController workshop, List<string> issues, List<string> rows)
+        private static void ValidateWorkshop(MaraWorkshopOrderController workshop, MissionDirector director, List<string> issues, List<string> rows)
         {
             if (workshop == null) return;
             SerializedObject serialized = new SerializedObject(workshop);
             SerializedProperty tasks = serialized.FindProperty("requiredTaskIds");
+            if (serialized.FindProperty("missionDirector")?.objectReferenceValue != director)
+                issues.Add("MaraWorkshopOrderController must reference the scene MissionDirector for save/restore gating.");
             string[] expected = { "steering_check", "door_latch_check", "engine_rattle_check" };
             if (tasks == null || !tasks.isArray || tasks.arraySize != expected.Length)
             {
@@ -244,6 +289,19 @@ namespace ProjectTideline.Editor
                 serialized.FindProperty("playerVehicle")?.objectReferenceValue as VehicleDriveController;
             SerializedProperty checkpoints = serialized.FindProperty("checkpoints");
             if (vehicle == null) issues.Add("Mara delivery route has no designated player VehicleDriveController.");
+            else
+            {
+                VehicleSeatInteractable[] seats = FindAll<VehicleSeatInteractable>();
+                int matchingSeats = 0;
+                foreach (VehicleSeatInteractable seat in seats)
+                {
+                    SerializedObject seatData = new SerializedObject(seat);
+                    if (seatData.FindProperty("vehicle")?.objectReferenceValue == vehicle)
+                        matchingSeats++;
+                }
+                if (matchingSeats != 1)
+                    issues.Add("Expected exactly one VehicleSeatInteractable wired to the route's designated player vehicle; found " + matchingSeats + ".");
+            }
             if (checkpoints == null || !checkpoints.isArray || checkpoints.arraySize < 2)
             {
                 issues.Add("Mara delivery route needs at least two ordered checkpoints.");

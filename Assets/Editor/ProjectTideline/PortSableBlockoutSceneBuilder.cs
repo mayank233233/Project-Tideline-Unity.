@@ -537,7 +537,7 @@ namespace ProjectTideline.Editor
                 "start_customer_delivery", "Accept customer delivery");
 
             VehicleDeliveryCheckpoint deliveryBay = BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat, deliveryRoute);
-            BuildCustomerHandoffActor(deliveryRoute, deliveryBay, missionDirector);
+            BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
                 new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
@@ -771,11 +771,12 @@ namespace ProjectTideline.Editor
         }
 
         private static void BuildCustomerHandoffActor(RouteRaceController deliveryRoute,
-            VehicleDeliveryCheckpoint deliveryBay, MissionDirector missionDirector)
+            VehicleDeliveryCheckpoint deliveryBay, VehicleSeatInteractable deliverySeat,
+            MissionDirector missionDirector)
         {
             GameObject handoffObject = new GameObject("Customer vehicle handoff controller");
             MaraDeliveryHandoffController handoff = handoffObject.AddComponent<MaraDeliveryHandoffController>();
-            handoff.Configure(deliveryRoute, missionDirector, deliveryBay);
+            handoff.Configure(deliveryRoute, missionDirector, deliveryBay, deliverySeat);
 
             GameObject customer = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             customer.name = "CUSTOMER — Saltline delivery contact";

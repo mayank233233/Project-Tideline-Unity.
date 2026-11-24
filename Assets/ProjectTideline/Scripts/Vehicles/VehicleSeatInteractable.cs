@@ -19,6 +19,7 @@ namespace ProjectTideline
         [SerializeField] private string requiredMissionId;
         [SerializeField] private string requiredObjectiveId;
         [SerializeField] private string alternateAllowedObjectiveId;
+        [SerializeField] private string additionalAllowedObjectiveId;
         [Header("NPC vehicle state")]
         [SerializeField] private bool startsWithNpcDriver;
         [SerializeField] private GameObject npcDriverVisual;
@@ -52,12 +53,13 @@ namespace ProjectTideline
             actor != null && _lastDriver == actor && _occupant == null;
 
         public void ConfigureMissionGate(MissionDirector director, string missionId, string objectiveId,
-            string alternateObjectiveId = "")
+            string alternateObjectiveId = "", string additionalObjectiveId = "")
         {
             missionDirector = director;
             requiredMissionId = missionId;
             requiredObjectiveId = objectiveId;
             alternateAllowedObjectiveId = alternateObjectiveId;
+            additionalAllowedObjectiveId = additionalObjectiveId;
         }
 
         private bool IsCurrentMissionObjective()
@@ -72,7 +74,9 @@ namespace ProjectTideline
                 && string.Equals(mission.missionId, requiredMissionId, System.StringComparison.Ordinal)
                 && (string.Equals(objective.objectiveId, requiredObjectiveId, System.StringComparison.Ordinal)
                     || (!string.IsNullOrWhiteSpace(alternateAllowedObjectiveId)
-                        && string.Equals(objective.objectiveId, alternateAllowedObjectiveId, System.StringComparison.Ordinal)));
+                        && string.Equals(objective.objectiveId, alternateAllowedObjectiveId, System.StringComparison.Ordinal))
+                    || (!string.IsNullOrWhiteSpace(additionalAllowedObjectiveId)
+                        && string.Equals(objective.objectiveId, additionalAllowedObjectiveId, System.StringComparison.Ordinal)));
         }
 
         private void Awake()

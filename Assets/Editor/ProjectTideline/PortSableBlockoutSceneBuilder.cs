@@ -20,6 +20,7 @@ namespace ProjectTideline.Editor
     public static class PortSableBlockoutSceneBuilder
     {
         private const string SceneFolder = "Assets/ProjectTideline/Scenes";
+        private const string MaterialFolder = "Assets/ProjectTideline/Generated/Materials";
         private const string ScenePath = SceneFolder + "/PortSable_OldQuay_Blockout.unity";
         private const string TutorialMissionPath =
             "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_first_steps.asset";
@@ -36,6 +37,8 @@ namespace ProjectTideline.Editor
 
             EnsureFolder("Assets/ProjectTideline");
             EnsureFolder(SceneFolder);
+            EnsureFolder("Assets/ProjectTideline/Generated");
+            EnsureFolder(MaterialFolder);
             MissionDefinition tutorialMission = EnsureTutorialMission();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -143,6 +146,7 @@ namespace ProjectTideline.Editor
             // Scene metadata helps designers understand what is functional versus placeholder.
             new GameObject("BLOCKOUT NOTES — replace primitives before release");
 
+            AssetDatabase.SaveAssets();
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddToBuildSettings(ScenePath);
@@ -879,10 +883,35 @@ namespace ProjectTideline.Editor
 
         private static Material MakeMaterial(string name, Color color, float metallic = 0f)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Generated material requires a stable name.", nameof(name));
+
+            string fileName = name;
+            foreach (char invalid in Path.GetInvalidFileNameChars())
+                fileName = fileName.Replace(invalid, '_');
+            fileName = fileName.Replace('/', '_').Replace('\\', '_');
+            string materialPath = MaterialFolder + "/" + fileName + ".mat";
+
             Shader shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null) shader = Shader.Find("Standard");
-            Material material = new Material(shader) { name = name, color = color };
-            material.SetFloat("_Metallic", metallic);
+            if (shader == null)
+                throw new InvalidOperationException("Neither URP/Lit nor Standard shader is available.");
+
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if (material == null)
+            {
+                material = new Material(shader) { name = name };
+                AssetDatabase.CreateAsset(material, materialPath);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
+            }
+
+            material.color = color;
+            if (material.HasProperty("_Metallic"))
+                material.SetFloat("_Metallic", metallic);
+            EditorUtility.SetDirty(material);
             return material;
         }
 

@@ -454,9 +454,10 @@ def run() -> int:
     check("orderController.TryCompleteTask(taskId, actor);" in mara_workshop_interactable,
           "Mara workshop inspection stations must route through their shared order controller")
     check('MissionSignalBus.Publish("mara.delivery.finished", 1);' in mara_handoff_controller
-          and "deliveryRoute == null || !deliveryRoute.HasFinished" in mara_handoff_controller
+          and "deliveryRoute != null && deliveryRoute.HasFinished" in mara_handoff_controller
+          and "deliveryBay.HasArrived" in mara_handoff_controller
           and "_handoffPending" in mara_handoff_controller,
-          "Mara customer handoff must require an actually finished route and publish the mission-specific delivery signal")
+          "Mara customer handoff must require a finished route, a stopped delivery-bay arrival and publish the mission-specific delivery signal")
     check("MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;" in mara_handoff_controller
           and "_handedOff = false;" in mara_handoff_controller
           and "MissionProgressHasPassedHandoff" in mara_handoff_controller,
@@ -676,7 +677,7 @@ def run() -> int:
         "VehicleSeatInteractable",
         "BuildCustomerDeliveryRoute(deliveryVehicle)",
         "BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat)",
-        "deliveryBay.Configure(deliveryVehicle, deliverySeat)",
+        "bay.Configure(deliveryVehicle, deliverySeat)",
         "handoff.Configure(deliveryRoute, missionDirector, deliveryBay)",
     ):
         check(token in blockout_builder,

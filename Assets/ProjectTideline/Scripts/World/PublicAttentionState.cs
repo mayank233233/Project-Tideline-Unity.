@@ -115,6 +115,8 @@ namespace ProjectTideline
                 case "vehicle.collision": AddAttention((int)Math.Min(100L, 8L * amount)); break;
                 case "confrontation.resolved": AddAttention((int)Math.Min(100L, 10L * amount)); break;
                 case "confrontation.failed": AddAttention((int)Math.Min(100L, 6L * amount)); break;
+                case "old_quay.score.case_recovered": AddAttention((int)Math.Min(100L, 42L * amount)); break;
+                case "old_quay.score.safehouse_reached": ResolveAtGarage(100); break;
             }
         }
 

@@ -12,7 +12,17 @@ namespace ProjectTideline
         [SerializeField] private string speedParameter = "MoveSpeed";
         [SerializeField] private float dampTime = 0.12f;
         [SerializeField] private float speedScale = 1f;
+        [Header("Mobile distance update budget")]
+        [SerializeField] private Transform lodReference;
+        [SerializeField, Min(0f)] private float fullRateDistance = 18f;
+        [SerializeField, Min(0f)] private float reducedRateDistance = 45f;
+        [SerializeField, Min(0.02f)] private float reducedRateInterval = 0.1f;
+        [SerializeField, Min(0.05f)] private float distantRateInterval = 0.25f;
         private int _speedHash;
+        private float _nextAnimationUpdateTime;
+        private float _lastAnimationUpdateTime;
+        private float _fullRateDistanceSqr;
+        private float _reducedRateDistanceSqr;
 
         private void Awake()
         {
@@ -20,11 +30,22 @@ namespace ProjectTideline
             if (characterController == null) characterController = GetComponent<CharacterController>();
             if (navMeshAgent == null) navMeshAgent = GetComponent<NavMeshAgent>();
             _speedHash = Animator.StringToHash(speedParameter);
+            if (lodReference == null && Camera.main != null) lodReference = Camera.main.transform;
+            _fullRateDistanceSqr = fullRateDistance * fullRateDistance;
+            float reducedDistance = Mathf.Max(fullRateDistance, reducedRateDistance);
+            _reducedRateDistanceSqr = reducedDistance * reducedDistance;
+            _lastAnimationUpdateTime = Time.time;
         }
 
         private void Update()
         {
             if (animators == null || animators.Length == 0) return;
+
+            float updateInterval = GetDistanceUpdateInterval();
+            if (Time.time < _nextAnimationUpdateTime) return;
+            float animationDeltaTime = Mathf.Max(Time.deltaTime, Time.time - _lastAnimationUpdateTime);
+            _lastAnimationUpdateTime = Time.time;
+            _nextAnimationUpdateTime = Time.time + updateInterval;
             float speed = 0f;
             if (navMeshAgent != null && navMeshAgent.enabled && navMeshAgent.isOnNavMesh)
                 speed = navMeshAgent.velocity.magnitude;
@@ -32,7 +53,16 @@ namespace ProjectTideline
                 speed = new Vector3(characterController.velocity.x, 0f, characterController.velocity.z).magnitude;
             foreach (Animator animator in animators)
                 if (animator != null && animator.isActiveAndEnabled && animator.runtimeAnimatorController != null)
-                    animator.SetFloat(_speedHash, speed * speedScale, dampTime, Time.deltaTime);
+                    animator.SetFloat(_speedHash, speed * speedScale, dampTime, animationDeltaTime);
+        }
+
+        private float GetDistanceUpdateInterval()
+        {
+            if (lodReference == null) return 0f;
+            float distanceSqr = (lodReference.position - transform.position).sqrMagnitude;
+            if (distanceSqr <= _fullRateDistanceSqr) return 0f;
+            if (distanceSqr <= _reducedRateDistanceSqr) return Mathf.Max(0.02f, reducedRateInterval);
+            return Mathf.Max(0.05f, distantRateInterval);
         }
 
         public void Trigger(string triggerName)

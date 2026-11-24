@@ -9,16 +9,18 @@ namespace ProjectTideline
     [DisallowMultipleComponent]
     public sealed class MaraPostDeliveryDialogueInteractable : InteractableBase
     {
-        [SerializeField] private RouteRaceController deliveryRoute;
+        [SerializeField] private MaraDeliveryHandoffController handoffController;
         [SerializeField] private DialogueController dialogueController;
         [SerializeField] private DialogueGraph dialogueGraph;
 
         public override string InteractionPrompt =>
-            deliveryRoute != null && deliveryRoute.HasFinished ? "Talk to Nico" : "Finish the delivery first";
+            handoffController != null && handoffController.HasHandedOff
+                ? "Talk to Nico"
+                : "Hand the vehicle over first";
 
         public override void Interact(GameObject actor)
         {
-            if (actor == null || deliveryRoute == null || !deliveryRoute.HasFinished
+            if (actor == null || handoffController == null || !handoffController.HasHandedOff
                 || dialogueController == null || dialogueGraph == null)
                 return;
 

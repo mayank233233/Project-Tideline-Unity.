@@ -37,7 +37,7 @@ namespace ProjectTideline
             {
                 float phaseTime = GetCycleTime();
                 float mainClearanceEnd = mainRoadGreenDuration + firstClearanceDuration;
-                float pedestrianStart = mainClearanceEnd + crossStreetGreenDuration + secondClearanceDuration + pedestrianWalkDuration;
+                float pedestrianStart = mainClearanceEnd + crossStreetGreenDuration + secondClearanceDuration;
                 return phaseTime >= pedestrianStart && phaseTime < pedestrianStart + pedestrianWalkDuration;
             }
         }
@@ -76,7 +76,7 @@ namespace ProjectTideline
         private float GetCycleTime()
         {
             float cycle = mainRoadGreenDuration + firstClearanceDuration
-                + crossStreetGreenDuration + secondClearanceDuration;
+                + crossStreetGreenDuration + secondClearanceDuration + pedestrianWalkDuration;
             return Mathf.Repeat(Time.time, Mathf.Max(1f, cycle));
         }
 

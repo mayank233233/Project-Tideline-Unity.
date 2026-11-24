@@ -123,10 +123,7 @@ namespace ProjectTideline
         public void SetVehicleControlMode(bool value)
         {
             _vehicleControlMode = value;
-            _sprintHeld = false;
-            _throttle = 0f;
-            _brake = 0f;
-            _handbrakeHeld = false;
+            ResetTouchState();
         }
         public void SetThrottle(float value) { if (!GameplayBlocked) _throttle = Mathf.Clamp01(value); }
         public void SetBrake(float value) { if (!GameplayBlocked) _brake = Mathf.Clamp01(value); }

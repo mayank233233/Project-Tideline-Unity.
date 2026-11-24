@@ -44,9 +44,22 @@ namespace ProjectTideline.Editor
                 foreach (ProximityInteractor interactor in interactors)
                 {
                     SerializedObject interactorData = new SerializedObject(interactor);
-                    if (interactorData.FindProperty("actorRoot")?.objectReferenceValue == null)
+                    Transform actorRoot =
+                        interactorData.FindProperty("actorRoot")?.objectReferenceValue as Transform;
+                    Transform viewOrigin =
+                        interactorData.FindProperty("viewOrigin")?.objectReferenceValue as Transform;
+                    if (actorRoot == null)
+                    {
                         issues.Add("ProximityInteractor on '" + interactor.name + "' has no actorRoot reference.");
-                    if (interactorData.FindProperty("viewOrigin")?.objectReferenceValue == null)
+                    }
+                    else
+                    {
+                        if (actorRoot.GetComponent<CharacterController>() == null)
+                            issues.Add("ProximityInteractor actorRoot '" + actorRoot.name + "' needs a CharacterController on the same object for vehicle entry.");
+                        if (actorRoot.GetComponent<ThirdPersonMotor>() == null)
+                            issues.Add("ProximityInteractor actorRoot '" + actorRoot.name + "' needs a ThirdPersonMotor on the same object for vehicle entry.");
+                    }
+                    if (viewOrigin == null)
                         issues.Add("ProximityInteractor on '" + interactor.name + "' has no viewOrigin reference.");
                 }
             }

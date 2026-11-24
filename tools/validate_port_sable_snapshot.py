@@ -640,6 +640,7 @@ def run() -> int:
         "candidateBody != deliveryVehicle.GetComponent<Rigidbody>()",
         "!driverSeat.IsOccupied",
         "deliveryVehicle.SpeedKph > maximumHandoffSpeedKph",
+        "requiredRoute != null && !requiredRoute.HasFinished",
         'MissionSignalBus.Publish("old_quay.delivery_arrived", 1)',
     ):
         check(token in delivery_checkpoint,
@@ -676,8 +677,8 @@ def run() -> int:
         "new Vector3(0.84f, 0.40f, -1.18f)",
         "VehicleSeatInteractable",
         "BuildCustomerDeliveryRoute(deliveryVehicle)",
-        "BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat)",
-        "bay.Configure(deliveryVehicle, deliverySeat)",
+        "BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat, deliveryRoute)",
+        "bay.Configure(deliveryVehicle, deliverySeat, deliveryRoute)",
         "handoff.Configure(deliveryRoute, missionDirector, deliveryBay)",
     ):
         check(token in blockout_builder,

@@ -635,7 +635,7 @@ def run() -> int:
           and "string.Equals(objective.objectiveId, additionalAllowedObjectiveId" in vehicle_seat
           and 'seat.ConfigureMissionGate(missionDirector, "old_quay_first_steps", "enter_delivery_vehicle", "drive_customer_delivery_route", "park_in_delivery_bay")' in blockout_builder,
           "The delivery car must remain re-enterable through the parking objective, then lock after bay arrival")
-    check("WasLastDriver(actor)" in handoff_controller
+    check("WasLastDriver(actor)" in read("Assets/ProjectTideline/Scripts/World/MaraDeliveryHandoffController.cs")
           and "_lastDriver = actor" in vehicle_seat,
           "Only the player who last drove and exited the delivery vehicle may complete the handoff")
     check("VehicleControlMode) PlayerInputRouter.Instance.SetThrottle(1f)" in mobile_controls

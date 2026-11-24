@@ -28,6 +28,8 @@ namespace ProjectTideline.Editor
             "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_intro.asset";
         private const string TutorialDebriefDialoguePath =
             "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_debrief.asset";
+        private const string CustomerHandoffDialoguePath =
+            "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_customer_handoff.asset";
 
         [MenuItem("Project Tideline/14 — Build Playable Old Quay Blockout", priority = 14)]
         public static void Build()
@@ -280,6 +282,47 @@ namespace ProjectTideline.Editor
             image.color = color;
             image.raycastTarget = true;
             return image;
+        }
+
+        private static DialogueGraph EnsureCustomerHandoffDialogue()
+        {
+            DialogueGraph graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(CustomerHandoffDialoguePath);
+            if (graph == null)
+            {
+                graph = ScriptableObject.CreateInstance<DialogueGraph>();
+                AssetDatabase.CreateAsset(graph, CustomerHandoffDialoguePath);
+            }
+
+            graph.graphId = "old_quay.saltline_customer_handoff";
+            graph.startNodeId = "customer_checks_delivery";
+            graph.nodes = new[]
+            {
+                new DialogueGraph.DialogueNode
+                {
+                    nodeId = "customer_checks_delivery",
+                    speaker = "SALTLINE CUSTOMER",
+                    line = "You made it. I was starting to think the harbour office had sent the wrong vehicle. Is everything accounted for?",
+                    choices = new[]
+                    {
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "Keys and paperwork. Everything is accounted for.",
+                            signalId = "mara.delivery.finished",
+                            relationshipCharacterId = "saltline_customer",
+                            relationshipDelta = 2
+                        },
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "The vehicle is here. Sign for it.",
+                            signalId = "mara.delivery.finished",
+                            relationshipCharacterId = "saltline_customer",
+                            relationshipDelta = -1
+                        }
+                    }
+                }
+            };
+            EditorUtility.SetDirty(graph);
+            return graph;
         }
 
         private static MissionDefinition EnsureTutorialMission()
@@ -589,7 +632,7 @@ namespace ProjectTideline.Editor
 
             VehicleDeliveryCheckpoint deliveryBay = BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat, deliveryRoute);
             missionDisplay.SetDeliveryBay(deliveryBay);
-            BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector);
+            BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector, dialogueController);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
                 new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
@@ -863,7 +906,7 @@ namespace ProjectTideline.Editor
 
         private static void BuildCustomerHandoffActor(RouteRaceController deliveryRoute,
             VehicleDeliveryCheckpoint deliveryBay, VehicleSeatInteractable deliverySeat,
-            MissionDirector missionDirector)
+            MissionDirector missionDirector, DialogueController dialogueController)
         {
             GameObject handoffObject = new GameObject("Customer vehicle handoff controller");
             MaraDeliveryHandoffController handoff = handoffObject.AddComponent<MaraDeliveryHandoffController>();
@@ -878,6 +921,8 @@ namespace ProjectTideline.Editor
             MaraCustomerHandoffInteractable interactable = customer.AddComponent<MaraCustomerHandoffInteractable>();
             SerializedObject customerSerialized = new SerializedObject(interactable);
             customerSerialized.FindProperty("handoffController").objectReferenceValue = handoff;
+            customerSerialized.FindProperty("dialogueController").objectReferenceValue = dialogueController;
+            customerSerialized.FindProperty("dialogueGraph").objectReferenceValue = EnsureCustomerHandoffDialogue();
             customerSerialized.ApplyModifiedPropertiesWithoutUndo();
         }
 

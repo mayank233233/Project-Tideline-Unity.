@@ -548,6 +548,16 @@ def run() -> int:
     check('DestroyImmediate(body.GetComponent<Collider>())' in blockout_builder,
           "Player visual placeholder must not add a duplicate collider to CharacterController")
 
+    for token in (
+        'MaterialFolder = "Assets/ProjectTideline/Generated/Materials"',
+        'EnsureFolder(MaterialFolder)',
+        "AssetDatabase.CreateAsset(material, materialPath)",
+        "AssetDatabase.LoadAssetAtPath<Material>(materialPath)",
+        "EditorUtility.SetDirty(material)",
+        "AssetDatabase.SaveAssets();",
+    ):
+        check(token in blockout_builder,
+              f"Generated scene material persistence is missing: {token}")
     mobile_controls = read("Assets/ProjectTideline/Scripts/Input/MobileTouchControl.cs")
     for token in (
         "IPointerDownHandler",

@@ -121,7 +121,7 @@ For the selected GitHub snapshot:
 python tools/validate_port_sable_snapshot.py
 ```
 
-The GitHub Action runs this check on every push and pull request. Latest verified run: **PASS — 515 checks, 57 C# files scanned** ([run 45375578331](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45375578331)). The separate legacy mission sequence check reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present in this selected snapshot. This validates repository consistency only; it does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
+The GitHub Action runs this check on every push and pull request. Latest verified run: **PASS — 522 checks, 58 C# files scanned** ([run 45376797821](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45376797821)). The separate legacy mission sequence check reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present in this selected snapshot. This validates repository consistency only; it does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
 
 The recovered v0.4.9 working tree also passed its original `python tools/validate_static.py` before these new campaign files were added. That original validator is in the complete recovery bundle, not yet mirrored into this selected GitHub snapshot.
 

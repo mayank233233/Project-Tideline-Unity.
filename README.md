@@ -64,7 +64,7 @@ The generated first-play loop is:
 5. Follow the marked road to the customer bay and stop the truck. The checkpoint only accepts the configured vehicle while occupied and below its speed threshold.
 6. Exit and interact with the customer to complete the key handoff.
 
-The scene includes a mission HUD, proximity prompts, dialogue panel, keyboard controls and touch controls. The touch accelerator/brake/handbrake mapping is shared with vehicle input. The world, Juno, customer and player remain primitive placeholders. There is no pedestrian simulation, final character rig, save flow, cinematic presentation or Android performance validation in this generated tutorial. The menu command must still be run in Unity; the repository's static CI does not execute it or prove that the scene compiles or plays.
+The scene includes a mission HUD, proximity prompts, dialogue panel, keyboard controls and touch controls. The touch accelerator/brake/handbrake mapping is shared with vehicle input. The world, Juno, customer, pedestrians and player remain primitive placeholders. Two ambient pedestrians walk authored sidewalk waypoint loops; this is not NavMesh pathfinding or crowd simulation. There is no final character rig, save flow, cinematic presentation or Android performance validation in this generated tutorial. The menu command must still be run in Unity; the repository's static CI does not execute it or prove that the scene compiles or plays.
 
 ## Recovered technical foundation
 

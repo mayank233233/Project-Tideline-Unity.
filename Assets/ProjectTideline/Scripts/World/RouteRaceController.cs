@@ -45,12 +45,17 @@ namespace ProjectTideline
                 return false;
 
             _nextCheckpointIndex++;
-            MissionSignalBus.Publish(signalPrefix + ".checkpoint", 1);
-
             if (_nextCheckpointIndex == checkpoints.Length)
             {
                 _isActive = false;
-                MissionSignalBus.Publish(signalPrefix + ".finished", 1);
+                // The final checkpoint and route finish are outcomes of one trigger entry.
+                MissionSignalBus.PublishBatch(
+                    new MissionSignalBus.Signal(signalPrefix + ".checkpoint", 1),
+                    new MissionSignalBus.Signal(signalPrefix + ".finished", 1));
+            }
+            else
+            {
+                MissionSignalBus.Publish(signalPrefix + ".checkpoint", 1);
             }
 
             return true;

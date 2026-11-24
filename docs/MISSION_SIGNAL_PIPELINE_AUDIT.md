@@ -91,7 +91,7 @@ The next implementation gate is:
 
 ## 5. Verification
 
-The static validator checks source structure, signal-producer declarations and ordering contracts; it does not execute Unity code. The latest Actions result should be read from the repository's [workflow history](../actions) after the current commits.
+The latest verified GitHub Actions run is [45344726457](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45344726457), on commit `217e95e`: **PASS — 148 checks, 33 C# files scanned**. The legacy mission sequence validator reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is absent from this selected snapshot. The static validator checks repository structure and selected source contracts; it does not execute Unity code.
 
 The legacy Old Quay sequence validator still reports `SKIP` on the selected GitHub snapshot because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present there. The local recovered-tree pass from the previous audit remains a separate result.
 

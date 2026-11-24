@@ -443,6 +443,9 @@ def run() -> int:
         "MaraCustomerHandoffInteractable",
         "MaraPostDeliveryDialogueInteractable",
         "MissionProgressHasPassedHandoff",
+        "HasSolidInteractionCollider",
+        "isActiveAndEnabled",
+        'FindProperty("autoStart")',
     ):
         check(scene_contract in mara_scene_audit or scene_contract in mara_workshop + mara_handoff_controller,
               f"Mara scene wiring audit is missing required validation: {scene_contract}")
@@ -456,6 +459,10 @@ def run() -> int:
     check("four `DialogueGraph` assets" in prologue_graph_docs
           and "The four assets are intentionally not three" in prologue_graph_docs,
           "Prologue graph documentation must explain four assets across three leads")
+    check("mara_work_order_accepted = 1" in prologue_graph_docs
+          and "Talk to Juno first" in mara_workshop_interactable
+          and 'HasFlag("mara_work_order_accepted")' in mara_workshop,
+          "Graph documentation and workshop interaction must enforce the persistent Juno acceptance gate")
     readme = read("README.md")
     check("MaraDeliveryRouteCompletionRelay" not in readme
           and "MaraDeliveryHandoffController" in readme,

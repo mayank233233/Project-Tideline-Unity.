@@ -279,6 +279,8 @@ def run() -> int:
     vehicle_arrival_zone = read("Assets/ProjectTideline/Scripts/World/MissionVehicleArrivalZone.cs")
     vehicle_drive = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDriveController.cs")
     traffic_driver = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficVehicleDriver.cs")
+    pedestrian_crossing = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficPedestrianCrossing.cs")
+    pedestrian_walker = read("Assets/ProjectTideline/Scripts/World/AmbientPedestrianWalker.cs")
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
     attention = read("Assets/ProjectTideline/Scripts/World/PublicAttentionState.cs")
     pressure_hud = read("Assets/ProjectTideline/Scripts/UI/PolicePressureHUD.cs")
@@ -603,7 +605,7 @@ def run() -> int:
           and 'BuildAmbientTrafficVehicle("Old Quay traffic — westbound"' in blockout_builder
           and "BuildOldQuayJunction(" in blockout_builder
           and "Old Quay southern cross street" in blockout_builder
-          and "ConfigureSignal(signal, stopLine, usesMainRoadSignal)" in blockout_builder
+          and "ConfigureSignal(signal, stopLine, usesMainRoadSignal, pedestrianCrossing)" in blockout_builder
           and "AddComponent<VehicleDriveController>()" in blockout_builder
           and "AddComponent<TrafficVehicleDriver>()" in blockout_builder
           and 'FindProperty("cruisingSpeedKph").floatValue = 25f' in blockout_builder
@@ -622,6 +624,27 @@ def run() -> int:
           and "MakeTrafficStopLine(" in blockout_builder
           and "controller.Configure(mainRed, mainGreen, crossRed, crossGreen" in blockout_builder,
           "Old Quay junction must build visible signal heads and assign directional stop lines")
+
+    check("BuildOldQuayPedestrianCrossing(junctionSignals)" in blockout_builder
+          and "crosswalk" in blockout_builder
+          and "new Vector3(-6f, 0.1f, -25.8f)" in blockout_builder
+          and "new Vector3(-3.8f, 0.1f, -22f)" in blockout_builder,
+          "Old Quay must build a protected crossing and at least one curved junction-turn route")
+    for token in ("TrafficPedestrianCrossing", "IsPedestrianCrossingOccupied()",
+                  "pedestrianYieldApproachDistance", "pedestrianCrossing.IsOccupied"):
+        check(token in traffic_driver,
+              f"Traffic vehicles must yield to crosswalk occupants: {token}")
+    for token in ("OnTriggerEnter", "OnTriggerExit", "_occupants.Add(pedestrian)",
+                  "IsOccupied => _occupants.Count > 0"):
+        check(token in pedestrian_crossing,
+              f"Crosswalk occupancy tracker is missing: {token}")
+    for token in ("IsPedestrianWalkAllowed", "pedestrianWalkDuration",
+                  "ConfigurePedestrianSignals", "phase == 4"):
+        check(token in traffic_signal,
+              f"Protected pedestrian signal phase is missing: {token}")
+    check("ConfigureCrossingSignal(signals)" in blockout_builder
+          and "crossingSignal.IsPedestrianWalkAllowed" in pedestrian_walker,
+          "Crossing pedestrian must wait for the protected walk phase")
 
     check("AddComponent<PoliceResponseDirector>()" in blockout_builder
           and "responseDirector.Configure(attentionState, player.transform, responseText);" in blockout_builder

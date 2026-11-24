@@ -12,16 +12,22 @@ namespace ProjectTideline
         [SerializeField] private DialogueController dialogueController;
         [SerializeField] private DialogueGraph dialogueGraph;
         [SerializeField] private string talkPrompt = "Talk";
+        [SerializeField] private bool oneShot;
+        [SerializeField] private string completedPrompt = "Conversation complete";
+
+        private bool _used;
 
         public override string InteractionPrompt =>
-            string.IsNullOrWhiteSpace(talkPrompt) ? "Talk" : talkPrompt;
+            oneShot && _used ? completedPrompt
+                : string.IsNullOrWhiteSpace(talkPrompt) ? "Talk" : talkPrompt;
 
         public override void Interact(GameObject actor)
         {
-            if (actor == null || dialogueController == null || dialogueGraph == null)
+            if (actor == null || dialogueController == null || dialogueGraph == null || (oneShot && _used))
                 return;
 
-            dialogueController.Begin(dialogueGraph);
+            if (dialogueController.Begin(dialogueGraph) && oneShot)
+                _used = true;
         }
     }
 }

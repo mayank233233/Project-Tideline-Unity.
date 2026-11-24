@@ -10,6 +10,7 @@ namespace ProjectTideline
     public sealed class AmbientPedestrianWalker : MonoBehaviour
     {
         [SerializeField] private Transform[] route;
+        [SerializeField] private TrafficSignalController crossingSignal;
         [SerializeField, Min(0.1f)] private float walkingSpeed = 1.25f;
         [SerializeField, Min(0.1f)] private float turnSpeed = 360f;
         [SerializeField, Min(0f)] private float arrivalDistance = 0.45f;
@@ -27,8 +28,14 @@ namespace ProjectTideline
             _resumeAt = 0f;
         }
 
+        public void ConfigureCrossingSignal(TrafficSignalController signal)
+        {
+            crossingSignal = signal;
+        }
+
         private void Update()
         {
+            if (crossingSignal != null && !crossingSignal.IsPedestrianWalkAllowed) return;
             if (route == null || route.Length < 2 || Time.time < _resumeAt) return;
 
             for (int attempts = 0; attempts < route.Length; attempts++)

@@ -57,12 +57,14 @@ Run **Project Tideline → 14 — Build Playable Old Quay Blockout** from the Un
 
 The generated first-play loop is:
 
-1. Find Juno outside Kade Motor Works and interact.
-2. Choose one of two responses. Both continue the objective; the choice changes Juno's relationship value.
-3. Walk to the harbour office kiosk and inspect the shipment ledger.
-4. Return to the workshop report board and report back.
+1. Find Juno outside Kade Motor Works and choose one of two responses. The choice changes her relationship with Mara.
+2. Inspect the shipment ledger at the harbour office.
+3. Return to the workshop and report the findings.
+4. Enter the Kade delivery truck. It has four configured WheelColliders, steering, driven rear wheels, braking, a Rigidbody and enter/exit handling.
+5. Follow the marked road to the customer bay and stop the truck. The checkpoint only accepts the configured vehicle while occupied and below its speed threshold.
+6. Exit and interact with the customer to complete the key handoff.
 
-The scene includes a mission HUD, proximity prompt, dialogue panel, keyboard controls and touch controls. The world, Juno and player are primitive placeholders. There is no vehicle gameplay, pedestrian simulation, final character rig, save flow, cinematic presentation or Android performance validation in this generated tutorial. The menu command must still be run in Unity; the repository's static CI does not execute it or prove that the scene compiles or plays.
+The scene includes a mission HUD, proximity prompts, dialogue panel, keyboard controls and touch controls. The touch accelerator/brake/handbrake mapping is shared with vehicle input. The world, Juno, customer and player remain primitive placeholders. There is no pedestrian simulation, final character rig, save flow, cinematic presentation or Android performance validation in this generated tutorial. The menu command must still be run in Unity; the repository's static CI does not execute it or prove that the scene compiles or plays.
 
 ## Recovered technical foundation
 

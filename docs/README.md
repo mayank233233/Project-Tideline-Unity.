@@ -8,6 +8,7 @@
 - [Three-lead system](PORT_SABLE_THREE_LEAD_SYSTEM.md): required hero prefabs, component contracts, scene wiring, switch locks and device test plan.
 - [Narrative state and save contract](PORT_SABLE_NARRATIVE_STATE.md): persistent prologue flags, mission-branch conditions, v3 saves, legacy migration and vehicle-save guard.
 - [Mission asset and branch audit](MISSION_ASSET_BRANCH_AUDIT.md): recovered Old Quay filename mismatch, reachable legacy ending gates, zero PORT SABLE MissionDefinition assets and Unity verification steps.
+- [Mission signal producer inventory](MISSION_SIGNAL_PRODUCER_INVENTORY.md): mission-by-mission objective-contract gaps, current signal producers, interaction wiring limits and save/restore semantics.
 - [ALL THE WAY DOWN — signature score](PORT_SABLE_SIGNATURE_SCORE_ALL_THE_WAY_DOWN.md): full three-lead prep, crew selection, seven mission beats, three outcomes and test criteria.
 - [Hero character art bible](PORT_SABLE_HERO_CHARACTER_BIBLE.md): unique lead identities, recurring cast designs, facial/gesture language, hero rig contract and mobile LOD starting budgets.
 

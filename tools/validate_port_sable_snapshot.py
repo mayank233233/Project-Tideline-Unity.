@@ -763,6 +763,15 @@ def run() -> int:
     ):
         check(token in mission_status_display,
               f"Live delivery progress HUD is missing: {token}")
+    check("public Transform NextCheckpoint" in route_controller
+          and "checkpoints[_nextCheckpointIndex].transform" in route_controller,
+          "Route controller must expose the next ordered gate transform")
+    check("deliveryRoute.NextCheckpoint" in mission_status_display
+          and "GetNextCheckpointHint()" in mission_status_display
+          and "NEXT GATE — LEFT" in mission_status_display
+          and "NEXT GATE — RIGHT" in mission_status_display
+          and "NEXT GATE — AHEAD" in mission_status_display,
+          "Driving HUD must point the player toward the next route checkpoint")
     for token in (
         "missionDisplay.SetDeliveryRoute(deliveryRoute)",
         "Route gate post — left",

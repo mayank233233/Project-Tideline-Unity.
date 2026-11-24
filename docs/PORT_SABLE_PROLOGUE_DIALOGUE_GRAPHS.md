@@ -128,7 +128,7 @@ The gates are intentionally staged: the route-start interaction requires the wor
 5. Run **Project Tideline → 13 — Audit Mara Prologue Scene Wiring**.
 6. Run **Project Tideline → 11 — Audit Mission Assets and Branches**.
 
-The scene-wiring audit inspects loaded scene instances and their serialized references. It reports missing services, duplicate singletons, missing task stations, invalid checkpoint arrays, incorrect dialogue graph bindings and mission objective signal mismatches. It does not create placeholder geometry or pretend an unconfigured scene is playable.
+The scene-wiring audit inspects loaded scene instances and their serialized references. It reports missing services, duplicate singletons, missing task stations, invalid checkpoint arrays, incorrect dialogue graph bindings and mission objective signal mismatches. It does not create placeholder geometry or pretend an unconfigured scene is playable. It also checks that the shared dialogue UI has enough paired button/label slots for the largest choice list in either Mara graph, and that all proximity targets expose a non-trigger collider ignored by the ray/sphere cast's trigger filter.
 
 ## Verification boundary
 

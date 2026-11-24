@@ -408,8 +408,8 @@ def run() -> int:
           and "_quietSeconds < quietPeriodBeforeDecay" in attention
           and "_value = Mathf.Max(0, _value - decay);" in attention,
           "Public attention must cool down after a configurable quiet period and publish pressure-band changes")
-    check('"old_quay.score.case_recovered": AddAttention((int)Math.Min(100L, 42L * amount))' in attention
-          and '"old_quay.score.safehouse_reached": ResolveAtGarage(100)' in attention,
+    check('case "old_quay.score.case_recovered": AddAttention((int)Math.Min(100L, 42L * amount))' in attention
+          and 'case "old_quay.score.safehouse_reached": ResolveAtGarage(100)' in attention,
           "First score recovery must raise police pressure and safehouse arrival must resolve it")
     check("ConfigureAdditionalMissionGate" in vehicle_seat
           and "additionalMissionId" in vehicle_seat

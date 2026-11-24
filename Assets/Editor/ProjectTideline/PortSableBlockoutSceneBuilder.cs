@@ -495,8 +495,37 @@ namespace ProjectTideline.Editor
                 MakeMaterial("Customer Placeholder Material", new Color(0.42f, 0.48f, 0.38f));
             CustomerHandoffInteractable handoff = customer.AddComponent<CustomerHandoffInteractable>();
             handoff.Configure(checkpoint, deliverySeat);
+
+            BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
+                new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
+            BuildAmbientPedestrian("LOCAL RESIDENT — west sidewalk", -9.35f,
+                new[] { 49f, 20f, -5f, -29f }, new Color(0.30f, 0.39f, 0.52f), 1.05f);
         }
 
+
+
+        private static void BuildAmbientPedestrian(string name, float x, float[] routeZ,
+            Color clothingColor, float walkingSpeed)
+        {
+            Transform[] route = new Transform[routeZ.Length];
+            GameObject routeRoot = new GameObject(name + " — waypoint route");
+            for (int i = 0; i < routeZ.Length; i++)
+            {
+                GameObject node = new GameObject("Walk node " + (i + 1));
+                node.transform.SetParent(routeRoot.transform, false);
+                node.transform.position = new Vector3(x, 1f, routeZ[i]);
+                route[i] = node.transform;
+            }
+
+            GameObject pedestrian = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            pedestrian.name = name;
+            pedestrian.transform.position = route[0].position;
+            pedestrian.transform.localScale = new Vector3(0.72f, 1f, 0.72f);
+            pedestrian.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial(name + " — placeholder material", clothingColor);
+            pedestrian.AddComponent<AmbientPedestrianWalker>()
+                .Configure(route, walkingSpeed, 1.1f);
+        }
 
         private static VehicleDriveController BuildDeliveryVehicle(Transform cameraTransform,
             out VehicleSeatInteractable seatInteractable)

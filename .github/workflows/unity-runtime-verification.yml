@@ -1,0 +1,49 @@
+name: Unity runtime verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unity-build:
+    name: Generate Old Quay and build with Unity
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Require Unity Personal or Pro license
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        shell: bash
+        run: |
+          if [[ -z "$UNITY_LICENSE" ]]; then
+            echo "::error::Repository Actions secret UNITY_LICENSE is missing. Add the Unity .ulf license file contents under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Generate Old Quay, verify required scene systems, and build
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          projectPath: .
+          targetPlatform: StandaloneLinux64
+          buildMethod: ProjectTideline.Editor.PortSableCiBuild.BuildPlayer
+          allowDirtyBuild: true
+
+      - name: Upload standalone build
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: port-sable-old-quay-linux
+          path: Builds/CI/
+          if-no-files-found: error
+          retention-days: 7

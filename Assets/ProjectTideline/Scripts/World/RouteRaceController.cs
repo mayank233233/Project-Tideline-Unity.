@@ -15,11 +15,24 @@ namespace ProjectTideline
 
         private bool _isActive;
         private int _nextCheckpointIndex;
+        private bool _finishSignalPending;
 
         public bool IsActive => _isActive;
         public int NextCheckpointIndex => _nextCheckpointIndex;
         public int CheckpointCount => checkpoints != null ? checkpoints.Length : 0;
         public event Action Finished;
+
+        private void OnEnable()
+        {
+            MissionSignalBus.DispatchCompleted += OnSignalDispatchCompleted;
+            MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;
+        }
+
+        private void OnDisable()
+        {
+            MissionSignalBus.DispatchCompleted -= OnSignalDispatchCompleted;
+            MissionSignalBus.DispatchAborted -= OnSignalDispatchAborted;
+        }
 
         public bool BeginRace()
         {
@@ -50,11 +63,12 @@ namespace ProjectTideline
             if (_nextCheckpointIndex == checkpoints.Length)
             {
                 _isActive = false;
+                _finishSignalPending = true;
                 // The final checkpoint and route finish are outcomes of one trigger entry.
+                // The specific route-finished callback is raised only after the whole batch drains.
                 MissionSignalBus.PublishBatch(
                     new MissionSignalBus.Signal(signalPrefix + ".checkpoint", 1),
                     new MissionSignalBus.Signal(signalPrefix + ".finished", 1));
-                NotifyFinished();
             }
             else
             {
@@ -72,6 +86,28 @@ namespace ProjectTideline
             _nextCheckpointIndex = 0;
             MissionSignalBus.Publish(signalPrefix + ".cancelled", 1);
             return true;
+        }
+
+        private void OnSignalDispatchCompleted()
+        {
+            if (!_finishSignalPending) return;
+
+            _finishSignalPending = false;
+            NotifyFinished();
+        }
+
+        private void OnSignalDispatchAborted(int dispatched)
+        {
+            if (!_finishSignalPending) return;
+
+            _finishSignalPending = false;
+            // The final trigger action was discarded. Re-arm the final checkpoint so the
+            // player can repeat that action instead of receiving a false route completion.
+            _isActive = true;
+            _nextCheckpointIndex = Mathf.Max(0, checkpoints != null ? checkpoints.Length - 1 : 0);
+            Debug.LogWarning("Route race '" + signalPrefix +
+                "' rolled back its final checkpoint because the signal batch aborted after " +
+                dispatched + " events. Repeat the final checkpoint after the signal loop is fixed.", this);
         }
 
         private void NotifyFinished()

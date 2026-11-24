@@ -25,6 +25,10 @@ namespace ProjectTideline
         public int NextCheckpointIndex => _nextCheckpointIndex;
         public int CheckpointCount => checkpoints != null ? checkpoints.Length : 0;
         public VehicleDriveController PlayerVehicle => playerVehicle;
+        public Transform NextCheckpoint =>
+            checkpoints != null && _nextCheckpointIndex >= 0 && _nextCheckpointIndex < checkpoints.Length
+                ? checkpoints[_nextCheckpointIndex] != null ? checkpoints[_nextCheckpointIndex].transform : null
+                : null;
         public event Action Finished;
         public event Action<int, int> ProgressChanged;
 

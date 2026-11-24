@@ -201,6 +201,8 @@ def run() -> int:
     mara_workshop = read("Assets/ProjectTideline/Scripts/World/MaraWorkshopOrderController.cs")
     mara_workshop_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MaraWorkshopTaskInteractable.cs")
     mara_delivery_relay = read("Assets/ProjectTideline/Scripts/Interaction/MaraDeliveryRouteCompletionRelay.cs")
+    mara_delivery_start = read("Assets/ProjectTideline/Scripts/Interaction/MaraDeliveryStartInteractable.cs")
+    mara_nico_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MaraPostDeliveryDialogueInteractable.cs")
     for graph_id in (
         "prologue.mara.two_minutes_to_close",
         "prologue.mara.nico_challenge",
@@ -394,6 +396,20 @@ def run() -> int:
     check("vehicle != playerVehicle" in route_race
           and "playerVehicle == null" in route_race,
           "Route race must be bound to one designated player vehicle")
+    check("workshopOrder == null || !workshopOrder.IsComplete" in mara_delivery_start
+          and "deliveryRoute.HasFinished" in mara_delivery_start
+          and "deliveryRoute.BeginRace();" in mara_delivery_start,
+          "Mara delivery start must be blocked until all workshop tasks are complete")
+    check("!deliveryRoute.HasFinished" in mara_delivery_start
+          and "deliveryRoute.IsActive" in mara_delivery_start,
+          "Mara delivery route must not start twice or while already active")
+    check("!deliveryRoute.HasFinished" not in mara_nico_interactable
+          and "deliveryRoute == null || !deliveryRoute.HasFinished" in mara_nico_interactable
+          and "dialogueController.Begin(dialogueGraph);" in mara_nico_interactable,
+          "Nico's follow-up dialogue must remain locked until the delivery route has fully finished")
+    check("public bool HasFinished { get; private set; }" in route_race
+          and "if (_isActive || HasFinished || !HasValidRoute())" in route_race,
+          "Route completion state must gate follow-up dialogue and prevent route replay")
     for token in ("complete_customer_work_order", "mara.workshop.order.completed",
                   "deliver_customer_vehicle", "mara.delivery.finished",
                   "resolve_nico_challenge", "prologue.mara.complete"):

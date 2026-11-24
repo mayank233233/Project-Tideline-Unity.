@@ -67,7 +67,7 @@ The dialogue builder now creates two Mara graphs: the Juno/work-order conversati
 2. Run **Project Tideline → 12 — Generate Mara Prologue Mission**.
 3. Run **Project Tideline → 10 — Audit PORT SABLE Prologue Dialogue** and **Project Tideline → 11 — Audit Mission Assets and Branches**.
 
-This creates dialogue and mission ScriptableObjects only. A playable scene still needs a Mara hero prefab, customer vehicle prefab, PlayerInputRouter, ProximityInteractor, DialogueController/UI, Juno and Nico dialogue interactables, three workshop task stations, a workshop order controller, an assigned route controller with sequential trigger checkpoints, a route-start interaction, and a delivery completion relay. None of those scene/prefab instances is tracked in the current repository snapshot.
+This creates dialogue and mission ScriptableObjects only. A playable scene still needs a Mara hero prefab, customer vehicle prefab, PlayerInputRouter, ProximityInteractor, DialogueController/UI, a Juno `DialogueInteractable`, three workshop task stations sharing one `MaraWorkshopOrderController`, an assigned route controller with sequential trigger checkpoints and its specific player vehicle, a `MaraDeliveryStartInteractable` (blocked until all workshop tasks are complete), a `MaraDeliveryRouteCompletionRelay`, and a `MaraPostDeliveryDialogueInteractable` (blocked until the route has fully finished). None of those scene/prefab instances is tracked in the current repository snapshot.
 
 ## 3. Existing signal producer inventory
 

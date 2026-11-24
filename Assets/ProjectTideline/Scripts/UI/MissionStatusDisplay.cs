@@ -102,7 +102,23 @@ namespace ProjectTideline
             if (mission == null || objective == null) return;
 
             statusText.text = mission.title + "\n" + objective.description
-                + "\nROUTE CHECKPOINTS  " + completed + " / " + total;
+                + "\nROUTE CHECKPOINTS  " + completed + " / " + total
+                + "\n" + GetNextCheckpointHint();
+        }
+
+        private string GetNextCheckpointHint()
+        {
+            if (deliveryRoute == null || deliveryRoute.HasFinished)
+                return "ROUTE COMPLETE";
+            Transform next = deliveryRoute.NextCheckpoint;
+            VehicleDriveController vehicle = deliveryRoute.PlayerVehicle;
+            if (next == null || vehicle == null)
+                return "NEXT GATE — AHEAD";
+
+            Vector3 localTarget = vehicle.transform.InverseTransformPoint(next.position);
+            if (localTarget.x < -1.25f) return "NEXT GATE — LEFT";
+            if (localTarget.x > 1.25f) return "NEXT GATE — RIGHT";
+            return "NEXT GATE — AHEAD";
         }
 
         private void OnRouteFinished()
@@ -118,7 +134,8 @@ namespace ProjectTideline
         {
             if (statusText == null || deliveryRoute == null || deliveryRoute.CheckpointCount <= 0) return;
             statusText.text += "\nROUTE CHECKPOINTS  "
-                + deliveryRoute.NextCheckpointIndex + " / " + deliveryRoute.CheckpointCount;
+                + deliveryRoute.NextCheckpointIndex + " / " + deliveryRoute.CheckpointCount
+                + "\n" + GetNextCheckpointHint();
         }
 
         private void Refresh()

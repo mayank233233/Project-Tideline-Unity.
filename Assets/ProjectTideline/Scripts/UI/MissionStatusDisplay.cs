@@ -12,20 +12,31 @@ namespace ProjectTideline
 
         public void Configure(MissionDirector director, Text text)
         {
+            Unsubscribe();
             missionDirector = director;
             statusText = text;
+            if (isActiveAndEnabled) Subscribe();
             Refresh();
         }
 
         private void OnEnable()
         {
-            if (missionDirector == null) return;
-            missionDirector.ProgressChanged += OnProgressChanged;
-            missionDirector.MissionCompleted += OnMissionCompleted;
+            Subscribe();
             Refresh();
         }
 
-        private void OnDisable()
+        private void OnDisable() => Unsubscribe();
+
+        private void Subscribe()
+        {
+            if (missionDirector == null) return;
+            missionDirector.ProgressChanged -= OnProgressChanged;
+            missionDirector.MissionCompleted -= OnMissionCompleted;
+            missionDirector.ProgressChanged += OnProgressChanged;
+            missionDirector.MissionCompleted += OnMissionCompleted;
+        }
+
+        private void Unsubscribe()
         {
             if (missionDirector == null) return;
             missionDirector.ProgressChanged -= OnProgressChanged;

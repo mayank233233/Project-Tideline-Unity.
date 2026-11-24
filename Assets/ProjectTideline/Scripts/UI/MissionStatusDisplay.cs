@@ -3,11 +3,12 @@ using UnityEngine.UI;
 
 namespace ProjectTideline
 {
-    /// <summary>Compact mission/objective HUD driven by MissionDirector events.</summary>
+    /// <summary>Mission and delivery-route HUD driven by gameplay progression events.</summary>
     [DisallowMultipleComponent]
     public sealed class MissionStatusDisplay : MonoBehaviour
     {
         [SerializeField] private MissionDirector missionDirector;
+        [SerializeField] private RouteRaceController deliveryRoute;
         [SerializeField] private Text statusText;
 
         public void Configure(MissionDirector director, Text text)
@@ -15,6 +16,15 @@ namespace ProjectTideline
             Unsubscribe();
             missionDirector = director;
             statusText = text;
+            if (isActiveAndEnabled) Subscribe();
+            Refresh();
+        }
+
+        public void SetDeliveryRoute(RouteRaceController route)
+        {
+            if (deliveryRoute == route) return;
+            Unsubscribe();
+            deliveryRoute = route;
             if (isActiveAndEnabled) Subscribe();
             Refresh();
         }
@@ -29,18 +39,36 @@ namespace ProjectTideline
 
         private void Subscribe()
         {
-            if (missionDirector == null) return;
-            missionDirector.ProgressChanged -= OnProgressChanged;
-            missionDirector.MissionCompleted -= OnMissionCompleted;
-            missionDirector.ProgressChanged += OnProgressChanged;
-            missionDirector.MissionCompleted += OnMissionCompleted;
+            if (missionDirector != null)
+            {
+                missionDirector.ProgressChanged -= OnProgressChanged;
+                missionDirector.MissionCompleted -= OnMissionCompleted;
+                missionDirector.ProgressChanged += OnProgressChanged;
+                missionDirector.MissionCompleted += OnMissionCompleted;
+            }
+
+            if (deliveryRoute != null)
+            {
+                deliveryRoute.ProgressChanged -= OnRouteProgressChanged;
+                deliveryRoute.Finished -= OnRouteFinished;
+                deliveryRoute.ProgressChanged += OnRouteProgressChanged;
+                deliveryRoute.Finished += OnRouteFinished;
+            }
         }
 
         private void Unsubscribe()
         {
-            if (missionDirector == null) return;
-            missionDirector.ProgressChanged -= OnProgressChanged;
-            missionDirector.MissionCompleted -= OnMissionCompleted;
+            if (missionDirector != null)
+            {
+                missionDirector.ProgressChanged -= OnProgressChanged;
+                missionDirector.MissionCompleted -= OnMissionCompleted;
+            }
+
+            if (deliveryRoute != null)
+            {
+                deliveryRoute.ProgressChanged -= OnRouteProgressChanged;
+                deliveryRoute.Finished -= OnRouteFinished;
+            }
         }
 
         private void OnProgressChanged(MissionDefinition mission, MissionObjective objective,
@@ -61,9 +89,37 @@ namespace ProjectTideline
 
             statusText.text = mission.title + "\n" + objective.description
                 + (required > 1 ? "\n" + current + " / " + required : string.Empty);
+
+            if (deliveryRoute != null && deliveryRoute.IsActive)
+                AppendRouteProgress();
+        }
+
+        private void OnRouteProgressChanged(int completed, int total)
+        {
+            if (statusText == null || missionDirector == null || total <= 0) return;
+            MissionDefinition mission = missionDirector.CurrentMission;
+            MissionObjective objective = missionDirector.CurrentObjective;
+            if (mission == null || objective == null) return;
+
+            statusText.text = mission.title + "\n" + objective.description
+                + "\nROUTE CHECKPOINTS  " + completed + " / " + total;
+        }
+
+        private void OnRouteFinished()
+        {
+            Refresh();
+            if (statusText != null && deliveryRoute != null && deliveryRoute.HasFinished)
+                statusText.text += "\nROUTE COMPLETE — stop in the marked bay";
         }
 
         private void OnMissionCompleted(MissionDefinition mission) => Refresh();
+
+        private void AppendRouteProgress()
+        {
+            if (statusText == null || deliveryRoute == null || deliveryRoute.CheckpointCount <= 0) return;
+            statusText.text += "\nROUTE CHECKPOINTS  "
+                + deliveryRoute.NextCheckpointIndex + " / " + deliveryRoute.CheckpointCount;
+        }
 
         private void Refresh()
         {
@@ -76,6 +132,8 @@ namespace ProjectTideline
                 return;
             }
             statusText.text = mission.title + (objective != null ? "\n" + objective.description : "\nCOMPLETE");
+            if (deliveryRoute != null && deliveryRoute.IsActive)
+                AppendRouteProgress();
         }
     }
 }

@@ -185,7 +185,6 @@ namespace ProjectTideline
             _confrontPressed = false;
             _breakAwayPressed = false;
             _handbrakeHeld = false;
-            _vehicleControlMode = false;
             _throttle = 0f;
             _brake = 0f;
             Move = Vector2.zero;

@@ -17,12 +17,25 @@ namespace ProjectTideline
         [SerializeField] private string requiredObjectiveId;
 
         private bool _completed;
+        private bool _dispatchPending;
+        private bool _dispatchAborted;
+
         public string SignalId => signalId;
 
         public override string InteractionPrompt =>
             _completed ? "Already inspected"
                 : !IsCurrentObjective() ? "Complete the previous objective first"
                 : string.IsNullOrWhiteSpace(interactionPrompt) ? "Inspect" : interactionPrompt;
+
+        private void OnEnable()
+        {
+            MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;
+        }
+
+        private void OnDisable()
+        {
+            MissionSignalBus.DispatchAborted -= OnSignalDispatchAborted;
+        }
 
         public void Configure(string configuredSignalId, string prompt, bool isOneShot = true,
             MissionDirector director = null, string missionId = "", string objectiveId = "")
@@ -51,10 +64,13 @@ namespace ProjectTideline
         public override void Interact(GameObject actor)
         {
             if (actor == null || string.IsNullOrWhiteSpace(signalId) || (oneShot && _completed)
-                || !IsCurrentObjective())
+                || _dispatchPending || !IsCurrentObjective())
                 return;
 
             if (oneShot) _completed = true;
+            _dispatchPending = oneShot;
+            _dispatchAborted = false;
+
             switch (signalId)
             {
                 // Keep the tutorial's authored producer contract discoverable to the mission asset audit.
@@ -68,6 +84,22 @@ namespace ProjectTideline
                     MissionSignalBus.Publish(signalId, 1);
                     break;
             }
+
+            if (oneShot)
+            {
+                _dispatchPending = false;
+                if (_dispatchAborted) _completed = false;
+            }
+        }
+
+        private void OnSignalDispatchAborted(int dispatched)
+        {
+            if (!_dispatchPending) return;
+            _dispatchAborted = true;
+            _completed = false;
+            Debug.LogWarning("World interaction '" + signalId +
+                "' was re-armed because its mission-signal batch aborted after " +
+                dispatched + " events.", this);
         }
     }
 }

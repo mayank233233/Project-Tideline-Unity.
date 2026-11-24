@@ -104,7 +104,8 @@ namespace ProjectTideline
                 int index = _units.Count;
                 Vector3 right = playerTarget.right * (index == 0 ? -5f : 5f);
                 Vector3 spawnPosition = playerTarget.position - playerTarget.forward * (22f + index * 8f) + right;
-                spawnPosition.y = Mathf.Max(0.5f, playerTarget.position.y);
+                // The Old Quay blockout road is at world Y=0; keep the patrol tyres grounded.
+                spawnPosition.y = 0.05f;
                 Quaternion spawnRotation = Quaternion.LookRotation(
                     (playerTarget.position - spawnPosition).normalized, Vector3.up);
                 PolicePursuitVehicle unit = PolicePursuitVehicle.Create(

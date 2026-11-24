@@ -134,7 +134,7 @@ namespace ProjectTideline
                     contextualLabel.text = inVehicle ? "ACCEL" : "SPRINT";
                     break;
                 case MobileTouchControlMode.JumpButton:
-                    contextualLabel.text = inVehicle ? "BRAKE" : "JUMP";
+                    contextualLabel.text = inVehicle ? "BRAKE / REV" : "JUMP";
                     break;
                 case MobileTouchControlMode.InteractButton:
                     contextualLabel.text = "INTERACT";

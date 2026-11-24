@@ -3,12 +3,15 @@ using UnityEngine.UI;
 
 namespace ProjectTideline
 {
-    /// <summary>Mission and delivery-route HUD driven by gameplay progression events.</summary>
+    /// <summary>Mission, delivery-route and vehicle-speed HUD driven by gameplay state.</summary>
     [DisallowMultipleComponent]
     public sealed class MissionStatusDisplay : MonoBehaviour
     {
         [SerializeField] private MissionDirector missionDirector;
         [SerializeField] private RouteRaceController deliveryRoute;
+        [SerializeField] private VehicleDriveController deliveryVehicle;
+        [SerializeField] private GameObject vehicleStatusRoot;
+        [SerializeField] private Text vehicleSpeedText;
         [SerializeField] private Text statusText;
 
         public void Configure(MissionDirector director, Text text)
@@ -29,13 +32,30 @@ namespace ProjectTideline
             Refresh();
         }
 
+        public void SetVehicleStatus(VehicleDriveController vehicle, GameObject panelRoot, Text speedText)
+        {
+            deliveryVehicle = vehicle;
+            vehicleStatusRoot = panelRoot;
+            vehicleSpeedText = speedText;
+            if (vehicleStatusRoot != null)
+                vehicleStatusRoot.SetActive(false);
+            RefreshVehicleStatus();
+        }
+
         private void OnEnable()
         {
             Subscribe();
             Refresh();
+            RefreshVehicleStatus();
         }
 
-        private void OnDisable() => Unsubscribe();
+        private void Update() => RefreshVehicleStatus();
+
+        private void OnDisable()
+        {
+            Unsubscribe();
+            if (vehicleStatusRoot != null) vehicleStatusRoot.SetActive(false);
+        }
 
         private void Subscribe()
         {
@@ -69,6 +89,27 @@ namespace ProjectTideline
                 deliveryRoute.ProgressChanged -= OnRouteProgressChanged;
                 deliveryRoute.Finished -= OnRouteFinished;
             }
+        }
+
+        private void RefreshVehicleStatus()
+        {
+            if (vehicleStatusRoot == null || vehicleSpeedText == null) return;
+            bool driving = deliveryVehicle != null
+                && PlayerInputRouter.Instance != null
+                && PlayerInputRouter.Instance.VehicleControlMode;
+            if (vehicleStatusRoot.activeSelf != driving)
+                vehicleStatusRoot.SetActive(driving);
+            if (!driving) return;
+
+            float speed = deliveryVehicle.SpeedKph;
+            MissionObjective objective = missionDirector != null ? missionDirector.CurrentObjective : null;
+            bool parkingObjective = objective != null && objective.objectiveId == "park_in_delivery_bay";
+            string instruction = parkingObjective
+                ? speed <= 3f ? "PARKING SPEED OK" : "BRAKE TO 3 KM/H"
+                : "DELIVERY SPEED";
+            vehicleSpeedText.text = Mathf.RoundToInt(speed) + " KM/H\n" + instruction;
+            vehicleSpeedText.color = parkingObjective && speed <= 3f
+                ? new Color(0.70f, 0.91f, 0.72f) : Color.white;
         }
 
         private void OnProgressChanged(MissionDefinition mission, MissionObjective objective,

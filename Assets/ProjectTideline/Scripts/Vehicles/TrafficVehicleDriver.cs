@@ -136,7 +136,8 @@ namespace ProjectTideline
             float targetSpeed = cruisingSpeedKph * Mathf.Lerp(1f, 0.58f, Mathf.Abs(steer));
             bool signalRequiresStop = IsTrafficSignalBlocking();
             bool pedestrianRequiresStop = IsPedestrianCrossingOccupied();
-            bool junctionRequiresStop = IsJunctionReservationBlocking();
+            bool junctionRequiresStop = !signalRequiresStop && !pedestrianRequiresStop
+                && IsJunctionReservationBlocking();
             bool blocked = IsObstacleBlocking() || signalRequiresStop || pedestrianRequiresStop || junctionRequiresStop;
 
             float currentSpeed = _vehicle.SpeedKph;

@@ -24,7 +24,7 @@ The gameplay verbs below are copied from `CampaignCanon`. The final column descr
 
 | Mission | Campaign gameplay verb | Objective contract status |
 |---|---|---|
-| TWO MINUTES TO CLOSE | Workshop interaction and precision driving | **Not authored.** No workshop-job completion or authored route/race result signal is defined. Dialogue choices and generic vehicle events are only possible building blocks. |
+| TWO MINUTES TO CLOSE | Workshop interaction and precision driving | **Objective template and producers now exist in source.** `MaraPrologueMissionBuilder` generates three ordered objectives: complete three final workshop checks (`mara.workshop.order.completed`), finish the assigned customer delivery route (`mara.delivery.finished`), and resolve Nico's post-delivery choice (`prologue.mara.complete`). The Juno opening and Nico follow-up are separate dialogue graphs. No `.asset` has been generated in Unity and no scene/prefab wiring exists in the repository, so it is not yet a playable mission. |
 | LAST SONG, FIRST LIE | Social navigation and live-event management | **Not authored.** No venue booking, performer-slot resolution or event-state producer is present. |
 | THE OLD TERMS | Negotiation and conflicting-account analysis | **Not authored.** Dialogue, relationship and story-flag primitives exist, but no mission objective maps to them and no playable dialogue entry point is wired in this snapshot. |
 | THE CUT | Three-perspective playable set piece | **Not authored.** No staged sequence/checkpoint/lead-coordination completion contract exists. |
@@ -46,7 +46,7 @@ The gameplay verbs below are copied from `CampaignCanon`. The final column descr
 | THE LAST COLLECTION | Branching multi-lead score with crew support | **Not authored.** No score-stage, crew-support or collection-completion producer is present. |
 | NO CLEAN EXIT | Final multi-lead confrontation and authored epilogue | **Not authored.** Generic confrontation outcomes exist in code, but their call path is not established and no finale MissionDefinition/branch assets exist. |
 
-## 2. Existing signal producer inventory
+## 3. Existing signal producer inventory
 
 These are signals the current source can emit. Their existence does not establish that they are used by a PORT SABLE mission.
 
@@ -104,6 +104,7 @@ The current save path has the following semantics:
 - `PublicAttentionState.Restore` restores the value and raises its local UI/state event, but does not publish a mission signal.
 - The signal queue itself is transient and is not serialized. No historic vehicle, dialogue or confrontation event is replayed after loading.
 - The route-race controller's active flag and next checkpoint index are transient. Saving mid-race does not preserve route progress; after the scene is recreated, the route must be started again. The mission objective should listen for `race.long_loop.finished`, not count checkpoint events as durable mission progress, unless route progress is later added to the save schema.
+- Mara's workshop task IDs and route checkpoint index are not serialized. A save before the three workshop checks are complete resets those checks on scene recreation; the mission objective has not advanced yet, so all three are repeated. A save during the delivery route restarts that route from checkpoint zero; the mission objective remains at the delivery step until the finish relay fires. A completed work order or delivery is represented by the MissionDirector's next objective index, which is saved normally.
 
 **Design consequence:** a MissionDefinition objective must not depend on a one-time event that happened before the active objective or that is expected to replay during load. If a later branch depends on an earlier choice, evaluate the persisted story flag or relationship value when resolving the branch. If an objective needs to observe a newly selected choice, its dialogue choice must emit the exact objective signal while that objective is active, and the objective progress must be saved after the resulting dispatch/advance has completed.
 
@@ -131,6 +132,7 @@ The current source now raises an internal `DispatchAborted` notification after c
 - Added `DialogueInteractable`, which uses the existing proximity-interaction route to open a configured dialogue graph.
 - Added `CinematicConfrontationInteractable`, which uses the same route to start a configured non-graphic confrontation sequence; its controller still owns outcome signal emission.
 - Added a route-race prototype: `RouteRaceStartInteractable` starts it, `RouteRaceCheckpoint` trigger components feed ordered progress, and `RouteRaceController` emits route start/checkpoint/finish/cancel signals. It does not yet model a rival or competitive result.
+- Added Mara's three-step workshop order and task interactables, a vehicle-bound route finish relay, split Juno/Nico dialogue graphs, and `MaraPrologueMissionBuilder` to generate the three-objective `two_minutes_to_close` MissionDefinition.
 - Extended `MissionAssetAudit` to match each objective's `completionSignal` against literal `Publish` calls, `PublishBatch` signal entries, generated `DialogueGraph` choice signals and the supported dynamic relationship/attention/race patterns. An unmatched signal is now an audit error.
 - Added seven Unity Editor regression cases: two for FIFO/nested batch dispatch and one completion callback, plus five for exact, relationship, attention-band, route-race and unknown signal resolution. They are included in the Editor audit report but have not been run in Unity.
 - Changed `DialogueController.Begin` to return success/failure, reject overlapping conversations and reject graphs whose start node is missing. Disabling the controller now closes the active graph and releases the gameplay input lock.

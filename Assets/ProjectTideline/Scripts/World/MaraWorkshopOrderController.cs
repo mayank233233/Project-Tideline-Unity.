@@ -25,6 +25,7 @@ namespace ProjectTideline
             "door_latch_check",
             "engine_rattle_check"
         };
+        [SerializeField] private MissionDirector missionDirector;
 
         private readonly HashSet<string> _completedTaskIds = new HashSet<string>(StringComparer.Ordinal);
         private HashSet<string> _requiredTaskSet;
@@ -33,7 +34,14 @@ namespace ProjectTideline
         public int CompletedTaskCount => _completedTaskIds.Count;
         public int RequiredTaskCount => _requiredTaskSet != null ? _requiredTaskSet.Count : 0;
         public bool IsComplete => _configurationValid && RequiredTaskCount > 0
-            && CompletedTaskCount == RequiredTaskCount;
+            && (CompletedTaskCount == RequiredTaskCount || MissionProgressHasPassedWorkOrder());
+
+        private bool MissionProgressHasPassedWorkOrder()
+        {
+            MissionDefinition mission = missionDirector != null ? missionDirector.CurrentMission : null;
+            return mission != null && mission.missionId == "two_minutes_to_close"
+                && missionDirector.CurrentObjectiveIndex >= 1;
+        }
 
         private string _pendingTaskId;
         private bool _pendingTaskAborted;

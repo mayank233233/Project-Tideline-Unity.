@@ -576,6 +576,36 @@ def run() -> int:
         check(token in blockout_builder,
               f"Generated scene is missing mobile HUD wiring: {token}")
 
+    pedestrian_walker = read("Assets/ProjectTideline/Scripts/World/AmbientPedestrianWalker.cs")
+    for token in (
+        "public sealed class AmbientPedestrianWalker",
+        "public void Configure(Transform[] waypoints",
+        "walkingSpeed * Time.deltaTime",
+        "Quaternion.RotateTowards",
+        "_targetIndex = (_targetIndex + 1) % route.Length",
+    ):
+        check(token in pedestrian_walker,
+              f"Ambient pedestrian waypoint movement is missing: {token}")
+    for token in (
+        "BuildAmbientPedestrian(",
+        "DOCK WORKER — east sidewalk",
+        "LOCAL RESIDENT — west sidewalk",
+        "AmbientPedestrianWalker",
+        "new[] { -29f, -5f, 20f, 49f }",
+        "new[] { 49f, 20f, -5f, -29f }",
+    ):
+        check(token in blockout_builder,
+              f"Generated Old Quay pedestrian population is missing: {token}")
+    check("SetVehicleControlMode(true)" in vehicle_seat
+          and "SetVehicleControlMode(false)" in vehicle_seat,
+          "Vehicle entry/exit must switch the shared input mapping")
+    check("VehicleControlMode) PlayerInputRouter.Instance.SetThrottle(1f)" in mobile_controls
+          and "VehicleControlMode) PlayerInputRouter.Instance.SetHandbrake(true)" in mobile_controls,
+          "Touch accelerator and handbrake must map to vehicle controls when seated")
+    check("_npcDriving ? _npcBrake : 1f" in vehicle_drive
+          and "public void SetDriven(bool value)" in vehicle_drive,
+          "Unoccupied player vehicles must hold the parking brake")
+
     delivery_checkpoint = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDeliveryCheckpoint.cs")
     customer_handoff = read("Assets/ProjectTideline/Scripts/Interaction/CustomerHandoffInteractable.cs")
     for token in (

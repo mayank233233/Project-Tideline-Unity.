@@ -30,6 +30,10 @@ namespace ProjectTideline.Editor
             "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_paper_trail.asset";
         private const string MarketLedgerMissionPath =
             "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_market_ledger.asset";
+        private const string MarketBackingMissionPath =
+            "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_market_backing.asset";
+        private const string MarketColdShoulderMissionPath =
+            "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_market_cold_shoulder.asset";
         private const string TutorialDialoguePath =
             "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_intro.asset";
         private const string TutorialDebriefDialoguePath =
@@ -55,6 +59,8 @@ namespace ProjectTideline.Editor
             MissionDefinition firstScoreMission = EnsureFirstScoreMission();
             MissionDefinition paperTrailMission = EnsurePaperTrailMission();
             MissionDefinition marketLedgerMission = EnsureMarketLedgerMission();
+            MissionDefinition marketBackingMission = EnsureMarketBackingMission();
+            MissionDefinition marketColdShoulderMission = EnsureMarketColdShoulderMission();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -197,7 +203,8 @@ namespace ProjectTideline.Editor
             motor.SetMovementCamera(cameraObject.transform);
             cameraObject.transform.position = player.transform.position + new Vector3(0f, 3f, -5f);
             Transform hudRoot = BuildMobileControls();
-            BuildTutorialGameplay(player, cameraObject.transform, hudRoot, tutorialMission, firstScoreMission, paperTrailMission, marketLedgerMission);
+            BuildTutorialGameplay(player, cameraObject.transform, hudRoot, tutorialMission, firstScoreMission,
+                paperTrailMission, marketLedgerMission, marketBackingMission, marketColdShoulderMission);
 
             // Scene metadata helps designers understand what is functional versus placeholder.
             new GameObject("BLOCKOUT NOTES — replace primitives before release");
@@ -302,6 +309,66 @@ namespace ProjectTideline.Editor
             image.color = color;
             image.raycastTarget = true;
             return image;
+        }
+
+        private static MissionDefinition EnsureMarketBackingMission()
+        {
+            EnsureFolder("Assets/ProjectTideline/Content/Missions/Prologues");
+            MissionDefinition mission = AssetDatabase.LoadAssetAtPath<MissionDefinition>(MarketBackingMissionPath);
+            if (mission == null)
+            {
+                mission = ScriptableObject.CreateInstance<MissionDefinition>();
+                AssetDatabase.CreateAsset(mission, MarketBackingMissionPath);
+            }
+
+            mission.missionId = "old_quay_market_backing";
+            mission.title = "A Place at the Table";
+            mission.briefing = "The vendor remembers your promise, and the cafe owner has heard you carried their concern. They have set aside a crate of supplies for Kade Motor Works. Collect it from the pier market.";
+            mission.objectives = new[]
+            {
+                new MissionObjective
+                {
+                    objectiveId = "collect_market_backing",
+                    description = "Collect the reserved supplies from the Breakwater Pier market.",
+                    completionSignal = "old_quay.market_backing.supplies_collected",
+                    requiredCount = 1
+                }
+            };
+            mission.completionBranches = Array.Empty<MissionBranch>();
+            mission.fallbackNextMissionId = string.Empty;
+            mission.endsCampaign = true;
+            EditorUtility.SetDirty(mission);
+            return mission;
+        }
+
+        private static MissionDefinition EnsureMarketColdShoulderMission()
+        {
+            EnsureFolder("Assets/ProjectTideline/Content/Missions/Prologues");
+            MissionDefinition mission = AssetDatabase.LoadAssetAtPath<MissionDefinition>(MarketColdShoulderMissionPath);
+            if (mission == null)
+            {
+                mission = ScriptableObject.CreateInstance<MissionDefinition>();
+                AssetDatabase.CreateAsset(mission, MarketColdShoulderMissionPath);
+            }
+
+            mission.missionId = "old_quay_market_cold_shoulder";
+            mission.title = "No More Favors";
+            mission.briefing = "The market's business is settled, but neither side is ready to extend a hand. Find the independent quay supplier and collect the replacement order for Kade Motor Works.";
+            mission.objectives = new[]
+            {
+                new MissionObjective
+                {
+                    objectiveId = "collect_independent_order",
+                    description = "Collect the replacement order from the independent quay supplier.",
+                    completionSignal = "old_quay.market_cold_shoulder.order_collected",
+                    requiredCount = 1
+                }
+            };
+            mission.completionBranches = Array.Empty<MissionBranch>();
+            mission.fallbackNextMissionId = string.Empty;
+            mission.endsCampaign = true;
+            EditorUtility.SetDirty(mission);
+            return mission;
         }
 
         private static DialogueGraph EnsureMarketVendorDialogue()
@@ -728,9 +795,42 @@ namespace ProjectTideline.Editor
                     requiredCount = 1
                 }
             };
-            mission.completionBranches = Array.Empty<MissionBranch>();
-            mission.fallbackNextMissionId = string.Empty;
-            mission.endsCampaign = true;
+            mission.completionBranches = new[]
+            {
+                new MissionBranch
+                {
+                    nextMissionId = "old_quay_market_backing",
+                    conditions = new[]
+                    {
+                        new MissionBranchCondition
+                        {
+                            storyFlagId = "market_vendor_promised_return",
+                            minimumValue = 1,
+                            maximumValue = 1
+                        },
+                        new MissionBranchCondition
+                        {
+                            storyFlagId = "market_tally_returned_with_context",
+                            minimumValue = 1,
+                            maximumValue = 1
+                        },
+                        new MissionBranchCondition
+                        {
+                            relationshipKey = "breakwater_vendor",
+                            minimumValue = 2,
+                            maximumValue = 100
+                        },
+                        new MissionBranchCondition
+                        {
+                            relationshipKey = "breakwater_cafe_owner",
+                            minimumValue = 2,
+                            maximumValue = 100
+                        }
+                    }
+                }
+            };
+            mission.fallbackNextMissionId = "old_quay_market_cold_shoulder";
+            mission.endsCampaign = false;
             EditorUtility.SetDirty(mission);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -739,7 +839,8 @@ namespace ProjectTideline.Editor
 
         private static void BuildTutorialGameplay(GameObject player, Transform cameraTransform,
             Transform hudRoot, MissionDefinition tutorialMission, MissionDefinition firstScoreMission,
-            MissionDefinition paperTrailMission, MissionDefinition marketLedgerMission)
+            MissionDefinition paperTrailMission, MissionDefinition marketLedgerMission,
+            MissionDefinition marketBackingMission, MissionDefinition marketColdShoulderMission)
         {
             new GameObject("NPC Relationship Ledger").AddComponent<NPCRelationshipLedger>();
             new GameObject("Narrative State Ledger").AddComponent<NarrativeStateLedger>();
@@ -748,11 +849,13 @@ namespace ProjectTideline.Editor
             MissionDirector missionDirector = missionObject.AddComponent<MissionDirector>();
             SerializedObject missionSerialized = new SerializedObject(missionDirector);
             SerializedProperty campaign = missionSerialized.FindProperty("campaign");
-            campaign.arraySize = 4;
+            campaign.arraySize = 6;
             campaign.GetArrayElementAtIndex(0).objectReferenceValue = tutorialMission;
             campaign.GetArrayElementAtIndex(1).objectReferenceValue = firstScoreMission;
             campaign.GetArrayElementAtIndex(2).objectReferenceValue = paperTrailMission;
             campaign.GetArrayElementAtIndex(3).objectReferenceValue = marketLedgerMission;
+            campaign.GetArrayElementAtIndex(4).objectReferenceValue = marketBackingMission;
+            campaign.GetArrayElementAtIndex(5).objectReferenceValue = marketColdShoulderMission;
             missionSerialized.FindProperty("autoStart").boolValue = true;
             missionSerialized.ApplyModifiedPropertiesWithoutUndo();
 
@@ -921,6 +1024,7 @@ namespace ProjectTideline.Editor
             BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);
             BuildPaperTrailWorld(missionDirector);
             BuildMarketLedgerWorld(missionDirector, dialogueController);
+            BuildBreakwaterConsequenceWorld(missionDirector);
             // A compact four-way junction sits in the open southern block, clear of warehouse footprints.
             TrafficSignalController junctionSignals = BuildOldQuayJunction(road, paint, metal, accent);
             Transform northboundStop = MakeTrafficStopLine("Northbound stop line", -3.8f, -30.5f);
@@ -1022,6 +1126,29 @@ namespace ProjectTideline.Editor
                 new Vector3(0.16f, 0.035f, 7.4f), safehousePaint, false);
             MakeBlock("Safehouse arrival bay stop marker", new Vector3(0f, 0.10f, -37.6f),
                 new Vector3(8.4f, 0.035f, 0.16f), safehousePaint, false);
+        }
+
+        private static void BuildBreakwaterConsequenceWorld(MissionDirector missionDirector)
+        {
+            GameObject reservedSupplies = MakeBlock("BREAKWATER MARKET — reserved Kade supplies",
+                new Vector3(32f, 0.92f, 69f), new Vector3(1.25f, 1.1f, 0.9f),
+                MakeMaterial("Reserved market supplies — canvas", new Color(0.47f, 0.34f, 0.22f)));
+            reservedSupplies.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.market_backing.supplies_collected", "Collect reserved supplies", true,
+                missionDirector, "old_quay_market_backing", "collect_market_backing");
+
+            GameObject independentOrder = MakeBlock("QUAY SUPPLIER — replacement order envelope",
+                new Vector3(-40f, 0.9f, 39f), new Vector3(0.9f, 0.08f, 0.62f),
+                MakeMaterial("Independent supplier order — paper", new Color(0.74f, 0.68f, 0.51f)), false);
+            independentOrder.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.market_cold_shoulder.order_collected", "Collect replacement order", true,
+                missionDirector, "old_quay_market_cold_shoulder", "collect_independent_order");
+
+            Material marker = MakeMaterial("Market consequence objective marker", new Color(0.80f, 0.56f, 0.24f));
+            MakeBlock("Reserved supplies marker", new Vector3(32f, 0.10f, 69f),
+                new Vector3(2.0f, 0.035f, 1.4f), marker, false);
+            MakeBlock("Independent supplier marker", new Vector3(-40f, 0.10f, 39f),
+                new Vector3(2.0f, 0.035f, 1.4f), marker, false);
         }
 
         private static void BuildPaperTrailWorld(MissionDirector missionDirector)

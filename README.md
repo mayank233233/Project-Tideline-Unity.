@@ -33,7 +33,7 @@ The source includes:
 - `MaraDeliveryHandoffController.cs` / `MaraCustomerHandoffInteractable.cs`: emit `mara.delivery.finished` only after the assigned route has finished and the customer explicitly accepts the vehicle.
 - `MaraDeliveryStartInteractable.cs` / `MaraPostDeliveryDialogueInteractable.cs`: gate route start until the workshop order is complete and gate Nico's graph until customer handoff is complete.
 - `MaraPrologueMissionBuilder.cs`: generates one three-objective `two_minutes_to_close` MissionDefinition after both Mara dialogue graphs exist.
-- `MaraPrologueSceneWiringAudit.cs`: checks actual loaded-scene references for the player, input, dialogue UI/graphs, three workshop stations, vehicle seat, ordered delivery checkpoints, customer handoff and mission objective signals. It reports missing wiring; it does not create a fake scene.
+- `MaraPrologueSceneWiringAudit.cs`: checks actual loaded-scene references for the player, input, dialogue UI/graphs, three workshop stations, vehicle seat, ordered delivery checkpoints, customer handoff and mission objective signals. It reports missing wiring; it does not create a fake scene. The exact graph/Inspector contract is in [PORT SABLE Prologue Dialogue Graphs](docs/PORT_SABLE_PROLOGUE_DIALOGUE_GRAPHS.md).
 - `SaveSnapshot.cs` / `SessionSaveCoordinator.cs`: schema v3 saves the active lead, all lead positions and narrative flags, while reading v1/v2 legacy saves.
 - `CampaignMissionOutline.cs`: separate narrative-outline data type, intentionally not a playable `MissionDefinition`.
 - `CampaignOutlineAssetBuilder.cs`: Unity Editor command to create/update 21 editable campaign outline assets without deleting stale records.
@@ -78,7 +78,7 @@ For the selected GitHub snapshot:
 python tools/validate_port_sable_snapshot.py
 ```
 
-The GitHub Action runs this check on every push and pull request. Latest verified run at this revision: **PASS — 198 checks, 42 C# files scanned** ([run 45348029021](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45348029021)). The separate legacy mission sequence check reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present in this selected snapshot. This validates repository consistency only; it does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
+The GitHub Action runs this check on every push and pull request. Latest verified run for the current Mara scene-audit and graph-documentation changes: **PASS — 235 checks, 46 C# files scanned** ([run 45351133879](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45351133879)). The separate legacy mission sequence check reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present in this selected snapshot. This validates repository consistency only; it does **not** compile C#, import GLBs, run Unity, generate scenes, build an APK or test a physical device.
 
 The recovered v0.4.9 working tree also passed its original `python tools/validate_static.py` before these new campaign files were added. That original validator is in the complete recovery bundle, not yet mirrored into this selected GitHub snapshot.
 

@@ -72,7 +72,9 @@ The inspected selected-snapshot sources currently include these explicit signal 
 | `CinematicConfrontationController` | `confrontation.resolved`, `confrontation.withdrawn`, `confrontation.failed` | confrontation outcome |
 | `PublicAttentionState` | `world.attention.band.calm`, `world.attention.band.noticed`, `world.attention.band.escalated` | attention changes across a configured band boundary |
 
-The signal list is a runtime source inventory, not proof that any campaign mission consumes those signals. One additional interface gap was found: `IInteractable.SignalId` is stored by `InteractableBase`, but `ProximityInteractor` does not read or publish it. The property must not be treated as a working generic mission signal.
+The signal list is a runtime source inventory, not proof that any campaign mission consumes those signals. The unused `IInteractable.SignalId` property and default `interaction.generic` value have now been removed. The generic `void Interact(GameObject actor)` contract does not report success, so emitting a generic mission signal from the proximity system would risk counting rejected interactions as objective progress. Concrete interactables own their specific success signals.
+
+A source-level dialogue entry path now exists: `ProximityInteractor` → `DialogueInteractable.Interact` → `DialogueController.Begin(dialogueGraph)`. The controller rejects missing start nodes and overlapping conversations, and closes the active graph when disabled. However, no tracked PORT SABLE scene or NPC prefab assigns these references; this is a reusable component path, not verified scene wiring.
 
 See the separate [Mission Signal Producer Inventory](MISSION_SIGNAL_PRODUCER_INVENTORY.md) for emission conditions, repeatability, interaction wiring, per-mission gaps and save/restore behaviour.
 

@@ -418,6 +418,19 @@ def run() -> int:
         check(token in mission_audit, f"Mission asset audit is missing required check: {token}")
     check("MissionBranchEvaluator.ConditionsMatch" in mission_audit,
           "Editor audit is not exercising the production mission-branch evaluator")
+    check("CollectSignalProducerCatalog()" in mission_audit
+          and "signalProducers.TryResolve(objective.completionSignal" in mission_audit,
+          "Mission asset audit must resolve every objective completion signal against a producer catalog")
+    check("MissionSignalBus\\.Publish" in mission_audit
+          and "MissionSignalBus\\.Signal" in mission_audit
+          and "HasRelationshipPattern" in mission_audit
+          and "HasAttentionBandPattern" in mission_audit
+          and "RouteRacePrefix" in mission_audit,
+          "Mission signal catalog must recognize literal, batched and documented dynamic producer patterns")
+    check("AssetDatabase.FindAssets(\\"t:DialogueGraph\\")" in mission_audit
+          and "choice.signalId" in mission_audit
+          and "source/data presence does not prove that a producer component is wired into a playable scene." in mission_audit,
+          "Signal catalog must include generated dialogue choices and disclose the scene-wiring limitation")
     check("unconditional branch" in mission_audit,
           "Mission asset audit does not detect catch-all branches shadowing later branches")
 

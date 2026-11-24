@@ -105,7 +105,7 @@ The unused `IInteractable.SignalId` property and `InteractableBase`'s default `i
 
 This is deliberate: the old `void Interact(GameObject actor)` contract cannot report whether an action actually succeeded. Automatically publishing a generic event would count invalid, rejected or incomplete interactions as objective progress. Concrete interaction components must publish their own specific signals only after their success conditions pass.
 
-## 3. Interaction and scene-wiring evidence
+## 4. Interaction and scene-wiring evidence
 
 | System | What source proves | What remains unproven |
 |---|---|---|
@@ -117,7 +117,7 @@ This is deliberate: the old `void Interact(GameObject actor)` contract cannot re
 | Relationships and story flags | Both ledgers store and serialize their state; dialogue choices apply consequences before publishing their explicit signal. | No scene/bootstrap asset proves that the persistent ledger instances and dialogue UI are configured in a playable PORT SABLE scene. |
 | Public attention | A persistent component listens to upstream mission signals and emits band-transition signals. | No tracked scene proves that the component exists or that a playable objective can cause the required transition. |
 
-## 4. Save/restore contract
+## 5. Save/restore contract
 
 The current save path has the following semantics:
 
@@ -133,13 +133,13 @@ The current save path has the following semantics:
 
 The current save model does not have a separate “completion pending” field. A normal objective completion is advanced synchronously after the signal batch drains; the active objective count is intended to be below its threshold at save time. A save invoked from inside a progress callback during dispatch is an edge case that still needs a focused Play Mode test.
 
-## 5. Signal-batch abort recovery
+## 6. Signal-batch abort recovery
 
 The 4,096-signal runaway-loop guard originally cleared the queue without raising `DispatchCompleted`. If an objective reached its threshold earlier in that same batch, `MissionDirector` could remain completion-pending until another batch arrived; the first later signal could then be ignored by the old objective and lost to the next one.
 
 The current source now raises an internal `DispatchAborted` notification after clearing the queue. `MissionDirector` clears its pending flag, rolls the active objective count back to at most `requiredCount - 1`, and logs that the authored action must be repeated. This is intentionally fail-closed: a signal batch that did not drain cannot complete an objective. The queue-abort path is statically checked, but it has not been exercised in Unity.
 
-## 6. Required implementation gates
+## 7. Required implementation gates
 
 1. Keep mission signals owned by concrete successful interactions. The unused generic `IInteractable.SignalId` API has been removed so rejected interactions cannot generate false objective progress.
 2. Attach `DialogueInteractable` to each prologue NPC in a real scene/prefab and assign its DialogueController and generated graph references; then test each prologue end-to-end.
@@ -161,6 +161,6 @@ The current source now raises an internal `DispatchAborted` notification after c
 - Changed `DialogueController.Begin` to return success/failure, reject overlapping conversations and reject graphs whose start node is missing. Disabling the controller now closes the active graph and releases the gameplay input lock.
 - These are reusable source components only. No PORT SABLE scene or NPC prefab is included or claimed wired.
 
-## 7. Verification boundary
+## 9. Verification boundary
 
 This is a source-level audit. GitHub's static validator checks selected code patterns and repository consistency; it does not execute Unity, invoke collision callbacks, prove that a component exists in a scene, generate ScriptableObjects, or validate Android performance. No Unity compile, Editor menu run, Play Mode test, APK build or device test is claimed.

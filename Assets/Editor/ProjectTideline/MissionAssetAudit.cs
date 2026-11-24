@@ -349,6 +349,9 @@ namespace ProjectTideline.Editor
             report.Add("");
             report.Add("Pure branch evaluator tests:");
             report.AddRange(RunEvaluatorSelfTests());
+            report.Add("");
+            report.Add("Mission signal bus tests:");
+            report.AddRange(RunSignalBusSelfTests());
 
             File.WriteAllLines(ReportPath, report);
             AssetDatabase.Refresh();
@@ -633,6 +636,52 @@ namespace ProjectTideline.Editor
 
             if (failures.Count == 0) failures.Add("PASS — 15 branch evaluator cases.");
             else failures.Insert(0, "FAIL — " + failures.Count + " branch evaluator cases.");
+            return failures;
+        }
+
+        private static List<string> RunSignalBusSelfTests()
+        {
+            var failures = new List<string>();
+            if (EditorApplication.isPlaying)
+                return new List<string> { "SKIP — signal bus self-tests run only outside Play Mode." };
+
+            var observed = new List<string>();
+            int dispatchCompletedCount = 0;
+            string prefix = "__audit.signal.batch.";
+
+            Action<string, int> raised = (signalId, amount) =>
+            {
+                observed.Add(signalId);
+                if (signalId == prefix + "first")
+                    MissionSignalBus.Publish(prefix + "nested", 1);
+            };
+            Action dispatchCompleted = () => dispatchCompletedCount++;
+
+            try
+            {
+                MissionSignalBus.Raised += raised;
+                MissionSignalBus.DispatchCompleted += dispatchCompleted;
+                MissionSignalBus.PublishBatch(
+                    new MissionSignalBus.Signal(prefix + "first", 1),
+                    new MissionSignalBus.Signal(prefix + "second", 1));
+            }
+            catch (Exception exception)
+            {
+                failures.Add("FAIL — signal batch test threw: " + exception.Message);
+            }
+            finally
+            {
+                MissionSignalBus.Raised -= raised;
+                MissionSignalBus.DispatchCompleted -= dispatchCompleted;
+            }
+
+            Test("batch and nested signals preserve FIFO order",
+                observed.SequenceEqual(new[] { prefix + "first", prefix + "second", prefix + "nested" }), failures);
+            Test("dispatch completion fires once after the batch and nested signal drain",
+                dispatchCompletedCount == 1, failures);
+
+            if (failures.Count == 0) failures.Add("PASS — 2 mission signal bus cases.");
+            else failures.Insert(0, "FAIL — " + failures.Count + " mission signal bus cases.");
             return failures;
         }
 

@@ -24,6 +24,7 @@ namespace ProjectTideline
         public int CheckpointCount => checkpoints != null ? checkpoints.Length : 0;
         public VehicleDriveController PlayerVehicle => playerVehicle;
         public event Action Finished;
+        public event Action<int, int> ProgressChanged;
 
         private void OnEnable()
         {
@@ -44,6 +45,7 @@ namespace ProjectTideline
 
             _nextCheckpointIndex = 0;
             _isActive = true;
+            NotifyProgressChanged();
             MissionSignalBus.Publish(signalPrefix + ".started", 1);
             return true;
         }
@@ -63,6 +65,7 @@ namespace ProjectTideline
                 return false;
 
             _nextCheckpointIndex++;
+            NotifyProgressChanged();
             if (_nextCheckpointIndex == checkpoints.Length)
             {
                 _isActive = false;
@@ -87,6 +90,7 @@ namespace ProjectTideline
 
             _isActive = false;
             _nextCheckpointIndex = 0;
+            NotifyProgressChanged();
             MissionSignalBus.Publish(signalPrefix + ".cancelled", 1);
             return true;
         }
@@ -110,9 +114,28 @@ namespace ProjectTideline
             // player can repeat that action instead of receiving a false route completion.
             _isActive = true;
             _nextCheckpointIndex = Mathf.Max(0, checkpoints != null ? checkpoints.Length - 1 : 0);
+            NotifyProgressChanged();
             Debug.LogWarning("Route race '" + signalPrefix +
                 "' rolled back its final checkpoint because the signal batch aborted after " +
                 dispatched + " events. Repeat the final checkpoint after the signal loop is fixed.", this);
+        }
+
+        private void NotifyProgressChanged()
+        {
+            Action<int, int> handlers = ProgressChanged;
+            if (handlers == null) return;
+
+            foreach (Delegate subscriber in handlers.GetInvocationList())
+            {
+                try
+                {
+                    ((Action<int, int>)subscriber).Invoke(_nextCheckpointIndex, CheckpointCount);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception, this);
+                }
+            }
         }
 
         private void NotifyFinished()

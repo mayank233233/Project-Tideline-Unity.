@@ -32,6 +32,7 @@ namespace ProjectTideline
 
         public override string InteractionPrompt => _npcOccupied ? "Take vehicle" : "Enter vehicle";
         public bool IsTransitioning => _transitioning;
+        public bool IsOccupied => _occupant != null;
         public bool IsOccupiedBy(GameObject actor) => actor != null && _occupant == actor;
 
         private void Awake()
@@ -115,6 +116,7 @@ namespace ProjectTideline
             actor.transform.localPosition = Vector3.zero;
             actor.transform.localRotation = Quaternion.identity;
             vehicle.SetDriven(true);
+            if (PlayerInputRouter.Instance != null) PlayerInputRouter.Instance.SetVehicleControlMode(true);
             if (trafficDriver != null) trafficDriver.enabled = false;
             if (cameraRig != null) cameraRig.SetTarget(transform, new Vector3(0f, 2f, 0f));
             if (wasNpcTakeover)
@@ -135,6 +137,7 @@ namespace ProjectTideline
         {
             if (_occupant == null || actor != _occupant || vehicle == null) return;
             vehicle.SetDriven(false);
+            if (PlayerInputRouter.Instance != null) PlayerInputRouter.Instance.SetVehicleControlMode(false);
             actor.transform.SetParent(null, true);
             if (exitPoint != null) actor.transform.SetPositionAndRotation(exitPoint.position, exitPoint.rotation);
             else actor.transform.position += transform.right * 1.8f + Vector3.up * 0.05f;

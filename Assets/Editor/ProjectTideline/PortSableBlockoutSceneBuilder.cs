@@ -469,6 +469,158 @@ namespace ProjectTideline.Editor
                 missionDirector, "old_quay_first_steps", "report_to_juno");
         }
 
+
+        private static VehicleDriveController BuildDeliveryVehicle(Transform cameraTransform,
+            out VehicleSeatInteractable seatInteractable)
+        {
+            Material bodyMaterial = MakeMaterial("Kade Delivery Truck — faded coastal teal",
+                new Color(0.16f, 0.34f, 0.35f), 0.22f);
+            Material trimMaterial = MakeMaterial("Delivery Truck — dark trim", new Color(0.075f, 0.09f, 0.095f), 0.35f);
+            Material glassMaterial = MakeMaterial("Delivery Truck — glass", new Color(0.10f, 0.19f, 0.21f), 0.25f);
+            Material tyreMaterial = MakeMaterial("Delivery Truck — tyres", new Color(0.035f, 0.04f, 0.042f));
+            Material lampMaterial = MakeMaterial("Delivery Truck — lamps", new Color(0.88f, 0.72f, 0.43f));
+
+            GameObject vehicleObject = new GameObject("KADE DELIVERY — drivable vehicle");
+            vehicleObject.transform.SetPositionAndRotation(new Vector3(-2f, 0.58f, -17f), Quaternion.identity);
+            Rigidbody body = vehicleObject.AddComponent<Rigidbody>();
+            body.mass = 1320f;
+            body.drag = 0.035f;
+            body.angularDrag = 0.65f;
+            body.interpolation = RigidbodyInterpolation.Interpolate;
+            body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            BoxCollider chassisCollider = vehicleObject.AddComponent<BoxCollider>();
+            chassisCollider.center = new Vector3(0f, 0.54f, 0f);
+            chassisCollider.size = new Vector3(1.92f, 0.76f, 4.15f);
+
+            CreateVehiclePart(vehicleObject.transform, "Lower chassis", new Vector3(0f, 0.54f, 0f),
+                new Vector3(1.92f, 0.76f, 4.15f), bodyMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Front bonnet", new Vector3(0f, 0.96f, 1.28f),
+                new Vector3(1.86f, 0.28f, 1.45f), bodyMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Rear cargo bed", new Vector3(0f, 0.99f, -1.38f),
+                new Vector3(1.82f, 0.22f, 1.15f), bodyMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Cargo bed left rail", new Vector3(-0.82f, 1.22f, -1.38f),
+                new Vector3(0.12f, 0.34f, 1.2f), trimMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Cargo bed right rail", new Vector3(0.82f, 1.22f, -1.38f),
+                new Vector3(0.12f, 0.34f, 1.2f), trimMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Cab rear panel", new Vector3(0f, 1.02f, -0.25f),
+                new Vector3(1.72f, 0.82f, 0.14f), bodyMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Cab left side", new Vector3(-0.82f, 0.95f, 0.38f),
+                new Vector3(0.14f, 0.72f, 1.18f), bodyMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Cab right side", new Vector3(0.82f, 0.95f, 0.38f),
+                new Vector3(0.14f, 0.72f, 1.18f), bodyMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Front windscreen", new Vector3(0f, 1.36f, 0.98f),
+                new Vector3(1.48f, 0.58f, 0.08f), glassMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Front bumper", new Vector3(0f, 0.43f, 2.12f),
+                new Vector3(1.98f, 0.18f, 0.16f), trimMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Rear bumper", new Vector3(0f, 0.43f, -2.12f),
+                new Vector3(1.98f, 0.18f, 0.16f), trimMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Left headlamp", new Vector3(-0.63f, 0.83f, 2.02f),
+                new Vector3(0.32f, 0.18f, 0.06f), lampMaterial);
+            CreateVehiclePart(vehicleObject.transform, "Right headlamp", new Vector3(0.63f, 0.83f, 2.02f),
+                new Vector3(0.32f, 0.18f, 0.06f), lampMaterial);
+
+            GameObject centreOfMass = new GameObject("Vehicle centre of mass");
+            centreOfMass.transform.SetParent(vehicleObject.transform, false);
+            centreOfMass.transform.localPosition = new Vector3(0f, 0.18f, 0f);
+
+            VehicleDriveController drive = vehicleObject.AddComponent<VehicleDriveController>();
+            SerializedObject driveSerialized = new SerializedObject(drive);
+            driveSerialized.FindProperty("centerOfMass").objectReferenceValue = centreOfMass.transform;
+            driveSerialized.FindProperty("motorTorque").floatValue = 360f;
+            driveSerialized.FindProperty("brakeTorque").floatValue = 1050f;
+            driveSerialized.FindProperty("maxSteerAngle").floatValue = 30f;
+            driveSerialized.FindProperty("handbrakeTorque").floatValue = 1450f;
+            driveSerialized.FindProperty("downforce").floatValue = 22f;
+
+            WheelBindingSetup[] wheelSetups =
+            {
+                new WheelBindingSetup(-0.86f, 1.28f, true, false, "Front left"),
+                new WheelBindingSetup(0.86f, 1.28f, true, false, "Front right"),
+                new WheelBindingSetup(-0.86f, -1.28f, false, true, "Rear left"),
+                new WheelBindingSetup(0.86f, -1.28f, false, true, "Rear right")
+            };
+            SerializedProperty wheels = driveSerialized.FindProperty("wheels");
+            wheels.arraySize = wheelSetups.Length;
+            for (int i = 0; i < wheelSetups.Length; i++)
+            {
+                WheelBindingSetup setup = wheelSetups[i];
+                GameObject wheelColliderObject = new GameObject(setup.label + " WheelCollider");
+                wheelColliderObject.transform.SetParent(vehicleObject.transform, false);
+                wheelColliderObject.transform.localPosition = new Vector3(setup.x, -0.22f, setup.z);
+                WheelCollider wheelCollider = wheelColliderObject.AddComponent<WheelCollider>();
+                wheelCollider.radius = 0.36f;
+                wheelCollider.suspensionDistance = 0.22f;
+                wheelCollider.mass = 22f;
+                wheelCollider.wheelDampingRate = 1.4f;
+                wheelCollider.forceAppPointDistance = 0.12f;
+
+                GameObject wheelVisual = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                wheelVisual.name = setup.label + " tyre visual";
+                wheelVisual.transform.SetParent(vehicleObject.transform, false);
+                wheelVisual.transform.localPosition = wheelColliderObject.transform.localPosition;
+                wheelVisual.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                wheelVisual.transform.localScale = new Vector3(0.22f, 0.36f, 0.36f);
+                wheelVisual.GetComponent<Renderer>().sharedMaterial = tyreMaterial;
+                UnityEngine.Object.DestroyImmediate(wheelVisual.GetComponent<Collider>());
+
+                SerializedProperty binding = wheels.GetArrayElementAtIndex(i);
+                binding.FindPropertyRelative("collider").objectReferenceValue = wheelCollider;
+                binding.FindPropertyRelative("visual").objectReferenceValue = wheelVisual.transform;
+                binding.FindPropertyRelative("steer").boolValue = setup.steer;
+                binding.FindPropertyRelative("driven").boolValue = setup.driven;
+            }
+            driveSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            GameObject driverSeat = new GameObject("Driver seat");
+            driverSeat.transform.SetParent(vehicleObject.transform, false);
+            driverSeat.transform.localPosition = new Vector3(-0.42f, 0.22f, -0.15f);
+            GameObject exitPoint = new GameObject("Driver exit point");
+            exitPoint.transform.SetParent(vehicleObject.transform, false);
+            exitPoint.transform.localPosition = new Vector3(-1.65f, 0.08f, -0.25f);
+            exitPoint.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);
+
+            seatInteractable = vehicleObject.AddComponent<VehicleSeatInteractable>();
+            SerializedObject seatSerialized = new SerializedObject(seatInteractable);
+            seatSerialized.FindProperty("vehicle").objectReferenceValue = drive;
+            seatSerialized.FindProperty("driverSeat").objectReferenceValue = driverSeat.transform;
+            seatSerialized.FindProperty("exitPoint").objectReferenceValue = exitPoint.transform;
+            seatSerialized.FindProperty("cameraRig").objectReferenceValue = ThirdPersonCameraRig.Instance;
+            seatSerialized.FindProperty("startsWithNpcDriver").boolValue = false;
+            seatSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            return drive;
+        }
+
+        private struct WheelBindingSetup
+        {
+            public readonly float x;
+            public readonly float z;
+            public readonly bool steer;
+            public readonly bool driven;
+            public readonly string label;
+
+            public WheelBindingSetup(float x, float z, bool steer, bool driven, string label)
+            {
+                this.x = x;
+                this.z = z;
+                this.steer = steer;
+                this.driven = driven;
+                this.label = label;
+            }
+        }
+
+        private static void CreateVehiclePart(Transform parent, string name,
+            Vector3 localPosition, Vector3 localScale, Material material)
+        {
+            GameObject part = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            part.name = name;
+            part.transform.SetParent(parent, false);
+            part.transform.localPosition = localPosition;
+            part.transform.localScale = localScale;
+            part.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>());
+        }
+
         private static Button CreateUiButton(Transform parent, string name, string label,
             Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 size, Vector2 position)
         {

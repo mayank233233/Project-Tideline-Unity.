@@ -295,7 +295,7 @@ namespace ProjectTideline.Editor
             }
             mission.missionId = "old_quay_first_steps";
             mission.title = "OLD QUAY — FIRST STEPS";
-            mission.briefing = "Meet Juno, verify the harbour ledger and report back to Kade Motor Works.";
+            mission.briefing = "Meet Juno, verify the harbour ledger, take the delivery car to the customer and complete the handoff.";
             mission.objectives = new[]
             {
                 new MissionObjective
@@ -317,6 +317,27 @@ namespace ProjectTideline.Editor
                     objectiveId = "report_to_juno",
                     description = "Return to the workshop and report your findings.",
                     completionSignal = "old_quay.juno_reported_back",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "enter_delivery_car",
+                    description = "Get into the Kade delivery car.",
+                    completionSignal = "vehicle.entered",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "deliver_to_customer",
+                    description = "Drive to the marked customer bay and bring the car to a stop.",
+                    completionSignal = "old_quay.delivery_arrived",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "customer_handoff",
+                    description = "Exit the car and hand the keys to the customer.",
+                    completionSignal = "old_quay.customer_handoff_accepted",
                     requiredCount = 1
                 }
             };

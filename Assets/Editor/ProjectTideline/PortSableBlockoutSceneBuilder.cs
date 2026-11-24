@@ -1018,7 +1018,7 @@ namespace ProjectTideline.Editor
             pedestrian.GetComponent<Renderer>().sharedMaterial =
                 MakeMaterial("Crosswalk pedestrian — muted ochre", new Color(0.58f, 0.39f, 0.24f));
             AmbientPedestrianWalker walker = pedestrian.AddComponent<AmbientPedestrianWalker>();
-            walker.Configure(route, 1.1f, 0.6f);
+            walker.Configure(route, 2f, 18f);
             walker.ConfigureCrossingSignal(signals);
             return occupancy;
         }

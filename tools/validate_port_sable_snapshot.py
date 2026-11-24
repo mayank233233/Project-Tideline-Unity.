@@ -248,6 +248,7 @@ def run() -> int:
     relationship_ledger = read("Assets/ProjectTideline/Scripts/NPC/NPCRelationshipLedger.cs")
     narrative_ledger = read("Assets/ProjectTideline/Scripts/Core/NarrativeStateLedger.cs")
     dialogue_controller = read("Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs")
+    dialogue_interactable = read("Assets/ProjectTideline/Scripts/Interaction/DialogueInteractable.cs")
     vehicle_seat = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleSeatInteractable.cs")
     vehicle_drive = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDriveController.cs")
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
@@ -332,10 +333,19 @@ def run() -> int:
               f"Confrontation producer is missing {signal}")
     check('"world.attention.band." + nextBand.ToString().ToLowerInvariant()' in attention,
           "Public-attention producer must publish only configured band transitions")
-    check("public string SignalId => signalId;" in interactable
-          and "_focused.SignalId" not in proximity_interactor
-          and "MissionSignalBus.Publish" not in proximity_interactor,
-          "Audit note: generic IInteractable.SignalId is not currently emitted by ProximityInteractor")
+    check("SignalId" not in interactable and "interaction.generic" not in interactable
+          and "SignalId" not in proximity_interactor,
+          "Unused generic interaction signal metadata must not remain in the interaction interface")
+    check("public sealed class DialogueInteractable" in dialogue_interactable
+          and "dialogueController.Begin(dialogueGraph);" in dialogue_interactable
+          and "dialogueController == null || dialogueGraph == null" in dialogue_interactable,
+          "DialogueInteractable must route a configured graph into the dialogue controller")
+    check("public bool Begin(DialogueGraph graph)" in dialogue_controller
+          and "graph == null || IsOpen" in dialogue_controller
+          and "graph.FindNode(graph.startNodeId)" in dialogue_controller,
+          "DialogueController must reject missing, malformed-start or overlapping dialogue graphs")
+    check("_focused.Interact(actorRoot.gameObject);" in proximity_interactor,
+          "ProximityInteractor must dispatch focused dialogue interactions through IInteractable")
     check("MissionSignalBus.Publish(choice.signalId, Mathf.Max(1, choice.signalAmount));" in dialogue_controller,
           "DialogueController must publish authored choice signals")
     check("Mathf.Max(1, objective.requiredCount) - 1" in mission_director,

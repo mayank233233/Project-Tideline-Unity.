@@ -402,6 +402,11 @@ def run() -> int:
               f"Confrontation producer is missing {signal}")
     check('"world.attention.band." + nextBand.ToString().ToLowerInvariant()' in attention,
           "Public-attention producer must publish only configured band transitions")
+    check("quietPeriodBeforeDecay" in attention
+          and "attentionDecayPerSecond" in attention
+          and "_quietSeconds < quietPeriodBeforeDecay" in attention
+          and "_value = Mathf.Max(0, _value - decay);" in attention,
+          "Public attention must cool down after a configurable quiet period and publish pressure-band changes")
     check("AttentionChanged += OnAttentionChanged" in pressure_hud
           and "AttentionRestored += OnAttentionRestored" in pressure_hud
           and "AttentionChanged -= OnAttentionChanged" in pressure_hud

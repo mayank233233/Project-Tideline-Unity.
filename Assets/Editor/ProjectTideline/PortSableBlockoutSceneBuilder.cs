@@ -267,19 +267,19 @@ namespace ProjectTideline.Editor
                 {
                     nodeId = "juno_first_contact",
                     speaker = "JUNO",
-                    line = "The harbour office has changed the delivery ledger again. I need you to check the entry at the quay and bring back what you find. Keep it simple. We have a customer waiting.",
+                    line = "The harbour ledger is wrong, and the customer is already waiting at Saltline. Check the entry, take the finished car from the workshop, and get it to the delivery bay. Keep it clean. I do not want another call from the harbour office.",
                     choices = new[]
                     {
                         new DialogueGraph.DialogueChoice
                         {
-                            label = "I'll check the harbour ledger.",
+                            label = "I'll verify the ledger and make the delivery.",
                             signalId = "old_quay.juno_briefing_accepted",
                             relationshipCharacterId = "juno_kade",
                             relationshipDelta = 1
                         },
                         new DialogueGraph.DialogueChoice
                         {
-                            label = "Tell me what changed first.",
+                            label = "You could have told me sooner.",
                             signalId = "old_quay.juno_briefing_accepted",
                             relationshipCharacterId = "juno_kade",
                             relationshipDelta = -1
@@ -289,42 +289,6 @@ namespace ProjectTideline.Editor
             };
             EditorUtility.SetDirty(graph);
 
-            DialogueGraph debriefGraph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(TutorialDebriefDialoguePath);
-            if (debriefGraph == null)
-            {
-                debriefGraph = ScriptableObject.CreateInstance<DialogueGraph>();
-                AssetDatabase.CreateAsset(debriefGraph, TutorialDebriefDialoguePath);
-            }
-            debriefGraph.graphId = "old_quay.juno_debrief";
-            debriefGraph.startNodeId = "juno_debrief";
-            debriefGraph.nodes = new[]
-            {
-                new DialogueGraph.DialogueNode
-                {
-                    nodeId = "juno_debrief",
-                    speaker = "JUNO",
-                    line = "Customer signed. That's one less problem between this workshop and next week's rent. You handled the route. I'll handle the paperwork. We are not done yet, but for tonight, the doors stay open.",
-                    choices = new[]
-                    {
-                        new DialogueGraph.DialogueChoice
-                        {
-                            label = "We keep the place running.",
-                            signalId = "old_quay.juno_debrief_completed",
-                            relationshipCharacterId = "juno_kade",
-                            relationshipDelta = 1
-                        },
-                        new DialogueGraph.DialogueChoice
-                        {
-                            label = "Next time, tell me the whole story.",
-                            signalId = "old_quay.juno_debrief_completed",
-                            relationshipCharacterId = "juno_kade",
-                            relationshipDelta = 0
-                        }
-                    }
-                }
-            };
-            EditorUtility.SetDirty(debriefGraph);
-
             MissionDefinition mission = AssetDatabase.LoadAssetAtPath<MissionDefinition>(TutorialMissionPath);
             if (mission == null)
             {
@@ -332,57 +296,50 @@ namespace ProjectTideline.Editor
                 AssetDatabase.CreateAsset(mission, TutorialMissionPath);
             }
             mission.missionId = "old_quay_first_steps";
-            mission.title = "OLD QUAY — FIRST STEPS";
-            mission.briefing = "Meet Juno, verify the harbour ledger, take the delivery car to the customer and complete the handoff.";
+            mission.title = "OLD QUAY — THE CUSTOMER'S RUN";
+            mission.briefing = "Verify the harbour ledger, take the customer's car from Kade Motor Works, drive the Old Quay delivery route, stop in the marked bay and hand the vehicle to its customer.";
             mission.objectives = new[]
             {
                 new MissionObjective
                 {
                     objectiveId = "meet_juno",
-                    description = "Talk to Juno at Kade Motor Works.",
+                    description = "Talk to Juno outside Kade Motor Works.",
                     completionSignal = "old_quay.juno_briefing_accepted",
                     requiredCount = 1
                 },
                 new MissionObjective
                 {
                     objectiveId = "inspect_harbour_ledger",
-                    description = "Go to the harbour office and inspect the shipment ledger.",
+                    description = "Travel to the harbour office and inspect the shipment ledger.",
                     completionSignal = "old_quay.harbour_ledger_inspected",
                     requiredCount = 1
                 },
                 new MissionObjective
                 {
-                    objectiveId = "report_to_juno",
-                    description = "Return to the workshop and report your findings.",
-                    completionSignal = "old_quay.juno_reported_back",
+                    objectiveId = "start_customer_delivery",
+                    description = "Return to the workshop and accept the customer delivery job at the order board.",
+                    completionSignal = "race.long_loop.started",
                     requiredCount = 1
                 },
                 new MissionObjective
                 {
-                    objectiveId = "enter_delivery_car",
-                    description = "Get into the Kade delivery car.",
-                    completionSignal = "vehicle.entered",
+                    objectiveId = "drive_customer_delivery_route",
+                    description = "Enter the customer's car and drive through all three route checkpoints.",
+                    completionSignal = "race.long_loop.finished",
                     requiredCount = 1
                 },
                 new MissionObjective
                 {
-                    objectiveId = "deliver_to_customer",
-                    description = "Drive to the marked customer bay and bring the car to a stop.",
+                    objectiveId = "park_in_delivery_bay",
+                    description = "Slow down and stop the car inside the marked Saltline delivery bay.",
                     completionSignal = "old_quay.delivery_arrived",
                     requiredCount = 1
                 },
                 new MissionObjective
                 {
-                    objectiveId = "customer_handoff",
-                    description = "Exit the car and hand the keys to the customer.",
-                    completionSignal = "old_quay.customer_handoff_accepted",
-                    requiredCount = 1
-                },
-                new MissionObjective
-                {
-                    objectiveId = "return_to_juno",
-                    description = "Return to the workshop and tell Juno the customer accepted the delivery.",
-                    completionSignal = "old_quay.juno_debrief_completed",
+                    objectiveId = "hand_over_customer_vehicle",
+                    description = "Exit the car and hand the vehicle to the waiting customer.",
+                    completionSignal = "mara.delivery.finished",
                     requiredCount = 1
                 }
             };
@@ -401,7 +358,7 @@ namespace ProjectTideline.Editor
             new GameObject("NPC Relationship Ledger").AddComponent<NPCRelationshipLedger>();
             new GameObject("Narrative State Ledger").AddComponent<NarrativeStateLedger>();
 
-            GameObject missionObject = new GameObject("Mission Director — Old Quay first steps");
+            GameObject missionObject = new GameObject("Mission Director — Old Quay customer's run");
             MissionDirector missionDirector = missionObject.AddComponent<MissionDirector>();
             SerializedObject missionSerialized = new SerializedObject(missionDirector);
             SerializedProperty campaign = missionSerialized.FindProperty("campaign");
@@ -410,10 +367,10 @@ namespace ProjectTideline.Editor
             missionSerialized.FindProperty("autoStart").boolValue = true;
             missionSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-            // Persistent objective text remains readable without taking over the screen.
+            // Mission objective HUD.
             Image missionPanel = CreateTouchImage(hudRoot, "Mission HUD background",
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(760f, 150f), new Vector2(28f, -28f),
+                new Vector2(760f, 168f), new Vector2(28f, -28f),
                 new Color(0.035f, 0.055f, 0.06f, 0.76f), out RectTransform missionPanelRect);
             missionPanel.raycastTarget = false;
             Text missionText = CreateUiText(missionPanelRect, "Mission objective text",
@@ -423,11 +380,11 @@ namespace ProjectTideline.Editor
             missionText.rectTransform.offsetMax = new Vector2(-22f, -12f);
             missionObject.AddComponent<MissionStatusDisplay>().Configure(missionDirector, missionText);
 
-            // Interaction prompt is driven by ProximityInteractor focus, not by a timer.
+            // World interaction prompt.
             Image promptPanel = CreateTouchImage(hudRoot, "World interaction prompt",
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                new Vector2(620f, 76f), new Vector2(0f, 92f),
-                new Color(0.035f, 0.055f, 0.06f, 0.82f), out RectTransform promptRect);
+                new Vector2(760f, 76f), new Vector2(0f, 92f),
+                new Color(0.035f, 0.055f, 0.06f, 0.84f), out RectTransform promptRect);
             promptPanel.raycastTarget = false;
             Text promptText = CreateUiText(promptRect, "Interaction prompt text",
                 Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f),
@@ -444,7 +401,7 @@ namespace ProjectTideline.Editor
             interactorSerialized.FindProperty("promptText").objectReferenceValue = promptText;
             interactorSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-            // Dialogue panel: two authored responses write persistent relationship/story state.
+            // Juno's opening dialogue: either choice advances, while changing the relationship ledger.
             Image dialogueImage = CreateTouchImage(hudRoot, "Juno dialogue panel",
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
                 new Vector2(1180f, 430f), new Vector2(0f, 185f),
@@ -463,12 +420,12 @@ namespace ProjectTideline.Editor
                 new Vector2(-64f, 150f), new Vector2(32f, -94f),
                 27, TextAnchor.UpperLeft, Color.white);
 
-            Button firstChoice = CreateUiButton(dialogueRect, "Choice — accept", "I'll check the ledger.",
+            Button firstChoice = CreateUiButton(dialogueRect, "Choice — accept", "I'll verify the ledger and deliver it.",
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(1f, 0f),
-                new Vector2(470f, 84f), new Vector2(-18f, 28f));
-            Button secondChoice = CreateUiButton(dialogueRect, "Choice — ask", "Tell me what changed.",
+                new Vector2(500f, 84f), new Vector2(-18f, 28f));
+            Button secondChoice = CreateUiButton(dialogueRect, "Choice — push back", "You could have told me sooner.",
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 0f),
-                new Vector2(470f, 84f), new Vector2(18f, 28f));
+                new Vector2(500f, 84f), new Vector2(18f, 28f));
 
             DialogueController dialogueController = dialogueImage.gameObject.AddComponent<DialogueController>();
             SerializedObject dialogueSerialized = new SerializedObject(dialogueController);
@@ -491,24 +448,13 @@ namespace ProjectTideline.Editor
             juno.transform.position = new Vector3(-15f, 1f, -5f);
             juno.GetComponent<Renderer>().sharedMaterial =
                 MakeMaterial("Juno Placeholder Material", new Color(0.24f, 0.38f, 0.40f));
-            MissionDialogueSequenceInteractable junoInteractable =
-                juno.AddComponent<MissionDialogueSequenceInteractable>();
-            junoInteractable.Configure(missionDirector, dialogueController, "old_quay_first_steps",
-                new[]
-                {
-                    new MissionDialogueSequenceInteractable.DialogueStep
-                    {
-                        objectiveId = "meet_juno",
-                        graph = graph,
-                        prompt = "Talk to Juno"
-                    },
-                    new MissionDialogueSequenceInteractable.DialogueStep
-                    {
-                        objectiveId = "return_to_juno",
-                        graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(TutorialDebriefDialoguePath),
-                        prompt = "Report back to Juno"
-                    }
-                });
+            DialogueInteractable junoInteractable = juno.AddComponent<DialogueInteractable>();
+            SerializedObject junoSerialized = new SerializedObject(junoInteractable);
+            junoSerialized.FindProperty("dialogueController").objectReferenceValue = dialogueController;
+            junoSerialized.FindProperty("dialogueGraph").objectReferenceValue = graph;
+            junoSerialized.FindProperty("talkPrompt").stringValue = "Talk to Juno";
+            junoSerialized.FindProperty("oneShot").boolValue = true;
+            junoSerialized.ApplyModifiedPropertiesWithoutUndo();
 
             GameObject ledger = MakeBlock("HARBOUR OFFICE — shipment ledger",
                 new Vector3(7f, 0.9f, 47f), new Vector3(1.6f, 1.8f, 1.2f),
@@ -517,221 +463,221 @@ namespace ProjectTideline.Editor
                 MissionSignalInteractable.HarbourLedgerSignal, "Inspect shipment ledger", true,
                 missionDirector, "old_quay_first_steps", "inspect_harbour_ledger");
 
-            GameObject reportBoard = MakeBlock("KADE MOTOR WORKS — report board",
-                new Vector3(-12.5f, 0.85f, -4f), new Vector3(1.5f, 1.7f, 0.35f),
-                MakeMaterial("Workshop Report Board", new Color(0.65f, 0.39f, 0.18f)));
-            reportBoard.AddComponent<MissionSignalInteractable>().Configure(
-                MissionSignalInteractable.WorkshopReportSignal, "Report findings to Juno", true,
-                missionDirector, "old_quay_first_steps", "report_to_juno");
+            VehicleSeatInteractable deliverySeat;
+            VehicleDriveController deliveryVehicle = BuildCustomerDeliveryVehicle(cameraTransform, out deliverySeat);
+            RouteRaceController deliveryRoute = BuildCustomerDeliveryRoute(deliveryVehicle);
 
-            VehicleSeatInteractable deliverySeat = null;
-            VehicleDriveController deliveryVehicle = BuildDeliveryVehicle(cameraTransform, out deliverySeat);
+            GameObject orderBoard = MakeBlock("KADE MOTOR WORKS — customer delivery order board",
+                new Vector3(-3.0f, 0.95f, -13.2f), new Vector3(0.45f, 1.9f, 0.28f),
+                MakeMaterial("Delivery Order Board", new Color(0.78f, 0.43f, 0.14f)));
+            RouteRaceStartInteractable routeStart = orderBoard.AddComponent<RouteRaceStartInteractable>();
+            routeStart.Configure(deliveryRoute, missionDirector, "old_quay_first_steps",
+                "start_customer_delivery", "Accept customer delivery");
 
-            // The marked bay only accepts the configured car after it has stopped with the player aboard.
-            MakeBlock("Customer bay — left stop line", new Vector3(-2.1f, 0.095f, 32f),
-                new Vector3(0.12f, 0.035f, 7f), MakeMaterial("Customer Bay Marking", new Color(0.83f, 0.48f, 0.12f)), false);
-            MakeBlock("Customer bay — right stop line", new Vector3(2.1f, 0.095f, 32f),
-                new Vector3(0.12f, 0.035f, 7f), MakeMaterial("Customer Bay Marking", new Color(0.83f, 0.48f, 0.12f)), false);
-            for (int z = 24; z <= 30; z += 3)
-                MakeBlock("Delivery route road chevron", new Vector3(0f, 0.096f, z),
-                    new Vector3(1.1f, 0.025f, 0.18f), MakeMaterial("Delivery Route Paint", new Color(0.78f, 0.72f, 0.55f)), false);
-
-            GameObject bay = new GameObject("CUSTOMER HANDOFF BAY — stop the delivery car here");
-            bay.transform.position = new Vector3(0f, 0.9f, 32f);
-            BoxCollider bayTrigger = bay.AddComponent<BoxCollider>();
-            bayTrigger.isTrigger = true;
-            bayTrigger.size = new Vector3(4.4f, 2.2f, 7f);
-            VehicleDeliveryCheckpoint checkpoint = bay.AddComponent<VehicleDeliveryCheckpoint>();
-            checkpoint.Configure(deliveryVehicle, deliverySeat);
-
-            GameObject customer = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            customer.name = "CUSTOMER — delivery recipient placeholder";
-            customer.transform.position = new Vector3(-1.8f, 1f, 35.5f);
-            customer.GetComponent<Renderer>().sharedMaterial =
-                MakeMaterial("Customer Placeholder Material", new Color(0.42f, 0.48f, 0.38f));
-            CustomerHandoffInteractable handoff = customer.AddComponent<CustomerHandoffInteractable>();
-            handoff.Configure(checkpoint, deliverySeat);
-
-            BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
-                new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
-            BuildAmbientPedestrian("LOCAL RESIDENT — west sidewalk", -9.35f,
-                new[] { 49f, 20f, -5f, -29f }, new Color(0.30f, 0.39f, 0.52f), 1.05f);
+            VehicleDeliveryCheckpoint deliveryBay = BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat);
+            BuildCustomerHandoffActor(deliveryRoute, deliveryBay, missionDirector);
         }
 
-
-
-        private static void BuildAmbientPedestrian(string name, float x, float[] routeZ,
-            Color clothingColor, float walkingSpeed)
+        private static VehicleDriveController BuildCustomerDeliveryVehicle(Transform cameraTransform,
+            out VehicleSeatInteractable seat)
         {
-            Transform[] route = new Transform[routeZ.Length];
-            GameObject routeRoot = new GameObject(name + " — waypoint route");
-            for (int i = 0; i < routeZ.Length; i++)
-            {
-                GameObject node = new GameObject("Walk node " + (i + 1));
-                node.transform.SetParent(routeRoot.transform, false);
-                node.transform.position = new Vector3(x, 1f, routeZ[i]);
-                route[i] = node.transform;
-            }
+            GameObject car = new GameObject("CUSTOMER DELIVERY CAR — Kade Motor Works");
+            car.transform.position = new Vector3(0f, 0f, -13.5f);
 
-            GameObject pedestrian = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            pedestrian.name = name;
-            pedestrian.transform.position = route[0].position;
-            pedestrian.transform.localScale = new Vector3(0.72f, 1f, 0.72f);
-            pedestrian.GetComponent<Renderer>().sharedMaterial =
-                MakeMaterial(name + " — placeholder material", clothingColor);
-            pedestrian.AddComponent<AmbientPedestrianWalker>()
-                .Configure(route, walkingSpeed, 1.1f);
-        }
-
-        private static VehicleDriveController BuildDeliveryVehicle(Transform cameraTransform,
-            out VehicleSeatInteractable seatInteractable)
-        {
-            Material bodyMaterial = MakeMaterial("Kade Delivery Truck — faded coastal teal",
-                new Color(0.16f, 0.34f, 0.35f), 0.22f);
-            Material trimMaterial = MakeMaterial("Delivery Truck — dark trim", new Color(0.075f, 0.09f, 0.095f), 0.35f);
-            Material glassMaterial = MakeMaterial("Delivery Truck — glass", new Color(0.10f, 0.19f, 0.21f), 0.25f);
-            Material tyreMaterial = MakeMaterial("Delivery Truck — tyres", new Color(0.035f, 0.04f, 0.042f));
-            Material lampMaterial = MakeMaterial("Delivery Truck — lamps", new Color(0.88f, 0.72f, 0.43f));
-
-            GameObject vehicleObject = new GameObject("KADE DELIVERY — drivable vehicle");
-            vehicleObject.transform.SetPositionAndRotation(new Vector3(-2f, 0.58f, -17f), Quaternion.identity);
-            Rigidbody body = vehicleObject.AddComponent<Rigidbody>();
-            body.mass = 1320f;
-            body.drag = 0.035f;
-            body.angularDrag = 0.65f;
+            Rigidbody body = car.AddComponent<Rigidbody>();
+            body.mass = 1280f;
+            body.linearDamping = 0.12f;
+            body.angularDamping = 1.35f;
             body.interpolation = RigidbodyInterpolation.Interpolate;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            BoxCollider chassisCollider = vehicleObject.AddComponent<BoxCollider>();
-            chassisCollider.center = new Vector3(0f, 0.54f, 0f);
-            chassisCollider.size = new Vector3(1.92f, 0.76f, 4.15f);
+            body.maxAngularVelocity = 18f;
 
-            CreateVehiclePart(vehicleObject.transform, "Lower chassis", new Vector3(0f, 0.54f, 0f),
-                new Vector3(1.92f, 0.76f, 4.15f), bodyMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Front bonnet", new Vector3(0f, 0.96f, 1.28f),
-                new Vector3(1.86f, 0.28f, 1.45f), bodyMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Rear cargo bed", new Vector3(0f, 0.99f, -1.38f),
-                new Vector3(1.82f, 0.22f, 1.15f), bodyMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Cargo bed left rail", new Vector3(-0.82f, 1.22f, -1.38f),
-                new Vector3(0.12f, 0.34f, 1.2f), trimMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Cargo bed right rail", new Vector3(0.82f, 1.22f, -1.38f),
-                new Vector3(0.12f, 0.34f, 1.2f), trimMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Cab rear panel", new Vector3(0f, 1.02f, -0.25f),
-                new Vector3(1.72f, 0.82f, 0.14f), bodyMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Cab left side", new Vector3(-0.82f, 0.95f, 0.38f),
-                new Vector3(0.14f, 0.72f, 1.18f), bodyMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Cab right side", new Vector3(0.82f, 0.95f, 0.38f),
-                new Vector3(0.14f, 0.72f, 1.18f), bodyMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Front windscreen", new Vector3(0f, 1.36f, 0.98f),
-                new Vector3(1.48f, 0.58f, 0.08f), glassMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Front bumper", new Vector3(0f, 0.43f, 2.12f),
-                new Vector3(1.98f, 0.18f, 0.16f), trimMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Rear bumper", new Vector3(0f, 0.43f, -2.12f),
-                new Vector3(1.98f, 0.18f, 0.16f), trimMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Left headlamp", new Vector3(-0.63f, 0.83f, 2.02f),
-                new Vector3(0.32f, 0.18f, 0.06f), lampMaterial);
-            CreateVehiclePart(vehicleObject.transform, "Right headlamp", new Vector3(0.63f, 0.83f, 2.02f),
-                new Vector3(0.32f, 0.18f, 0.06f), lampMaterial);
+            Material bodyPaint = MakeMaterial("Customer car — deep harbour blue", new Color(0.10f, 0.22f, 0.29f), 0.48f);
+            Material trim = MakeMaterial("Customer car — dark trim", new Color(0.055f, 0.07f, 0.075f), 0.62f);
+            Material lamp = MakeMaterial("Customer car — warm lamp", new Color(0.92f, 0.78f, 0.46f), 0.12f);
 
-            GameObject centreOfMass = new GameObject("Vehicle centre of mass");
-            centreOfMass.transform.SetParent(vehicleObject.transform, false);
-            centreOfMass.transform.localPosition = new Vector3(0f, 0.18f, 0f);
+            GameObject chassis = MakeBlock("Car chassis and body", Vector3.zero,
+                new Vector3(1.92f, 0.58f, 3.75f), bodyPaint);
+            chassis.transform.SetParent(car.transform, false);
+            chassis.transform.localPosition = new Vector3(0f, 0.78f, 0f);
 
-            VehicleDriveController drive = vehicleObject.AddComponent<VehicleDriveController>();
-            SerializedObject driveSerialized = new SerializedObject(drive);
-            driveSerialized.FindProperty("centerOfMass").objectReferenceValue = centreOfMass.transform;
-            driveSerialized.FindProperty("motorTorque").floatValue = 360f;
-            driveSerialized.FindProperty("brakeTorque").floatValue = 1050f;
-            driveSerialized.FindProperty("maxSteerAngle").floatValue = 30f;
-            driveSerialized.FindProperty("handbrakeTorque").floatValue = 1450f;
-            driveSerialized.FindProperty("downforce").floatValue = 22f;
+            GameObject hood = MakeBlock("Front bonnet", Vector3.zero,
+                new Vector3(1.84f, 0.26f, 1.02f), bodyPaint);
+            hood.transform.SetParent(car.transform, false);
+            hood.transform.localPosition = new Vector3(0f, 1.04f, 1.12f);
 
-            WheelBindingSetup[] wheelSetups =
+            GameObject rearDeck = MakeBlock("Rear utility deck", Vector3.zero,
+                new Vector3(1.78f, 0.22f, 0.92f), trim);
+            rearDeck.transform.SetParent(car.transform, false);
+            rearDeck.transform.localPosition = new Vector3(0f, 1.02f, -1.18f);
+
+            GameObject frontBumper = MakeBlock("Front bumper", Vector3.zero,
+                new Vector3(1.98f, 0.18f, 0.18f), trim);
+            frontBumper.transform.SetParent(car.transform, false);
+            frontBumper.transform.localPosition = new Vector3(0f, 0.53f, 1.9f);
+
+            GameObject rearBumper = MakeBlock("Rear bumper", Vector3.zero,
+                new Vector3(1.98f, 0.18f, 0.18f), trim);
+            rearBumper.transform.SetParent(car.transform, false);
+            rearBumper.transform.localPosition = new Vector3(0f, 0.53f, -1.9f);
+
+            for (int side = -1; side <= 1; side += 2)
             {
-                new WheelBindingSetup(-0.86f, 1.28f, true, false, "Front left"),
-                new WheelBindingSetup(0.86f, 1.28f, true, false, "Front right"),
-                new WheelBindingSetup(-0.86f, -1.28f, false, true, "Rear left"),
-                new WheelBindingSetup(0.86f, -1.28f, false, true, "Rear right")
+                GameObject frontLamp = MakeBlock("Headlamp", Vector3.zero,
+                    new Vector3(0.34f, 0.17f, 0.08f), lamp, false);
+                frontLamp.transform.SetParent(car.transform, false);
+                frontLamp.transform.localPosition = new Vector3(side * 0.64f, 0.86f, 1.92f);
+
+                GameObject sideTrim = MakeBlock("Door sill", Vector3.zero,
+                    new Vector3(0.12f, 0.22f, 1.55f), trim);
+                sideTrim.transform.SetParent(car.transform, false);
+                sideTrim.transform.localPosition = new Vector3(side * 0.91f, 0.66f, -0.02f);
+            }
+
+            Transform centreOfMass = new GameObject("Centre of mass").transform;
+            centreOfMass.SetParent(car.transform, false);
+            centreOfMass.localPosition = new Vector3(0f, 0.32f, -0.12f);
+
+            Vector3[] wheelPositions =
+            {
+                new Vector3(-0.84f, 0.40f, 1.18f),
+                new Vector3(0.84f, 0.40f, 1.18f),
+                new Vector3(-0.84f, 0.40f, -1.18f),
+                new Vector3(0.84f, 0.40f, -1.18f)
             };
-            SerializedProperty wheels = driveSerialized.FindProperty("wheels");
-            wheels.arraySize = wheelSetups.Length;
-            for (int i = 0; i < wheelSetups.Length; i++)
+
+            WheelCollider[] wheelColliders = new WheelCollider[4];
+            Transform[] wheelVisuals = new Transform[4];
+            for (int i = 0; i < wheelPositions.Length; i++)
             {
-                WheelBindingSetup setup = wheelSetups[i];
-                GameObject wheelColliderObject = new GameObject(setup.label + " WheelCollider");
-                wheelColliderObject.transform.SetParent(vehicleObject.transform, false);
-                wheelColliderObject.transform.localPosition = new Vector3(setup.x, -0.22f, setup.z);
+                GameObject wheelColliderObject = new GameObject("WheelCollider " + i);
+                wheelColliderObject.transform.SetParent(car.transform, false);
+                wheelColliderObject.transform.localPosition = wheelPositions[i];
                 WheelCollider wheelCollider = wheelColliderObject.AddComponent<WheelCollider>();
                 wheelCollider.radius = 0.36f;
-                wheelCollider.suspensionDistance = 0.22f;
-                wheelCollider.mass = 22f;
-                wheelCollider.wheelDampingRate = 1.4f;
-                wheelCollider.forceAppPointDistance = 0.12f;
+                wheelCollider.suspensionDistance = 0.20f;
+                wheelCollider.mass = 28f;
+                wheelCollider.forceAppPointDistance = 0.15f;
+                wheelColliders[i] = wheelCollider;
 
                 GameObject wheelVisual = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                wheelVisual.name = setup.label + " tyre visual";
-                wheelVisual.transform.SetParent(vehicleObject.transform, false);
-                wheelVisual.transform.localPosition = wheelColliderObject.transform.localPosition;
+                wheelVisual.name = "Tyre visual " + i;
+                wheelVisual.transform.SetParent(car.transform, false);
+                wheelVisual.transform.localPosition = wheelPositions[i];
                 wheelVisual.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-                wheelVisual.transform.localScale = new Vector3(0.22f, 0.36f, 0.36f);
-                wheelVisual.GetComponent<Renderer>().sharedMaterial = tyreMaterial;
+                wheelVisual.transform.localScale = new Vector3(0.25f, 0.36f, 0.36f);
+                wheelVisual.GetComponent<Renderer>().sharedMaterial = trim;
                 UnityEngine.Object.DestroyImmediate(wheelVisual.GetComponent<Collider>());
-
-                SerializedProperty binding = wheels.GetArrayElementAtIndex(i);
-                binding.FindPropertyRelative("collider").objectReferenceValue = wheelCollider;
-                binding.FindPropertyRelative("visual").objectReferenceValue = wheelVisual.transform;
-                binding.FindPropertyRelative("steer").boolValue = setup.steer;
-                binding.FindPropertyRelative("driven").boolValue = setup.driven;
+                wheelVisuals[i] = wheelVisual.transform;
             }
+
+            VehicleDriveController driveController = car.AddComponent<VehicleDriveController>();
+            SerializedObject driveSerialized = new SerializedObject(driveController);
+            SerializedProperty wheelBindings = driveSerialized.FindProperty("wheels");
+            wheelBindings.arraySize = 4;
+            for (int i = 0; i < 4; i++)
+            {
+                SerializedProperty binding = wheelBindings.GetArrayElementAtIndex(i);
+                binding.FindPropertyRelative("collider").objectReferenceValue = wheelColliders[i];
+                binding.FindPropertyRelative("visual").objectReferenceValue = wheelVisuals[i];
+                binding.FindPropertyRelative("steer").boolValue = i < 2;
+                binding.FindPropertyRelative("driven").boolValue = true;
+            }
+            driveSerialized.FindProperty("motorTorque").floatValue = 1650f;
+            driveSerialized.FindProperty("brakeTorque").floatValue = 2600f;
+            driveSerialized.FindProperty("maxSteerAngle").floatValue = 31f;
+            driveSerialized.FindProperty("handbrakeTorque").floatValue = 4200f;
+            driveSerialized.FindProperty("downforce").floatValue = 24f;
+            driveSerialized.FindProperty("centerOfMass").objectReferenceValue = centreOfMass;
             driveSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-            GameObject driverSeat = new GameObject("Driver seat");
-            driverSeat.transform.SetParent(vehicleObject.transform, false);
-            driverSeat.transform.localPosition = new Vector3(-0.42f, 0.22f, -0.15f);
-            GameObject exitPoint = new GameObject("Driver exit point");
-            exitPoint.transform.SetParent(vehicleObject.transform, false);
-            exitPoint.transform.localPosition = new Vector3(-1.65f, 0.08f, -0.25f);
-            exitPoint.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);
+            Transform driverSeat = new GameObject("Driver seat").transform;
+            driverSeat.SetParent(car.transform, false);
+            driverSeat.localPosition = new Vector3(-0.32f, 0.32f, 0.22f);
 
-            seatInteractable = vehicleObject.AddComponent<VehicleSeatInteractable>();
-            SerializedObject seatSerialized = new SerializedObject(seatInteractable);
-            seatSerialized.FindProperty("vehicle").objectReferenceValue = drive;
-            seatSerialized.FindProperty("driverSeat").objectReferenceValue = driverSeat.transform;
-            seatSerialized.FindProperty("exitPoint").objectReferenceValue = exitPoint.transform;
-            seatSerialized.FindProperty("cameraRig").objectReferenceValue = cameraTransform.GetComponent<ThirdPersonCameraRig>();
-            seatSerialized.FindProperty("startsWithNpcDriver").boolValue = false;
+            Transform exitPoint = new GameObject("Driver exit point — face customer side").transform;
+            exitPoint.SetParent(car.transform, false);
+            exitPoint.localPosition = new Vector3(1.55f, 0.02f, 0.05f);
+            exitPoint.localRotation = Quaternion.Euler(0f, 90f, 0f);
+
+            seat = car.AddComponent<VehicleSeatInteractable>();
+            SerializedObject seatSerialized = new SerializedObject(seat);
+            seatSerialized.FindProperty("vehicle").objectReferenceValue = driveController;
+            seatSerialized.FindProperty("driverSeat").objectReferenceValue = driverSeat;
+            seatSerialized.FindProperty("exitPoint").objectReferenceValue = exitPoint;
+            seatSerialized.FindProperty("cameraRig").objectReferenceValue =
+                cameraTransform.GetComponent<ThirdPersonCameraRig>();
             seatSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-            return drive;
+            return driveController;
         }
 
-        private struct WheelBindingSetup
+        private static RouteRaceController BuildCustomerDeliveryRoute(VehicleDriveController deliveryVehicle)
         {
-            public readonly float x;
-            public readonly float z;
-            public readonly bool steer;
-            public readonly bool driven;
-            public readonly string label;
+            GameObject routeObject = new GameObject("DELIVERY ROUTE — Old Quay to Saltline");
+            RouteRaceController route = routeObject.AddComponent<RouteRaceController>();
 
-            public WheelBindingSetup(float x, float z, bool steer, bool driven, string label)
+            float[] checkpointPositions = { 0f, 18f, 36f };
+            RouteRaceCheckpoint[] checkpoints = new RouteRaceCheckpoint[checkpointPositions.Length];
+            for (int i = 0; i < checkpointPositions.Length; i++)
             {
-                this.x = x;
-                this.z = z;
-                this.steer = steer;
-                this.driven = driven;
-                this.label = label;
+                GameObject checkpointObject = new GameObject("Delivery checkpoint " + (i + 1));
+                checkpointObject.transform.position = new Vector3(0f, 1.2f, checkpointPositions[i]);
+                BoxCollider trigger = checkpointObject.AddComponent<BoxCollider>();
+                trigger.isTrigger = true;
+                trigger.size = new Vector3(10f, 3f, 2.6f);
+
+                RouteRaceCheckpoint checkpoint = checkpointObject.AddComponent<RouteRaceCheckpoint>();
+                SerializedObject checkpointSerialized = new SerializedObject(checkpoint);
+                checkpointSerialized.FindProperty("controller").objectReferenceValue = route;
+                checkpointSerialized.FindProperty("checkpointIndex").intValue = i;
+                checkpointSerialized.ApplyModifiedPropertiesWithoutUndo();
+                checkpoints[i] = checkpoint;
             }
+
+            SerializedObject routeSerialized = new SerializedObject(route);
+            routeSerialized.FindProperty("signalPrefix").stringValue = "race.long_loop";
+            routeSerialized.FindProperty("playerVehicle").objectReferenceValue = deliveryVehicle;
+            SerializedProperty routeCheckpoints = routeSerialized.FindProperty("checkpoints");
+            routeCheckpoints.arraySize = checkpoints.Length;
+            for (int i = 0; i < checkpoints.Length; i++)
+                routeCheckpoints.GetArrayElementAtIndex(i).objectReferenceValue = checkpoints[i];
+            routeSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            return route;
         }
 
-        private static void CreateVehiclePart(Transform parent, string name,
-            Vector3 localPosition, Vector3 localScale, Material material)
+        private static VehicleDeliveryCheckpoint BuildCustomerDeliveryBay(
+            VehicleDriveController deliveryVehicle, VehicleSeatInteractable deliverySeat)
         {
-            GameObject part = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            part.name = name;
-            part.transform.SetParent(parent, false);
-            part.transform.localPosition = localPosition;
-            part.transform.localScale = localScale;
-            part.GetComponent<Renderer>().sharedMaterial = material;
-            UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>());
+            GameObject bayObject = new GameObject("SALTLINE — marked customer delivery bay");
+            bayObject.transform.position = new Vector3(0f, 1.25f, 48f);
+            BoxCollider bayTrigger = bayObject.AddComponent<BoxCollider>();
+            bayTrigger.isTrigger = true;
+            bayTrigger.size = new Vector3(9f, 3f, 6f);
+
+            VehicleDeliveryCheckpoint bay = bayObject.AddComponent<VehicleDeliveryCheckpoint>();
+            bay.Configure(deliveryVehicle, deliverySeat);
+            return bay;
+        }
+
+        private static void BuildCustomerHandoffActor(RouteRaceController deliveryRoute,
+            VehicleDeliveryCheckpoint deliveryBay, MissionDirector missionDirector)
+        {
+            GameObject handoffObject = new GameObject("Customer vehicle handoff controller");
+            MaraDeliveryHandoffController handoff = handoffObject.AddComponent<MaraDeliveryHandoffController>();
+            handoff.Configure(deliveryRoute, missionDirector, deliveryBay);
+
+            GameObject customer = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            customer.name = "CUSTOMER — Saltline delivery contact";
+            customer.transform.position = new Vector3(3.6f, 1f, 49.5f);
+            customer.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial("Customer placeholder clothing", new Color(0.42f, 0.34f, 0.27f));
+
+            MaraCustomerHandoffInteractable interactable = customer.AddComponent<MaraCustomerHandoffInteractable>();
+            SerializedObject customerSerialized = new SerializedObject(interactable);
+            customerSerialized.FindProperty("handoffController").objectReferenceValue = handoff;
+            customerSerialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static Button CreateUiButton(Transform parent, string name, string label,

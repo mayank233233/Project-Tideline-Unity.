@@ -282,6 +282,7 @@ def run() -> int:
     pedestrian_crossing = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficPedestrianCrossing.cs")
     junction_reservation = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficJunctionReservation.cs")
     pedestrian_walker = read("Assets/ProjectTideline/Scripts/World/AmbientPedestrianWalker.cs")
+    pedestrian_animation = read("Assets/ProjectTideline/Scripts/World/AmbientPedestrianAnimation.cs")
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
     attention = read("Assets/ProjectTideline/Scripts/World/PublicAttentionState.cs")
     pressure_hud = read("Assets/ProjectTideline/Scripts/UI/PolicePressureHUD.cs")
@@ -668,6 +669,20 @@ def run() -> int:
     check("float startDelay = 0f" in pedestrian_walker
           and "_resumeAt = Time.time + Mathf.Max(0f, startDelay);" in pedestrian_walker,
           "Ambient pedestrian routes must support staggered start times to avoid synchronized movement")
+
+    for token in (
+        "public sealed class AmbientPedestrianAnimation",
+        "public void Configure(Transform[] armPivots, Transform[] legPivots)",
+        "Mathf.Sin(_phase)",
+        "SetSwing(0f)",
+    ):
+        check(token in pedestrian_animation,
+              f"Procedural pedestrian walk-cycle behaviour is missing: {token}")
+    check("BuildPedestrianCharacter(name, route[0].position, clothingColor)" in blockout_builder
+          and "BuildPedestrianCharacter(" in blockout_builder
+          and "root.AddComponent<AmbientPedestrianAnimation>().Configure(arms, legs)" in blockout_builder
+          and "UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>())" in blockout_builder,
+          "Generated Old Quay pedestrians must use articulated visual rigs without per-limb physics colliders")
 
     check("BuildOldQuayMarketAndSouthLane(" in blockout_builder
           and "Southline market lane asphalt" in blockout_builder

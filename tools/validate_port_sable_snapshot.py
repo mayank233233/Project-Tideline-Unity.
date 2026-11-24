@@ -659,6 +659,16 @@ def run() -> int:
           and "crossingSignal.IsPedestrianWalkAllowed" in pedestrian_walker,
           "Crossing pedestrian must wait for the protected walk phase")
 
+    check("BuildAmbientPedestrianRoute(" in blockout_builder
+          and "BREAKWATER CAFE CUSTOMER" in blockout_builder
+          and "QUAY TOOL AND TACKLE CUSTOMER" in blockout_builder
+          and "PIER MARKET VENDOR" in blockout_builder
+          and "DOCK PORTER — pier approach" in blockout_builder,
+          "Old Quay must populate the new market and storefront district with additional pedestrian routes")
+    check("float startDelay = 0f" in pedestrian_walker
+          and "_resumeAt = Time.time + Mathf.Max(0f, startDelay);" in pedestrian_walker,
+          "Ambient pedestrian routes must support staggered start times to avoid synchronized movement")
+
     check("BuildOldQuayMarketAndSouthLane(" in blockout_builder
           and "Southline market lane asphalt" in blockout_builder
           and "Breakwater Cafe" in blockout_builder

@@ -24,6 +24,9 @@ namespace ProjectTideline
         [SerializeField] private bool usesMainRoadSignal = true;
         [Header("Pedestrian Crossing")]
         [SerializeField] private TrafficPedestrianCrossing pedestrianCrossing;
+        [SerializeField] private TrafficJunctionReservation junctionReservation;
+        [SerializeField] private Transform junctionEntryPoint;
+        [SerializeField, Min(2f)] private float junctionReservationDistance = 14f;
         [SerializeField, Min(1f)] private float pedestrianYieldApproachDistance = 10f;
         [SerializeField, Min(2f)] private float signalApproachDistance = 16f;
         [Header("Distant Traffic Decision LOD")]
@@ -50,6 +53,12 @@ namespace ProjectTideline
             signalStopLine = stopLine;
             usesMainRoadSignal = mainRoad;
             pedestrianCrossing = crossing;
+        }
+
+        public void ConfigureJunctionReservation(TrafficJunctionReservation reservation, Transform entryPoint)
+        {
+            junctionReservation = reservation;
+            junctionEntryPoint = entryPoint;
         }
 
         public void BeginTakeoverHandoff()
@@ -127,7 +136,8 @@ namespace ProjectTideline
             float targetSpeed = cruisingSpeedKph * Mathf.Lerp(1f, 0.58f, Mathf.Abs(steer));
             bool signalRequiresStop = IsTrafficSignalBlocking();
             bool pedestrianRequiresStop = IsPedestrianCrossingOccupied();
-            bool blocked = IsObstacleBlocking() || signalRequiresStop || pedestrianRequiresStop;
+            bool junctionRequiresStop = IsJunctionReservationBlocking();
+            bool blocked = IsObstacleBlocking() || signalRequiresStop || pedestrianRequiresStop || junctionRequiresStop;
 
             float currentSpeed = _vehicle.SpeedKph;
             float throttle = blocked ? 0f : Mathf.Clamp01((targetSpeed - currentSpeed) / 9f);
@@ -151,6 +161,17 @@ namespace ProjectTideline
             // Ignore a stop line once the vehicle has crossed it; otherwise stop only
             // inside the approach window so cars brake before entering the junction.
             return signedDistance >= -1.5f && signedDistance <= Mathf.Max(2f, signalApproachDistance);
+        }
+
+        private bool IsJunctionReservationBlocking()
+        {
+            if (junctionReservation == null || junctionEntryPoint == null) return false;
+            Vector3 toEntry = junctionEntryPoint.position - transform.position;
+            toEntry.y = 0f;
+            float distance = toEntry.magnitude;
+            if (distance > Mathf.Max(2f, junctionReservationDistance)) return false;
+            if (distance > 0.1f && Vector3.Dot(toEntry.normalized, transform.forward) <= 0f) return false;
+            return !junctionReservation.TryReserve(this);
         }
 
         private bool IsPedestrianCrossingOccupied()

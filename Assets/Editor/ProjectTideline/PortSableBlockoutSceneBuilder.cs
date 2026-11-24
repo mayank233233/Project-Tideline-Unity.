@@ -524,6 +524,17 @@ namespace ProjectTideline.Editor
             PolicePressureHUD pressureHud = missionObject.AddComponent<PolicePressureHUD>();
             pressureHud.Configure(attentionState, pressureText);
 
+            Image responsePanel = CreateTouchImage(hudRoot, "Police response HUD background",
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
+                new Vector2(340f, 62f), new Vector2(-28f, -266f),
+                new Color(0.025f, 0.045f, 0.05f, 0.84f), out RectTransform responseRect);
+            responsePanel.raycastTarget = false;
+            Text responseText = CreateUiText(responseRect, "Police response status",
+                Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f),
+                Vector2.zero, Vector2.zero, 19, TextAnchor.MiddleCenter, Color.white);
+            PoliceResponseDirector responseDirector = missionObject.AddComponent<PoliceResponseDirector>();
+            responseDirector.Configure(attentionState, player.transform, responseText);
+
             Image vehicleStatusPanel = CreateTouchImage(hudRoot, "Vehicle speedometer panel",
                 new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
                 new Vector2(340f, 154f), new Vector2(-28f, -28f),

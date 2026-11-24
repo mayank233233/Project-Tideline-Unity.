@@ -33,6 +33,10 @@ namespace ProjectTideline
             deliverySeat = seat;
         }
 
+        public bool CanCompleteHandoffFor(GameObject actor) =>
+            actor != null && CanCompleteHandoff && deliverySeat != null
+            && deliverySeat.WasLastDriver(actor);
+
         private bool MissionProgressHasPassedHandoff
         {
             get
@@ -61,7 +65,7 @@ namespace ProjectTideline
 
         public bool TryCompleteHandoff(GameObject actor)
         {
-            if (actor == null || !CanCompleteHandoff)
+            if (!CanCompleteHandoffFor(actor))
                 return false;
 
             _handoffPending = true;

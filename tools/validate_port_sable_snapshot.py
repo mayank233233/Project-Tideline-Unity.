@@ -720,6 +720,18 @@ def run() -> int:
     ):
         check(token in mission_signal_interactable,
               f"Tutorial mission signal interaction is missing: {token}")
+    input_router = read("Assets/ProjectTideline/Scripts/Input/PlayerInputRouter.cs")
+    check("VehicleControlModeChanged" in input_router
+          and "VehicleControlModeChanged?.Invoke(value)" in input_router,
+          "Vehicle entry/exit must notify the mobile HUD of control-mode changes")
+    check("contextualLabel.text = inVehicle ? \"ACCEL\" : \"SPRINT\"" in mobile_controls
+          and "contextualLabel.text = inVehicle ? \"BRAKE\" : \"JUMP\"" in mobile_controls
+          and "VehicleControlModeChanged += OnVehicleControlModeChanged" in mobile_controls,
+          "Touch pedal labels must show accelerator and brake functions while driving")
+    check('binding.FindPropertyRelative("driven").boolValue = i >= 2;' in blockout_builder
+          and 'binding.FindPropertyRelative("steer").boolValue = i < 2;' in blockout_builder,
+          "Generated delivery vehicle must have front steering and rear-wheel drive")
+
     for token in ("ProgressChanged", "MissionCompleted", "objective.description", "mission.title"):
         check(token in mission_status_display,
               f"Mission objective HUD is missing event-driven display behavior: {token}")

@@ -8,7 +8,7 @@ using UnityEngine;
 namespace ProjectTideline.Editor
 {
     /// <summary>
-    /// Validates the three generated prologue dialogue graphs, including branch links and saved outcome flags.
+    /// Validates the four generated dialogue graphs across the three prologues, including branch links and saved outcome flags.
     /// It does not claim that the graphs are attached to scene NPCs or are playable.
     /// </summary>
     public static class PortSablePrologueDialogueAudit
@@ -24,7 +24,8 @@ namespace ProjectTideline.Editor
 
         private static readonly ExpectedGraph[] ExpectedGraphs =
         {
-            new ExpectedGraph { GraphId = "prologue.mara.two_minutes_to_close", DisplayName = "Mara — TWO MINUTES TO CLOSE" },
+            new ExpectedGraph { GraphId = "prologue.mara.two_minutes_to_close", DisplayName = "Mara — garage opening" },
+            new ExpectedGraph { GraphId = "prologue.mara.nico_challenge", DisplayName = "Mara — Nico after delivery" },
             new ExpectedGraph { GraphId = "prologue.rafi.last_song_first_lie", DisplayName = "Rafi — LAST SONG, FIRST LIE" },
             new ExpectedGraph { GraphId = "prologue.elias.the_old_terms", DisplayName = "Elias — THE OLD TERMS" }
         };
@@ -37,6 +38,12 @@ namespace ProjectTideline.Editor
                 { "rafi_staff_responsibility", new HashSet<int> { 1, 2 } },
                 { "elias_settlement_choice", new HashSet<int> { 1, 2 } }
             };
+
+        private static readonly string[] RequiredSignals =
+        {
+            "prologue.mara.work_order_accepted",
+            "prologue.mara.complete"
+        };
 
         private static readonly Dictionary<string, KeyValuePair<string, int>> RequiredChoiceOutcomes =
             new Dictionary<string, KeyValuePair<string, int>>(StringComparer.Ordinal)
@@ -144,6 +151,27 @@ namespace ProjectTideline.Editor
                 foreach (int value in required.Value)
                     if (!actual.Contains(value))
                         issues.Add("Outcome flag '" + required.Key + "' is missing required value " + value + ".");
+            }
+
+            foreach (string requiredSignal in RequiredSignals)
+            {
+                bool signalFound = false;
+                foreach (ExpectedGraph graph in ExpectedGraphs)
+                {
+                    DialogueGraph asset = AssetDatabase.LoadAssetAtPath<DialogueGraph>(
+                        Root + "/Dialogue_" + graph.GraphId + ".asset");
+                    if (asset == null || asset.nodes == null) continue;
+                    foreach (DialogueGraph.DialogueNode node in asset.nodes)
+                    {
+                        if (node == null || node.choices == null) continue;
+                        foreach (DialogueGraph.DialogueChoice choice in node.choices)
+                            if (choice != null && string.Equals(choice.signalId, requiredSignal, StringComparison.Ordinal))
+                                signalFound = true;
+                    }
+                }
+
+                if (!signalFound)
+                    issues.Add("Required Mara prologue signal is missing: " + requiredSignal);
             }
 
             foreach (KeyValuePair<string, KeyValuePair<string, int>> expected in RequiredChoiceOutcomes)

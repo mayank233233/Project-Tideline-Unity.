@@ -15,6 +15,8 @@ namespace ProjectTideline
         [SerializeField, Min(0f)] private float maximumHandoffSpeedKph = 3f;
 
         private bool _arrived;
+        private bool _arrivalPending;
+        private bool _arrivalAborted;
         public bool HasArrived => _arrived;
 
         public void Configure(VehicleDriveController vehicle, VehicleSeatInteractable seat,
@@ -23,6 +25,16 @@ namespace ProjectTideline
             deliveryVehicle = vehicle;
             driverSeat = seat;
             requiredRoute = route;
+        }
+
+        private void OnEnable()
+        {
+            MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;
+        }
+
+        private void OnDisable()
+        {
+            MissionSignalBus.DispatchAborted -= OnSignalDispatchAborted;
         }
 
         private void Reset()
@@ -42,7 +54,21 @@ namespace ProjectTideline
             if (!driverSeat.IsOccupied || deliveryVehicle.SpeedKph > maximumHandoffSpeedKph) return;
 
             _arrived = true;
+            _arrivalPending = true;
+            _arrivalAborted = false;
             MissionSignalBus.Publish("old_quay.delivery_arrived", 1);
+            _arrivalPending = false;
+            if (_arrivalAborted) _arrived = false;
+        }
+
+        private void OnSignalDispatchAborted(int dispatched)
+        {
+            if (!_arrivalPending) return;
+
+            _arrivalAborted = true;
+            _arrived = false;
+            Debug.LogWarning("Delivery-bay arrival was rolled back because its signal batch aborted after " +
+                dispatched + " events. Stop inside the bay again after the signal loop is fixed.", this);
         }
     }
 }

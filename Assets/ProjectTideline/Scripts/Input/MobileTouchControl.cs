@@ -64,7 +64,7 @@ namespace ProjectTideline
                 case MobileTouchControlMode.JumpButton:
                     if (PlayerInputRouter.Instance != null)
                     {
-                        if (PlayerInputRouter.Instance.VehicleControlMode) PlayerInputRouter.Instance.SetHandbrake(true);
+                        if (PlayerInputRouter.Instance.VehicleControlMode) PlayerInputRouter.Instance.SetBrake(1f);
                         else PlayerInputRouter.Instance.PulseJump();
                     }
                     break;
@@ -96,7 +96,7 @@ namespace ProjectTideline
             else if (mode == MobileTouchControlMode.JumpButton
                      && PlayerInputRouter.Instance != null && PlayerInputRouter.Instance.VehicleControlMode)
             {
-                PlayerInputRouter.Instance.SetHandbrake(false);
+                PlayerInputRouter.Instance.SetBrake(0f);
             }
         }
 

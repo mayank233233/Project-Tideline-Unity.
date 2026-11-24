@@ -89,7 +89,7 @@ The source snapshot currently contains no tracked PORT SABLE scene or actor/NPC/
 | Scene object | Required component | Required references / conditions |
 |---|---|---|
 | Player input root | `PlayerInputRouter` | Exactly one active singleton in the scene |
-| Mara hero root | `CharacterController`, `ThirdPersonMotor`, `ProximityInteractor`, `CharacterAnimationDriver` | A valid player camera/view origin; proximity interactor must target Mara's actor root and interaction layer |
+| Mara hero root | `CharacterController`, `ThirdPersonMotor`, `ProximityInteractor`, `CharacterAnimationDriver` | The interactor's `actorRoot` must reference the same object carrying `CharacterController` and `ThirdPersonMotor` (vehicle entry reads both directly); assign a valid camera/view origin and interaction layer |
 | Dialogue UI root | `DialogueController` | Assign `CanvasGroup panel`, speaker and line `Text`, matching choice `Button[]` and label `Text[]`, and a close button |
 | Narrative services | `NarrativeStateLedger`, `NPCRelationshipLedger` | One active instance of each; dialogue choices update these ledgers before publishing their authored signals |
 | Mission service | `MissionDirector` | Campaign array includes generated `two_minutes_to_close`; auto-start only when this is the intended first mission |

@@ -91,14 +91,12 @@ namespace ProjectTideline
             _npcOccupied = false;
             _transitioning = false;
 
-            if (EnterVehicle(actor))
-                MissionSignalBus.Publish("vehicle.taken", 1);
-            else if (_takeoverMotor != null)
+            if (!EnterVehicle(actor, true) && _takeoverMotor != null)
                 _takeoverMotor.enabled = true;
             _takeoverMotor = null;
         }
 
-        private bool EnterVehicle(GameObject actor)
+        private bool EnterVehicle(GameObject actor, bool wasNpcTakeover = false)
         {
             if (_occupant != null || actor == null || driverSeat == null || vehicle == null) return false;
             CharacterController controller = actor.GetComponent<CharacterController>();
@@ -119,7 +117,17 @@ namespace ProjectTideline
             vehicle.SetDriven(true);
             if (trafficDriver != null) trafficDriver.enabled = false;
             if (cameraRig != null) cameraRig.SetTarget(transform, new Vector3(0f, 2f, 0f));
-            MissionSignalBus.Publish("vehicle.entered", 1);
+            if (wasNpcTakeover)
+            {
+                // Taking over an NPC-driven vehicle is one interaction with two outcomes.
+                MissionSignalBus.PublishBatch(
+                    new MissionSignalBus.Signal("vehicle.entered", 1),
+                    new MissionSignalBus.Signal("vehicle.taken", 1));
+            }
+            else
+            {
+                MissionSignalBus.Publish("vehicle.entered", 1);
+            }
             return true;
         }
 

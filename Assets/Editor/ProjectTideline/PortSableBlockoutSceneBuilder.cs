@@ -377,6 +377,13 @@ namespace ProjectTideline.Editor
                     description = "Exit the car and hand the keys to the customer.",
                     completionSignal = "old_quay.customer_handoff_accepted",
                     requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "return_to_juno",
+                    description = "Return to the workshop and tell Juno the customer accepted the delivery.",
+                    completionSignal = "old_quay.juno_debrief_completed",
+                    requiredCount = 1
                 }
             };
             mission.completionBranches = Array.Empty<MissionBranch>();

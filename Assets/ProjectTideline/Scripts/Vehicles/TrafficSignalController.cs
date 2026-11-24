@@ -12,6 +12,7 @@ namespace ProjectTideline
         [SerializeField, Min(1f)] private float firstClearanceDuration = 2f;
         [SerializeField, Min(4f)] private float crossStreetGreenDuration = 12f;
         [SerializeField, Min(1f)] private float secondClearanceDuration = 2f;
+        [SerializeField, Min(4f)] private float pedestrianWalkDuration = 12f;
 
         private Renderer _mainRed;
         private Renderer _mainGreen;
@@ -36,9 +37,8 @@ namespace ProjectTideline
             {
                 float phaseTime = GetCycleTime();
                 float mainClearanceEnd = mainRoadGreenDuration + firstClearanceDuration;
-                float crossGreenEnd = mainClearanceEnd + crossStreetGreenDuration;
-                return phaseTime >= mainRoadGreenDuration && phaseTime < mainClearanceEnd
-                    || phaseTime >= crossGreenEnd;
+                float pedestrianStart = mainClearanceEnd + crossStreetGreenDuration + secondClearanceDuration + pedestrianWalkDuration;
+                return phaseTime >= pedestrianStart && phaseTime < pedestrianStart + pedestrianWalkDuration;
             }
         }
 
@@ -86,9 +86,11 @@ namespace ProjectTideline
             float mainEnd = mainRoadGreenDuration;
             float crossStart = mainEnd + firstClearanceDuration;
             float crossEnd = crossStart + crossStreetGreenDuration;
+            float pedestrianStart = crossEnd + secondClearanceDuration;
             int phase = phaseTime < mainEnd ? 0
                 : phaseTime < crossStart ? 1
-                : phaseTime < crossEnd ? 2 : 3;
+                : phaseTime < crossEnd ? 2
+                : phaseTime < pedestrianStart ? 3 : 4;
             if (phase != _lastPhase) ApplyPhase(phase);
         }
 
@@ -101,7 +103,7 @@ namespace ProjectTideline
             if (_mainGreen != null) _mainGreen.enabled = mainGreen;
             if (_crossRed != null) _crossRed.enabled = !crossGreen;
             if (_crossGreen != null) _crossGreen.enabled = crossGreen;
-            bool pedestrianWalk = phase == 1 || phase == 3;
+            bool pedestrianWalk = phase == 4;
             if (_pedestrianRed != null) _pedestrianRed.enabled = !pedestrianWalk;
             if (_pedestrianGreen != null) _pedestrianGreen.enabled = pedestrianWalk;
         }

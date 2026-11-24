@@ -24,6 +24,8 @@ namespace ProjectTideline.Editor
         private const string ScenePath = SceneFolder + "/PortSable_OldQuay_Blockout.unity";
         private const string TutorialMissionPath =
             "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_first_steps.asset";
+        private const string FirstScoreMissionPath =
+            "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_first_score.asset";
         private const string TutorialDialoguePath =
             "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_intro.asset";
         private const string TutorialDebriefDialoguePath =
@@ -42,6 +44,7 @@ namespace ProjectTideline.Editor
             EnsureFolder("Assets/ProjectTideline/Generated");
             EnsureFolder(MaterialFolder);
             MissionDefinition tutorialMission = EnsureTutorialMission();
+            MissionDefinition firstScoreMission = EnsureFirstScoreMission();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -177,7 +180,7 @@ namespace ProjectTideline.Editor
             motor.SetMovementCamera(cameraObject.transform);
             cameraObject.transform.position = player.transform.position + new Vector3(0f, 3f, -5f);
             Transform hudRoot = BuildMobileControls();
-            BuildTutorialGameplay(player, cameraObject.transform, hudRoot, tutorialMission);
+            BuildTutorialGameplay(player, cameraObject.transform, hudRoot, tutorialMission, firstScoreMission);
 
             // Scene metadata helps designers understand what is functional versus placeholder.
             new GameObject("BLOCKOUT NOTES — replace primitives before release");
@@ -474,6 +477,59 @@ namespace ProjectTideline.Editor
                 }
             };
             mission.completionBranches = Array.Empty<MissionBranch>();
+            mission.fallbackNextMissionId = "old_quay_first_score";
+            mission.endsCampaign = false;
+            EditorUtility.SetDirty(mission);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return mission;
+        }
+
+        private static MissionDefinition EnsureFirstScoreMission()
+        {
+            EnsureFolder("Assets/ProjectTideline/Content/Missions/Prologues");
+            MissionDefinition mission = AssetDatabase.LoadAssetAtPath<MissionDefinition>(FirstScoreMissionPath);
+            if (mission == null)
+            {
+                mission = ScriptableObject.CreateInstance<MissionDefinition>();
+                AssetDatabase.CreateAsset(mission, FirstScoreMissionPath);
+            }
+
+            mission.missionId = "old_quay_first_score";
+            mission.title = "The First Score";
+            mission.briefing = "A Saltline contact offers Mara a quick recovery job. Take the sealed case, get back to the car and bring it to the safehouse before the situation escalates.";
+            mission.objectives = new[]
+            {
+                new MissionObjective
+                {
+                    objectiveId = "accept_score",
+                    description = "Meet the Saltline contact and accept the sealed-case score.",
+                    completionSignal = "old_quay.score.accepted",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "recover_case",
+                    description = "Recover the marked sealed case from the quay.",
+                    completionSignal = "old_quay.score.case_recovered",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "enter_score_getaway_vehicle",
+                    description = "Get back into the Kade car.",
+                    completionSignal = "vehicle.entered",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "escape_to_safehouse",
+                    description = "Drive the case to the marked Old Quay safehouse.",
+                    completionSignal = "old_quay.score.safehouse_reached",
+                    requiredCount = 1
+                }
+            };
+            mission.completionBranches = Array.Empty<MissionBranch>();
             mission.fallbackNextMissionId = string.Empty;
             mission.endsCampaign = true;
             EditorUtility.SetDirty(mission);
@@ -483,7 +539,7 @@ namespace ProjectTideline.Editor
         }
 
         private static void BuildTutorialGameplay(GameObject player, Transform cameraTransform,
-            Transform hudRoot, MissionDefinition tutorialMission)
+            Transform hudRoot, MissionDefinition tutorialMission, MissionDefinition firstScoreMission)
         {
             new GameObject("NPC Relationship Ledger").AddComponent<NPCRelationshipLedger>();
             new GameObject("Narrative State Ledger").AddComponent<NarrativeStateLedger>();
@@ -492,8 +548,9 @@ namespace ProjectTideline.Editor
             MissionDirector missionDirector = missionObject.AddComponent<MissionDirector>();
             SerializedObject missionSerialized = new SerializedObject(missionDirector);
             SerializedProperty campaign = missionSerialized.FindProperty("campaign");
-            campaign.arraySize = 1;
+            campaign.arraySize = 2;
             campaign.GetArrayElementAtIndex(0).objectReferenceValue = tutorialMission;
+            campaign.GetArrayElementAtIndex(1).objectReferenceValue = firstScoreMission;
             missionSerialized.FindProperty("autoStart").boolValue = true;
             missionSerialized.ApplyModifiedPropertiesWithoutUndo();
 
@@ -643,6 +700,8 @@ namespace ProjectTideline.Editor
 
             VehicleSeatInteractable deliverySeat;
             VehicleDriveController deliveryVehicle = BuildCustomerDeliveryVehicle(cameraTransform, missionDirector, out deliverySeat);
+            deliverySeat.ConfigureAdditionalMissionGate(missionDirector,
+                "old_quay_first_score", "enter_score_getaway_vehicle");
             RouteRaceController deliveryRoute = BuildCustomerDeliveryRoute(deliveryVehicle);
             missionDisplay.SetDeliveryRoute(deliveryRoute);
             missionDisplay.SetVehicleStatus(deliveryVehicle, vehicleStatusPanel.gameObject, vehicleSpeedText);
@@ -657,11 +716,50 @@ namespace ProjectTideline.Editor
             VehicleDeliveryCheckpoint deliveryBay = BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat, deliveryRoute);
             missionDisplay.SetDeliveryBay(deliveryBay);
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector, dialogueController);
+            BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
                 new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
             BuildAmbientPedestrian("LOCAL RESIDENT — west sidewalk", -9.35f,
                 new[] { 49f, 20f, -5f, -29f }, new Color(0.30f, 0.39f, 0.52f), 1.05f);
+        }
+
+        private static void BuildFirstScoreWorld(VehicleDriveController getawayVehicle,
+            VehicleSeatInteractable getawaySeat, MissionDirector missionDirector)
+        {
+            GameObject contact = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            contact.name = "SALTLINE CONTACT — first score";
+            contact.transform.position = new Vector3(8.5f, 1f, 7f);
+            contact.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial("Saltline contact — muted green", new Color(0.25f, 0.36f, 0.30f));
+            contact.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.score.accepted", "Accept the score", true,
+                missionDirector, "old_quay_first_score", "accept_score");
+
+            GameObject caseObject = MakeBlock("SEALED CASE — marked recovery item",
+                new Vector3(-5.5f, 0.72f, 28f), new Vector3(1.05f, 0.82f, 0.72f),
+                MakeMaterial("Sealed case — dark graphite", new Color(0.12f, 0.15f, 0.16f)));
+            caseObject.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.score.case_recovered", "Recover sealed case", true,
+                missionDirector, "old_quay_first_score", "recover_case");
+
+            GameObject safehouse = new GameObject("OLD QUAY SAFEHOUSE — score arrival zone");
+            safehouse.transform.position = new Vector3(0f, 1.2f, -34f);
+            BoxCollider safehouseTrigger = safehouse.AddComponent<BoxCollider>();
+            safehouseTrigger.isTrigger = true;
+            safehouseTrigger.size = new Vector3(11f, 3.2f, 8f);
+            MissionVehicleArrivalZone arrival = safehouse.AddComponent<MissionVehicleArrivalZone>();
+            arrival.Configure(getawayVehicle, getawaySeat, missionDirector,
+                "old_quay_first_score", "escape_to_safehouse",
+                "old_quay.score.safehouse_reached");
+
+            Material safehousePaint = MakeMaterial("Safehouse arrival paint", new Color(0.72f, 0.52f, 0.25f));
+            MakeBlock("Safehouse arrival bay left marker", new Vector3(-4.2f, 0.10f, -34f),
+                new Vector3(0.16f, 0.035f, 7.4f), safehousePaint, false);
+            MakeBlock("Safehouse arrival bay right marker", new Vector3(4.2f, 0.10f, -34f),
+                new Vector3(0.16f, 0.035f, 7.4f), safehousePaint, false);
+            MakeBlock("Safehouse arrival bay stop marker", new Vector3(0f, 0.10f, -37.6f),
+                new Vector3(8.4f, 0.035f, 0.16f), safehousePaint, false);
         }
 
         private static void BuildAmbientPedestrian(string name, float x, float[] routeZ,

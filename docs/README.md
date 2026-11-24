@@ -30,7 +30,7 @@
 - `Assets/Editor/ProjectTideline/MaraPrologueMissionBuilder.cs`: generates the three-objective `two_minutes_to_close` MissionDefinition after both Mara dialogue graphs exist.
 - `Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs`: rejects malformed or overlapping graphs and releases the input lock when disabled.
 - `Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs`: evaluates story-flag and relationship branches.
-- `Assets/Editor/ProjectTideline/PortSablePrologueDialogueBuilder.cs` / `PortSablePrologueDialogueAudit.cs`: generates and validates the three prologue graphs.
+- `Assets/Editor/ProjectTideline/PortSablePrologueDialogueBuilder.cs` / `PortSablePrologueDialogueAudit.cs`: generates and validates four dialogue graphs across the three prologues (Mara has a separate post-delivery Nico stage).
 - `Assets/Editor/ProjectTideline/MissionAssetAudit.cs`: audits actual mission ScriptableObjects, builder asset-name wiring and branch/fallback conditions.
 - `Assets/ProjectTideline/Scripts/Missions/MissionBranchEvaluator.cs`: deterministic condition evaluation used by MissionDirector.
 

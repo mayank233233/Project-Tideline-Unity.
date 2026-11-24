@@ -403,7 +403,7 @@ def run() -> int:
           and "SignalId" not in proximity_interactor,
           "Unused generic interaction signal metadata must not remain in the interaction interface")
     check("public sealed class DialogueInteractable" in dialogue_interactable
-          and "dialogueController.Begin(dialogueGraph);" in dialogue_interactable
+          and "dialogueController.Begin(dialogueGraph) && oneShot" in dialogue_interactable
           and "dialogueController == null || dialogueGraph == null" in dialogue_interactable,
           "DialogueInteractable must route a configured graph into the dialogue controller")
     check("public bool Begin(DialogueGraph graph)" in dialogue_controller
@@ -536,8 +536,8 @@ def run() -> int:
         'SetTarget(player.transform',
         'SetMovementCamera(cameraObject.transform)',
         'EditorBuildSettings.scenes = scenes.ToArray()',
-        'WASD / arrows to move',
-        'This is a primitive greybox',
+        'WASD / arrows or touch joystick to move',
+        'This is still a primitive greybox',
     ):
         check(token in blockout_builder,
               f"Playable Old Quay blockout builder is missing: {token}")

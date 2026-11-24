@@ -19,12 +19,17 @@ namespace ProjectTideline
         [SerializeField, Min(1f)] private float firstUnitSpeed = 17f;
         [SerializeField, Min(1f)] private float secondUnitSpeed = 19f;
 
+        public enum ResponsePhase { None, Dispatch, Escalated, Cooldown }
+
         private readonly List<PolicePursuitVehicle> _units = new List<PolicePursuitVehicle>(2);
         private float _calmTimer = -1f;
+        private int _lastDisplayedCooldown = -1;
         private PublicAttentionState.AttentionBand _currentBand = PublicAttentionState.AttentionBand.Calm;
 
         public int ActiveUnitCount => _units.Count;
+        public ResponsePhase Phase { get; private set; } = ResponsePhase.None;
         public event Action<int, PublicAttentionState.AttentionBand> ResponseChanged;
+        public event Action<ResponsePhase> PhaseChanged;
 
         public void Configure(PublicAttentionState state, Transform target, Text label)
         {
@@ -52,17 +57,29 @@ namespace ProjectTideline
         {
             if (attentionState != null)
                 attentionState.AttentionChanged -= OnAttentionChanged;
+            _calmTimer = -1f;
+            _lastDisplayedCooldown = -1;
             ClearUnits();
+            SetPhase(ResponsePhase.None);
         }
 
         private void Update()
         {
             if (_calmTimer < 0f) return;
-            _calmTimer -= Time.deltaTime;
+            _calmTimer = Mathf.Max(0f, _calmTimer - Time.deltaTime);
+            int displayedSeconds = Mathf.CeilToInt(_calmTimer);
+            if (displayedSeconds != _lastDisplayedCooldown)
+            {
+                _lastDisplayedCooldown = displayedSeconds;
+                RenderStatus();
+            }
+
             if (_calmTimer <= 0f)
             {
                 _calmTimer = -1f;
+                _lastDisplayedCooldown = -1;
                 ClearUnits();
+                SetPhase(ResponsePhase.None);
                 RenderStatus();
                 ResponseChanged?.Invoke(0, _currentBand);
             }
@@ -85,12 +102,19 @@ namespace ProjectTideline
             if (band == PublicAttentionState.AttentionBand.Calm)
             {
                 if (_units.Count > 0 && _calmTimer < 0f)
+                {
                     _calmTimer = calmClearDelay;
+                    _lastDisplayedCooldown = -1;
+                    SetPhase(ResponsePhase.Cooldown);
+                }
                 RenderStatus();
                 return;
             }
 
             _calmTimer = -1f;
+            _lastDisplayedCooldown = -1;
+            SetPhase(band == PublicAttentionState.AttentionBand.Escalated
+                ? ResponsePhase.Escalated : ResponsePhase.Dispatch);
             EnsureUnitCount(band == PublicAttentionState.AttentionBand.Escalated ? 2 : 1);
             RenderStatus();
             ResponseChanged?.Invoke(_units.Count, band);
@@ -124,16 +148,33 @@ namespace ProjectTideline
             _units.Clear();
         }
 
+        private void SetPhase(ResponsePhase next)
+        {
+            if (Phase == next) return;
+            Phase = next;
+            PhaseChanged?.Invoke(next);
+        }
+
         private void RenderStatus()
         {
             if (responseText == null) return;
-            if (_units.Count == 0)
-                responseText.text = _currentBand == PublicAttentionState.AttentionBand.Calm
-                    ? "RESPONSE: NONE" : "RESPONSE: AWAITING TARGET";
-            else if (_units.Count == 1)
-                responseText.text = "RESPONSE: PATROL DISPATCHED";
-            else
-                responseText.text = "RESPONSE: MULTIPLE PATROLS";
+            switch (Phase)
+            {
+                case ResponsePhase.Dispatch:
+                    responseText.text = _units.Count == 0
+                        ? "RESPONSE: DISPATCH PENDING" : "RESPONSE: PATROL DISPATCHED";
+                    break;
+                case ResponsePhase.Escalated:
+                    responseText.text = _units.Count == 0
+                        ? "RESPONSE: ESCALATION PENDING" : "RESPONSE: MULTIPLE PATROLS";
+                    break;
+                case ResponsePhase.Cooldown:
+                    responseText.text = "RESPONSE: COOLDOWN " + Mathf.CeilToInt(Mathf.Max(0f, _calmTimer)) + "s";
+                    break;
+                default:
+                    responseText.text = "RESPONSE: NONE";
+                    break;
+            }
         }
 
         private void OnDestroy()

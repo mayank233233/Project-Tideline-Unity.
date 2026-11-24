@@ -263,7 +263,7 @@ def run() -> int:
           "MissionDirector does not delegate branch decisions to the shared evaluator")
     check("InvokeDispatchCompletedSafely();" in mission_signal_bus
           and "while (PendingSignals.Count > 0)" in mission_signal_bus
-          and "if (IsDispatching)" in mission_signal_bus,
+          and "if (IsDispatching || PendingSignals.Count == 0)" in mission_signal_bus,
           "MissionSignalBus must drain nested signals through a queue before completing dispatch")
     check("public readonly struct Signal" in mission_signal_bus
           and "public static void PublishBatch(params Signal[] signals)" in mission_signal_bus
@@ -370,7 +370,7 @@ def run() -> int:
     for suffix in ("started", "checkpoint", "finished", "cancelled"):
         check(f'signalPrefix + ".{suffix}"' in route_race,
               f"Route race controller must publish its {suffix} signal")
-    check("checkpointIndex != _nextCheckpointIndex" in route_race
+    check("checkpoint.CheckpointIndex != _nextCheckpointIndex" in route_race
           and "checkpoints[_nextCheckpointIndex] != checkpoint" in route_race
           and "!vehicle.IsDriven" in route_race,
           "Route race must reject skipped/out-of-order checkpoints and non-player-driven vehicles")

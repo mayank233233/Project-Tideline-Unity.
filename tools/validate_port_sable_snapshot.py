@@ -622,8 +622,9 @@ def run() -> int:
           and "SetVehicleControlMode(false)" in vehicle_seat,
           "Vehicle entry/exit must switch the shared input mapping")
     check("VehicleControlMode) PlayerInputRouter.Instance.SetThrottle(1f)" in mobile_controls
-          and "VehicleControlMode) PlayerInputRouter.Instance.SetHandbrake(true)" in mobile_controls,
-          "Touch accelerator and handbrake must map to vehicle controls when seated")
+          and "VehicleControlMode) PlayerInputRouter.Instance.SetBrake(1f)" in mobile_controls
+          and "PlayerInputRouter.Instance.SetBrake(0f)" in mobile_controls,
+          "Touch accelerator and service brake must map to vehicle controls when seated")
     check("_npcDriving ? _npcBrake : 1f" in vehicle_drive
           and "public void SetDriven(bool value)" in vehicle_drive,
           "Unoccupied player vehicles must hold the parking brake")
@@ -733,6 +734,10 @@ def run() -> int:
     check('binding.FindPropertyRelative("driven").boolValue = i >= 2;' in blockout_builder
           and 'binding.FindPropertyRelative("steer").boolValue = i < 2;' in blockout_builder,
           "Generated delivery vehicle must have front steering and rear-wheel drive")
+    check("visualRotationOffset" in vehicle_drive
+          and "Quaternion.Euler(wheel.visualRotationOffset)" in vehicle_drive
+          and "new Vector3(0f, 0f, 90f)" in blockout_builder,
+          "Generated cylindrical tyre meshes must apply the WheelCollider axis correction")
 
     for token in ("ProgressChanged", "MissionCompleted", "objective.description", "mission.title"):
         check(token in mission_status_display,

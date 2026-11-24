@@ -33,6 +33,8 @@ namespace ProjectTideline
         private GameObject _lastDriver;
         private CharacterController _characterController;
         private ThirdPersonMotor _motor;
+        private Renderer[] _occupantRenderers;
+        private bool[] _occupantRendererWasEnabled;
         private bool _npcOccupied;
         private bool _transitioning;
         private ThirdPersonMotor _takeoverMotor;
@@ -158,6 +160,7 @@ namespace ProjectTideline
             _lastDriver = actor;
             _characterController = controller;
             _motor = motor;
+            SetOccupantRenderersVisible(false);
             _characterController.enabled = false;
             _motor.enabled = false;
             actor.transform.SetParent(driverSeat, false);
@@ -186,6 +189,7 @@ namespace ProjectTideline
             vehicle.SetDriven(false);
             if (PlayerInputRouter.Instance != null) PlayerInputRouter.Instance.SetVehicleControlMode(false);
             actor.transform.SetParent(null, true);
+            SetOccupantRenderersVisible(true);
             if (exitPoint != null) actor.transform.SetPositionAndRotation(exitPoint.position, exitPoint.rotation);
             else actor.transform.position += transform.right * 1.8f + Vector3.up * 0.05f;
             if (_characterController != null) _characterController.enabled = true;
@@ -195,6 +199,35 @@ namespace ProjectTideline
             _characterController = null;
             _motor = null;
             MissionSignalBus.Publish("vehicle.exited", 1);
+        }
+
+        private void SetOccupantRenderersVisible(bool visible)
+        {
+            if (!visible)
+            {
+                if (_occupant == null) return;
+                _occupantRenderers = _occupant.GetComponentsInChildren<Renderer>(true);
+                _occupantRendererWasEnabled = new bool[_occupantRenderers.Length];
+                for (int i = 0; i < _occupantRenderers.Length; i++)
+                {
+                    Renderer renderer = _occupantRenderers[i];
+                    if (renderer == null) continue;
+                    _occupantRendererWasEnabled[i] = renderer.enabled;
+                    renderer.enabled = false;
+                }
+                return;
+            }
+
+            if (_occupantRenderers == null) return;
+            int count = Mathf.Min(_occupantRenderers.Length,
+                _occupantRendererWasEnabled != null ? _occupantRendererWasEnabled.Length : 0);
+            for (int i = 0; i < count; i++)
+            {
+                if (_occupantRenderers[i] != null)
+                    _occupantRenderers[i].enabled = _occupantRendererWasEnabled[i];
+            }
+            _occupantRenderers = null;
+            _occupantRendererWasEnabled = null;
         }
 
         private void OnDisable()

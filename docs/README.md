@@ -26,8 +26,10 @@
 - `Assets/ProjectTideline/Scripts/Interaction/RouteRaceStartInteractable.cs`, `Assets/ProjectTideline/Scripts/World/RouteRaceController.cs` and `RouteRaceCheckpoint.cs`: ordered player-driven route checkpoints and route-finish signals; scene setup and competitive race results are not implemented.
 - `Assets/ProjectTideline/Scripts/World/MaraWorkshopOrderController.cs` and `Assets/ProjectTideline/Scripts/Interaction/MaraWorkshopTaskInteractable.cs`: three unique customer-vehicle inspection tasks and one order-complete signal.
 - `Assets/ProjectTideline/Scripts/Interaction/MaraDeliveryStartInteractable.cs` and `MaraPostDeliveryDialogueInteractable.cs`: enforce workshop → delivery → Nico dialogue order.
-- `Assets/ProjectTideline/Scripts/Interaction/MaraDeliveryRouteCompletionRelay.cs`: emits the Mara-specific delivery completion only after its assigned route has fully drained the final signal batch.
+- `Assets/ProjectTideline/Scripts/World/MaraDeliveryHandoffController.cs` and `MaraCustomerHandoffInteractable.cs`: emit the Mara-specific delivery completion only after the assigned route has finished and the customer accepts the vehicle.
 - `Assets/Editor/ProjectTideline/MaraPrologueMissionBuilder.cs`: generates the three-objective `two_minutes_to_close` MissionDefinition after both Mara dialogue graphs exist.
+- `Assets/Editor/ProjectTideline/MaraPrologueSceneWiringAudit.cs`: audits loaded-scene references for the Mara player, input, dialogue UI/graphs, workshop, route, customer handoff and mission director.
+- `docs/PORT_SABLE_PROLOGUE_DIALOGUE_GRAPHS.md`: exact four-graph inventory, node/choice flow, persistent flags and Inspector wiring contract.
 - `Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs`: rejects malformed or overlapping graphs and releases the input lock when disabled.
 - `Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs`: evaluates story-flag and relationship branches.
 - `Assets/Editor/ProjectTideline/PortSablePrologueDialogueBuilder.cs` / `PortSablePrologueDialogueAudit.cs`: generates and validates four dialogue graphs across the three prologues (Mara has a separate post-delivery Nico stage).

@@ -368,6 +368,20 @@ def run() -> int:
           and "if (!_isDriven && _visualLodReference != null)" in vehicle_drive
           and "_nextWheelVisualUpdateTime = Time.time + interval" in vehicle_drive,
           "Vehicle wheel visual poses must remain full-rate for the player and use distance-based update intervals for distant NPC vehicles")
+    check("Distant Traffic Decision LOD" in traffic_driver
+          and "_decisionLodReference = Camera.main.transform" in traffic_driver
+          and "ShouldUpdateTrafficDecision()" in traffic_driver
+          and "reducedDecisionInterval" in traffic_driver
+          and "distantDecisionInterval" in traffic_driver
+          and "if (_decisionLodReference == null) return true;" in traffic_driver,
+          "Traffic AI decisions must be distance-throttled only when a camera reference exists, with full-rate fallback")
+    traffic_decision = traffic_driver.split("private bool ShouldUpdateTrafficDecision()", 1)[-1].split(
+        "private bool IsObstacleBlocking()", 1)[0]
+    check("Time.fixedTime < _nextTrafficDecisionTime" in traffic_decision
+          and "_nextTrafficDecisionTime = Time.fixedTime + interval" in traffic_decision,
+          "Distant traffic decision LOD must schedule bounded fixed-time decision intervals")
+    check("WheelCollider physics at the normal fixed timestep" in traffic_driver,
+          "Traffic decision LOD must explicitly preserve full-rate vehicle physics")
     check("obstacleCheckInterval = 0.12f" in traffic_driver
           and "private bool IsObstacleBlocking()" in traffic_driver
           and "Time.fixedTime < _nextObstacleCheckTime" in traffic_driver

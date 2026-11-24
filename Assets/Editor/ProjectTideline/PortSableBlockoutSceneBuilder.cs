@@ -669,7 +669,7 @@ namespace ProjectTideline.Editor
                 binding.FindPropertyRelative("collider").objectReferenceValue = wheelColliders[i];
                 binding.FindPropertyRelative("visual").objectReferenceValue = wheelVisuals[i];
                 binding.FindPropertyRelative("steer").boolValue = i < 2;
-                binding.FindPropertyRelative("driven").boolValue = true;
+                binding.FindPropertyRelative("driven").boolValue = i >= 2;
             }
             driveSerialized.FindProperty("motorTorque").floatValue = 1650f;
             driveSerialized.FindProperty("brakeTorque").floatValue = 2600f;

@@ -10,6 +10,7 @@ namespace ProjectTideline
         [SerializeField] private MissionDirector missionDirector;
         [SerializeField] private RouteRaceController deliveryRoute;
         [SerializeField] private VehicleDriveController deliveryVehicle;
+        [SerializeField] private VehicleDeliveryCheckpoint deliveryBay;
         [SerializeField] private GameObject vehicleStatusRoot;
         [SerializeField] private Text vehicleSpeedText;
         [SerializeField] private Text statusText;
@@ -30,6 +31,12 @@ namespace ProjectTideline
             deliveryRoute = route;
             if (isActiveAndEnabled) Subscribe();
             Refresh();
+        }
+
+        public void SetDeliveryBay(VehicleDeliveryCheckpoint bay)
+        {
+            deliveryBay = bay;
+            RefreshVehicleStatus();
         }
 
         public void SetVehicleStatus(VehicleDriveController vehicle, GameObject panelRoot, Text speedText)
@@ -104,12 +111,36 @@ namespace ProjectTideline
             float speed = deliveryVehicle.SpeedKph;
             MissionObjective objective = missionDirector != null ? missionDirector.CurrentObjective : null;
             bool parkingObjective = objective != null && objective.objectiveId == "park_in_delivery_bay";
-            string instruction = parkingObjective
-                ? speed <= 3f ? "PARKING SPEED OK" : "BRAKE TO 3 KM/H"
-                : "DELIVERY SPEED";
-            vehicleSpeedText.text = Mathf.RoundToInt(speed) + " KM/H\n" + instruction;
-            vehicleSpeedText.color = parkingObjective && speed <= 3f
+            bool deliverySecured = deliveryBay != null && deliveryBay.HasArrived;
+            string instruction = deliverySecured
+                ? "DELIVERY BAY SECURED"
+                : parkingObjective
+                    ? speed <= 3f ? "PARKING SPEED OK" : "BRAKE TO 3 KM/H"
+                    : "DELIVERY SPEED";
+            string guidance = parkingObjective
+                ? GetDeliveryBayHint()
+                : deliverySecured ? "EXIT VEHICLE TO HAND OVER" : string.Empty;
+            vehicleSpeedText.text = Mathf.RoundToInt(speed) + " KM/H\n" + instruction
+                + (string.IsNullOrEmpty(guidance) ? string.Empty : "\n" + guidance);
+            vehicleSpeedText.color = deliverySecured || (parkingObjective && speed <= 3f)
                 ? new Color(0.70f, 0.91f, 0.72f) : Color.white;
+        }
+
+        private string GetDeliveryBayHint()
+        {
+            if (deliveryBay == null || deliveryVehicle == null)
+                return "FOLLOW ROAD TO DELIVERY BAY";
+
+            Vector3 offset = deliveryBay.transform.position - deliveryVehicle.transform.position;
+            offset.y = 0f;
+            float distance = offset.magnitude;
+            if (distance <= 3.5f)
+                return "BAY CLOSE — STOP INSIDE MARKINGS";
+
+            Vector3 localTarget = deliveryVehicle.transform.InverseTransformPoint(deliveryBay.transform.position);
+            string direction = localTarget.x < -1.75f ? "LEFT"
+                : localTarget.x > 1.75f ? "RIGHT" : "AHEAD";
+            return "BAY " + Mathf.RoundToInt(distance) + " M — " + direction;
         }
 
         private void OnProgressChanged(MissionDefinition mission, MissionObjective objective,

@@ -670,6 +670,7 @@ namespace ProjectTideline.Editor
                 binding.FindPropertyRelative("visual").objectReferenceValue = wheelVisuals[i];
                 binding.FindPropertyRelative("steer").boolValue = i < 2;
                 binding.FindPropertyRelative("driven").boolValue = i >= 2;
+                binding.FindPropertyRelative("visualRotationOffset").vector3Value = new Vector3(0f, 0f, 90f);
             }
             driveSerialized.FindProperty("motorTorque").floatValue = 1650f;
             driveSerialized.FindProperty("brakeTorque").floatValue = 2600f;

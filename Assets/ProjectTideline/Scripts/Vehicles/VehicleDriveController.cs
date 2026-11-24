@@ -50,7 +50,6 @@ namespace ProjectTideline
         public void SetDriven(bool value)
         {
             _isDriven = value;
-            if (!value) return;
             _npcDriving = false;
             _npcSteer = 0f;
             _npcThrottle = 0f;
@@ -77,7 +76,7 @@ namespace ProjectTideline
                 : _npcDriving ? _npcThrottle : 0f;
             float brake = _isDriven && input != null
                 ? Mathf.Max(input.Brake, Mathf.Max(0f, -moveAxis))
-                : _npcDriving ? _npcBrake : 0f;
+                : _npcDriving ? _npcBrake : 1f;
             bool handbrake = _isDriven && input != null && input.HandbrakeHeld;
 
             foreach (WheelBinding wheel in wheels)

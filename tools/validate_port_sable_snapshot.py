@@ -250,6 +250,9 @@ def run() -> int:
     dialogue_controller = read("Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs")
     dialogue_interactable = read("Assets/ProjectTideline/Scripts/Interaction/DialogueInteractable.cs")
     confrontation_interactable = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationInteractable.cs")
+    race_start_interactable = read("Assets/ProjectTideline/Scripts/Interaction/RouteRaceStartInteractable.cs")
+    route_race = read("Assets/ProjectTideline/Scripts/World/RouteRaceController.cs")
+    route_checkpoint = read("Assets/ProjectTideline/Scripts/World/RouteRaceCheckpoint.cs")
     vehicle_seat = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleSeatInteractable.cs")
     vehicle_drive = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDriveController.cs")
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
@@ -355,6 +358,24 @@ def run() -> int:
           "Cinematic confrontation must have an explicit proximity-interaction entry component")
     check("public bool Begin(GameObject actor, Animator opponentAnimator)" in confrontation,
           "CinematicConfrontationController must expose a guarded begin operation")
+    check("public sealed class RouteRaceStartInteractable" in race_start_interactable
+          and "raceController.BeginRace();" in race_start_interactable,
+          "Route race must be startable through the normal proximity-interaction system")
+    for suffix in ("started", "checkpoint", "finished", "cancelled"):
+        check(f'signalPrefix + ".{suffix}"' in route_race,
+              f"Route race controller must publish its {suffix} signal")
+    check("checkpointIndex != _nextCheckpointIndex" in route_race
+          and "checkpoints[_nextCheckpointIndex] != checkpoint" in route_race
+          and "!vehicle.IsDriven" in route_race,
+          "Route race must reject skipped/out-of-order checkpoints and non-player-driven vehicles")
+    check("checkpoint.Controller != this" in route_race
+          and "checkpoint.CheckpointIndex != i" in route_race
+          and "!checkpoint.HasTriggerCollider" in route_race,
+          "Route race start must validate every assigned checkpoint and trigger collider")
+    check("other.GetComponentInParent<VehicleDriveController>()" in route_checkpoint
+          and "controller.TryRegisterCheckpoint(this, vehicle);" in route_checkpoint
+          and "trigger != null && trigger.isTrigger" in route_checkpoint,
+          "Route checkpoint triggers must report only vehicle entry to their owning route controller")
     check("Mathf.Max(1, objective.requiredCount) - 1" in mission_director,
           "Mission progress restore must clamp an active objective below its completion threshold")
     check("candidate.objectives == null || candidate.objectives.Length == 0" in mission_director,

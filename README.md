@@ -53,19 +53,22 @@ Generated outlines are design records, not playable missions. Do not attach them
 
 ## Generated Old Quay tutorial scene
 
-Run **Project Tideline → 14 — Build Playable Old Quay Blockout** from the Unity Editor after the runtime scripts have compiled. The command creates `Assets/ProjectTideline/Scenes/PortSable_OldQuay_Blockout.unity`, creates the tutorial DialogueGraph and MissionDefinition assets, adds the scene to Build Settings, and opens it.
+Run **Project Tideline → 14 — Build Playable Old Quay Blockout** from the Unity Editor after the runtime scripts have compiled. The command creates `Assets/ProjectTideline/Scenes/PortSable_OldQuay_Blockout.unity`, generates the tutorial dialogue and mission assets, adds the scene to Build Settings, and opens it.
 
-The generated first-play loop is:
+The eight-stage first-play sequence is:
 
-1. Find Juno outside Kade Motor Works and choose one of two responses. The choice changes her relationship with Mara.
-2. Inspect the shipment ledger at the harbour office.
-3. Return to the workshop and report the findings.
-4. Enter the Kade delivery truck. It has four configured WheelColliders, steering, driven rear wheels, braking, a Rigidbody and enter/exit handling.
-5. Follow the marked road to the customer bay and stop the truck. The checkpoint only accepts the configured vehicle while occupied and below its speed threshold.
-6. Exit and interact with the customer to complete the key handoff.
-7. Return to Kade Motor Works and speak to Juno again. Her debrief dialogue is selected by the active mission objective, closing the opening sequence.
+1. **Meet Juno.** Speak to her outside Kade Motor Works. The two responses change Juno's relationship value.
+2. **Check the ledger.** Travel to the harbour office and inspect the shipment ledger.
+3. **Accept the delivery.** Return to the workshop and use the delivery order board. The route cannot be started before this objective.
+4. **Enter the vehicle.** Get into the customer's utility car. The player switches to vehicle controls and the camera follows the vehicle.
+5. **Drive the route.** Pass three ordered checkpoints from Old Quay toward Saltline. Only the assigned player-driven vehicle can advance them.
+6. **Park at the customer bay.** Stop inside the marked bay. The arrival checkpoint only accepts the assigned occupied vehicle when its speed is at or below 3 km/h.
+7. **Hand over the vehicle.** Exit the car and interact with the waiting customer. The handoff is unavailable until the route is finished and the vehicle has arrived in the bay.
+8. **Debrief with Juno.** Return to Kade Motor Works and choose a response in her objective-specific closing conversation.
 
-The scene includes a mission HUD, proximity prompts, objective-aware Juno dialogue, keyboard controls and touch controls. The touch accelerator/brake/handbrake mapping is shared with vehicle input. The world, Juno, customer, pedestrians and player remain primitive placeholders. Two ambient pedestrians walk authored sidewalk waypoint loops; this is not NavMesh pathfinding or crowd simulation. There is no final character rig, save flow, cinematic presentation or Android performance validation in this generated tutorial. The menu command must still be run in Unity; the repository's static CI does not execute it or prove that the scene compiles or plays.
+The utility car has a Rigidbody, four configured WheelColliders, front steering, rear-wheel drive, braking, wheel visuals, and enter/exit handling. The touch accelerator and handbrake controls change labels and input mapping while driving. The scene also includes a mission HUD, proximity prompts, and two placeholder pedestrians walking authored sidewalk waypoint loops. Those pedestrians do not use NavMesh pathfinding or crowd avoidance.
+
+This remains a primitive greybox. Juno, the customer, the pedestrians, vehicle and player are placeholders; there is no finished character rig, vehicle audio, save flow, cinematic presentation, full city simulation or Android performance validation. The menu command still needs to be run in Unity. Static CI does not execute it or prove that the generated scene compiles or plays.
 
 ## Recovered technical foundation
 

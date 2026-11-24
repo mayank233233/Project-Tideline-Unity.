@@ -20,7 +20,7 @@ The source includes:
 
 - `CampaignCanon.cs`: machine-checkable leads, supporting cast, factions, districts, mission goals, gameplay verbs, character complications, player choices and persistent consequences.
 - `CampaignCanonAudit.cs`: Unity Editor validation for missing/duplicate IDs, incomplete campaign structure and the separate institution registry.
-- `MissionAssetAudit.cs`: scans serialized MissionDefinition assets, objectives, branches, fallbacks, ending flags, unconsumed story flags and legacy builder filename wiring.
+- `MissionAssetAudit.cs`: scans serialized MissionDefinition assets, objective signals against actual source/data producers, branches, fallbacks, ending flags, unconsumed story flags and legacy builder filename wiring. A source match is not proof of scene/prefab wiring.
 - `MissionBranchEvaluator.cs`: shared branch-condition evaluator; missing relationship/story values are not coerced to zero.
 - `PortSablePrologueDialogueBuilder.cs`: creates the three lead-specific dialogue graph assets; scene/NPC wiring is still required.
 - `PortSablePrologueDialogueAudit.cs`: checks graph IDs, node links, reachability and required saved choice flags.

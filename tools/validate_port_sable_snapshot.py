@@ -709,54 +709,73 @@ def run() -> int:
               f"Delivery route start objective gate is missing: {token}")
 
     mission_signal_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MissionSignalInteractable.cs")
-    dialogue_interactable = read("Assets/ProjectTideline/Scripts/Interaction/DialogueInteractable.cs")
     mission_status_display = read("Assets/ProjectTideline/Scripts/UI/MissionStatusDisplay.cs")
+    mission_dialogue_sequence = read("Assets/ProjectTideline/Scripts/Interaction/MissionDialogueSequenceInteractable.cs")
     for token in (
-        "HarbourLedgerSignal = \"old_quay.harbour_ledger_inspected\"",
-        "WorkshopReportSignal = \"old_quay.juno_reported_back\"",
+        'HarbourLedgerSignal = "old_quay.harbour_ledger_inspected"',
         "requiredMissionId",
         "requiredObjectiveId",
         "!IsCurrentObjective()",
         'MissionSignalBus.Publish("old_quay.harbour_ledger_inspected", 1)',
-        'MissionSignalBus.Publish("old_quay.juno_reported_back", 1)',
     ):
         check(token in mission_signal_interactable,
               f"Tutorial mission signal interaction is missing: {token}")
-    check("dialogueController.Begin(dialogueGraph) && oneShot" in dialogue_interactable,
-          "Opening Juno dialogue must not replay the same choice signal after first completion")
     for token in ("ProgressChanged", "MissionCompleted", "objective.description", "mission.title"):
         check(token in mission_status_display,
               f"Mission objective HUD is missing event-driven display behavior: {token}")
     for token in (
         "old_quay.juno_first_contact",
+        "old_quay.juno_debrief",
         "old_quay.juno_briefing_accepted",
+        "old_quay.juno_debrief_completed",
         "old_quay_first_steps",
         "meet_juno",
         "inspect_harbour_ledger",
-        "report_to_juno",
+        "start_customer_delivery",
+        "enter_delivery_vehicle",
+        "drive_customer_delivery_route",
+        "park_in_delivery_bay",
+        "hand_over_customer_vehicle",
+        "return_to_juno",
         "BuildTutorialGameplay(",
         "MissionSignalInteractable.HarbourLedgerSignal",
-        "MissionSignalInteractable.WorkshopReportSignal",
+        "RouteRaceStartInteractable",
+        "BuildCustomerDeliveryVehicle",
+        "BuildCustomerDeliveryRoute",
+        "BuildCustomerDeliveryBay",
+        "BuildCustomerHandoffActor",
+        "MissionDialogueSequenceInteractable",
         "MissionStatusDisplay",
         "DialogueController",
         "ProximityInteractor",
+        "BuildAmbientPedestrian(",
     ):
         check(token in blockout_builder,
-              f"Playable Old Quay tutorial wiring is missing: {token}")
-    check("missionDirector, \"old_quay_first_steps\", \"inspect_harbour_ledger\"" in blockout_builder
-          and "missionDirector, \"old_quay_first_steps\", \"report_to_juno\"" in blockout_builder,
-          "Tutorial world interactions must be gated to their matching active objectives")
-
+              f"Playable Old Quay delivery mission wiring is missing: {token}")
+    for token in (
+        "public sealed class MissionDialogueSequenceInteractable",
+        "MissionDefinition mission = missionDirector.CurrentMission",
+        "MissionObjective objective = missionDirector.CurrentObjective",
+        "string.Equals(step.objectiveId, objective.objectiveId",
+        "dialogueController.Begin(step.graph)",
+    ):
+        check(token in mission_dialogue_sequence,
+              f"Objective-aware NPC dialogue sequence is missing: {token}")
+    check('routeStart.Configure(deliveryRoute, missionDirector, "old_quay_first_steps"' in blockout_builder
+          and '"start_customer_delivery"' in blockout_builder,
+          "Delivery route must only start during its assigned active mission objective")
+    check('junoInteractable.Configure(missionDirector, dialogueController, "old_quay_first_steps"' in blockout_builder
+          and 'objectiveId = "meet_juno"' in blockout_builder
+          and 'objectiveId = "return_to_juno"' in blockout_builder,
+          "Juno opening/debrief dialogue must be selected by the current mission objective")
     check("if (isActiveAndEnabled) Subscribe()" in mission_status_display
           and "private void Unsubscribe()" in mission_status_display,
           "Mission HUD must bind safely whether configured before or after OnEnable")
     check("missionDirector.CurrentObjective" in mission_signal_interactable
           and "string.Equals(objective.objectiveId, requiredObjectiveId" in mission_signal_interactable,
           "Tutorial interactions must refuse out-of-order objective signals")
-    check("if (dialogueController.Begin(dialogueGraph) && oneShot)" in dialogue_interactable,
-          "One-shot dialogue must only mark itself used after the controller accepts Begin")
     check('FindProperty("closeButton")' not in blockout_builder,
-          "One-shot tutorial dialogue must not expose a close path that can strand the objective")
+          "Tutorial dialogue must not expose an unfinished close path that can strand the objective")
 
     readme = read("README.md")
     check("MaraDeliveryRouteCompletionRelay" not in readme

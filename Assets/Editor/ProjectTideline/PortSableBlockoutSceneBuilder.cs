@@ -273,18 +273,14 @@ namespace ProjectTideline.Editor
                             label = "I'll check the harbour ledger.",
                             signalId = "old_quay.juno_briefing_accepted",
                             relationshipCharacterId = "juno_kade",
-                            relationshipDelta = 1,
-                            storyFlagId = "old_quay_juno_response",
-                            storyFlagValue = 1
+                            relationshipDelta = 1
                         },
                         new DialogueGraph.DialogueChoice
                         {
                             label = "Tell me what changed first.",
                             signalId = "old_quay.juno_briefing_accepted",
                             relationshipCharacterId = "juno_kade",
-                            relationshipDelta = -1,
-                            storyFlagId = "old_quay_juno_response",
-                            storyFlagValue = 2
+                            relationshipDelta = -1
                         }
                     }
                 }

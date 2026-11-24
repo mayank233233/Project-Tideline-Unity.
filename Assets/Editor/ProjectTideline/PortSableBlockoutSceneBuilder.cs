@@ -511,6 +511,19 @@ namespace ProjectTideline.Editor
             MissionStatusDisplay missionDisplay = missionObject.AddComponent<MissionStatusDisplay>();
             missionDisplay.Configure(missionDirector, missionText);
 
+            GameObject attentionObject = new GameObject("Public Attention / Police Pressure State");
+            PublicAttentionState attentionState = attentionObject.AddComponent<PublicAttentionState>();
+            Image pressurePanel = CreateTouchImage(hudRoot, "Police pressure HUD background",
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
+                new Vector2(340f, 92f), new Vector2(-28f, -198f),
+                new Color(0.025f, 0.045f, 0.05f, 0.84f), out RectTransform pressureRect);
+            pressurePanel.raycastTarget = false;
+            Text pressureText = CreateUiText(pressureRect, "Police pressure status",
+                Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f),
+                Vector2.zero, Vector2.zero, 23, TextAnchor.MiddleCenter, Color.white);
+            PolicePressureHUD pressureHud = missionObject.AddComponent<PolicePressureHUD>();
+            pressureHud.Configure(attentionState, pressureText);
+
             Image vehicleStatusPanel = CreateTouchImage(hudRoot, "Vehicle speedometer panel",
                 new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
                 new Vector2(340f, 154f), new Vector2(-28f, -28f),

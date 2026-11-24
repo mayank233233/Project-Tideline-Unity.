@@ -85,7 +85,7 @@ The first slice can use one lead and a limited district. It must establish the a
 
 ## Current implementation truth
 
-The repository has substantial narrative design documents, mission/relationship infrastructure, vehicle prototypes, route checkpoints, an eight-stage Old Quay delivery tutorial chained into a four-stage first score, six waypoint-driven traffic-car prototypes using a timed four-way junction with directional stop-line behaviour, a staged arcade police response, a small public-attention state and source for three-lead switching. These are not equivalent to a finished open-world crime game.
+The repository has substantial narrative design documents, mission/relationship infrastructure, vehicle prototypes, route checkpoints, an eight-stage Old Quay delivery tutorial chained into a four-stage first score, six waypoint-driven traffic-car prototypes using a timed four-way junction, one curved turning route, a protected pedestrian signal phase and occupancy-based yielding at a marked crosswalk, a staged arcade police response, a small public-attention state and source for three-lead switching. These are not equivalent to a finished open-world crime game.
 
 Not yet demonstrated in a complete playable scene: a full city, free-roam mission discovery, production-ready three-lead characters, complete police/wanted response, robust traffic/pedestrian simulation, reusable criminal-job/heist framework, property/safehouse loop, faction reputation gameplay, the full executable campaign, or Android performance.
 

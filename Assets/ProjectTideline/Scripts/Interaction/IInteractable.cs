@@ -5,16 +5,17 @@ namespace ProjectTideline
     public interface IInteractable
     {
         string InteractionPrompt { get; }
-        string SignalId { get; }
         void Interact(GameObject actor);
     }
 
+    /// <summary>
+    /// Base class for focused player interactions. Mission signals belong in concrete
+    /// interaction methods and must be published only after their own success conditions pass.
+    /// </summary>
     public abstract class InteractableBase : MonoBehaviour, IInteractable
     {
         [SerializeField] private string interactionPrompt = "Interact";
-        [SerializeField] private string signalId = "interaction.generic";
         public virtual string InteractionPrompt => interactionPrompt;
-        public string SignalId => signalId;
         public abstract void Interact(GameObject actor);
     }
 }

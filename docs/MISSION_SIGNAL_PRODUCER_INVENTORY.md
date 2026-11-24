@@ -132,6 +132,7 @@ The current source now raises an internal `DispatchAborted` notification after c
 - Added `CinematicConfrontationInteractable`, which uses the same route to start a configured non-graphic confrontation sequence; its controller still owns outcome signal emission.
 - Added a route-race prototype: `RouteRaceStartInteractable` starts it, `RouteRaceCheckpoint` trigger components feed ordered progress, and `RouteRaceController` emits route start/checkpoint/finish/cancel signals. It does not yet model a rival or competitive result.
 - Extended `MissionAssetAudit` to match each objective's `completionSignal` against literal `Publish` calls, `PublishBatch` signal entries, generated `DialogueGraph` choice signals and the supported dynamic relationship/attention/race patterns. An unmatched signal is now an audit error.
+- Added seven Unity Editor regression cases: two for FIFO/nested batch dispatch and one completion callback, plus five for exact, relationship, attention-band, route-race and unknown signal resolution. They are included in the Editor audit report but have not been run in Unity.
 - Changed `DialogueController.Begin` to return success/failure, reject overlapping conversations and reject graphs whose start node is missing. Disabling the controller now closes the active graph and releases the gameplay input lock.
 - These are reusable source components only. No PORT SABLE scene or NPC prefab is included or claimed wired.
 

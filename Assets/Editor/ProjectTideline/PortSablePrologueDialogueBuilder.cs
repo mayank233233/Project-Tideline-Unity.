@@ -85,7 +85,7 @@ namespace ProjectTideline.Editor
                 Node("work_order", "JUNO",
                     "Before that car leaves, check the steering, the driver's latch and the engine rattle. Three things. No guessing because the customer is waiting.",
                     Choice("I'll finish all three checks before the delivery.", string.Empty,
-                        "prologue.mara.work_order_accepted", "juno_kade", 1)),
+                        "prologue.mara.work_order_accepted", "juno_kade", 1, "mara_work_order_accepted", 1)),
                 Node("account_notice", "JUNO",
                     "It's an old account. Same name, new paper. I was going to tell you when I had something better than a number and a deadline.",
                     Choice("You should have told me.", "notice_close",
@@ -95,7 +95,7 @@ namespace ProjectTideline.Editor
                 Node("notice_close", "MARA",
                     "The customer still gets their car. We can argue about the notice when the shop's empty.",
                     Choice("Get the vehicle ready for its final checks.", string.Empty,
-                        "prologue.mara.work_order_accepted", "juno_kade", 0))
+                        "prologue.mara.work_order_accepted", "juno_kade", 0, "mara_work_order_accepted", 1))
             };
             return graph;
         }

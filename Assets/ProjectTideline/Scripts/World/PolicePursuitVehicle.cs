@@ -18,12 +18,35 @@ namespace ProjectTideline
         [SerializeField, Min(0.1f)] private float braking = 11f;
 
         private Rigidbody _body;
+        private Renderer _redLight;
+        private Renderer _blueLight;
+        private MaterialPropertyBlock _lightProperties;
 
-        public void Configure(Transform chaseTarget, float speed, float followGap)
+        public void Configure(Transform chaseTarget, float speed, float followGap,
+            Renderer redLight = null, Renderer blueLight = null)
         {
             target = chaseTarget;
             topSpeed = Mathf.Max(1f, speed);
             followDistance = Mathf.Max(1f, followGap);
+            _redLight = redLight;
+            _blueLight = blueLight;
+            _lightProperties = new MaterialPropertyBlock();
+        }
+
+        private void Update()
+        {
+            bool redPhase = Mathf.Repeat(Time.time, 0.6f) < 0.3f;
+            SetLightColor(_redLight, redPhase ? new Color(1f, 0.08f, 0.04f) : new Color(0.12f, 0.015f, 0.01f));
+            SetLightColor(_blueLight, redPhase ? new Color(0.015f, 0.08f, 0.28f) : new Color(0.08f, 0.3f, 1f));
+        }
+
+        private void SetLightColor(Renderer targetRenderer, Color color)
+        {
+            if (targetRenderer == null) return;
+            targetRenderer.GetPropertyBlock(_lightProperties);
+            _lightProperties.SetColor("_BaseColor", color);
+            _lightProperties.SetColor("_Color", color);
+            targetRenderer.SetPropertyBlock(_lightProperties);
         }
 
         private void Awake()
@@ -111,9 +134,9 @@ namespace ProjectTideline
                 new Vector3(1.52f, 0.58f, 1.85f), new Color(0.16f, 0.20f, 0.23f));
             CreateVisual(root.transform, "Roof lightbar", new Vector3(0f, 1.69f, 0.12f),
                 new Vector3(1.05f, 0.12f, 0.28f), new Color(0.12f, 0.28f, 0.9f));
-            CreateVisual(root.transform, "Left red light", new Vector3(-0.34f, 1.72f, 0.12f),
+            Renderer redLight = CreateVisual(root.transform, "Left red light", new Vector3(-0.34f, 1.72f, 0.12f),
                 new Vector3(0.28f, 0.1f, 0.22f), new Color(0.95f, 0.08f, 0.06f));
-            CreateVisual(root.transform, "Right blue light", new Vector3(0.34f, 1.72f, 0.12f),
+            Renderer blueLight = CreateVisual(root.transform, "Right blue light", new Vector3(0.34f, 1.72f, 0.12f),
                 new Vector3(0.28f, 0.1f, 0.22f), new Color(0.06f, 0.24f, 0.98f));
             for (int side = -1; side <= 1; side += 2)
             {
@@ -133,11 +156,11 @@ namespace ProjectTideline
             }
 
             PolicePursuitVehicle pursuit = root.AddComponent<PolicePursuitVehicle>();
-            pursuit.Configure(chaseTarget, speed, followGap);
+            pursuit.Configure(chaseTarget, speed, followGap, redLight, blueLight);
             return pursuit;
         }
 
-        private static void CreateVisual(Transform parent, string objectName, Vector3 localPosition,
+        private static Renderer CreateVisual(Transform parent, string objectName, Vector3 localPosition,
             Vector3 localScale, Color color)
         {
             GameObject visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -149,6 +172,7 @@ namespace ProjectTideline
             if (visualCollider != null) Object.Destroy(visualCollider);
             Renderer renderer = visual.GetComponent<Renderer>();
             if (renderer != null) renderer.material.color = color;
+            return renderer;
         }
     }
 }

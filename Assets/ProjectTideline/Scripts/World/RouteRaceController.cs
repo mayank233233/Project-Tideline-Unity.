@@ -19,6 +19,7 @@ namespace ProjectTideline
         private bool _finishSignalPending;
 
         public bool IsActive => _isActive;
+        public bool HasFinished { get; private set; }
         public int NextCheckpointIndex => _nextCheckpointIndex;
         public int CheckpointCount => checkpoints != null ? checkpoints.Length : 0;
         public VehicleDriveController PlayerVehicle => playerVehicle;
@@ -38,7 +39,7 @@ namespace ProjectTideline
 
         public bool BeginRace()
         {
-            if (_isActive || !HasValidRoute())
+            if (_isActive || HasFinished || !HasValidRoute())
                 return false;
 
             _nextCheckpointIndex = 0;
@@ -95,6 +96,7 @@ namespace ProjectTideline
             if (!_finishSignalPending) return;
 
             _finishSignalPending = false;
+            HasFinished = true;
             NotifyFinished();
         }
 
@@ -103,6 +105,7 @@ namespace ProjectTideline
             if (!_finishSignalPending) return;
 
             _finishSignalPending = false;
+            HasFinished = false;
             // The final trigger action was discarded. Re-arm the final checkpoint so the
             // player can repeat that action instead of receiving a false route completion.
             _isActive = true;

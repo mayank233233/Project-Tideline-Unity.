@@ -707,7 +707,6 @@ def run() -> int:
         "BuildTutorialGameplay(",
         "MissionSignalInteractable.HarbourLedgerSignal",
         "MissionSignalInteractable.WorkshopReportSignal",
-        'FindProperty("oneShot").boolValue = true',
         "MissionStatusDisplay",
         "DialogueController",
         "ProximityInteractor",

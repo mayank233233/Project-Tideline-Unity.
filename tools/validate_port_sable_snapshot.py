@@ -361,6 +361,13 @@ def run() -> int:
           and "collision.relativeVelocity.sqrMagnitude < 64f" in vehicle_drive
           and "_nextCollisionSignalAt = Time.time + 2.5f;" in vehicle_drive,
           "Vehicle collision signal must retain its speed threshold and cooldown")
+    check("Distant NPC Wheel Visual LOD" in vehicle_drive
+          and "_visualLodReference = Camera.main.transform" in vehicle_drive
+          and "distanceSquared <= fullRateSquared" in vehicle_drive
+          and "distanceSquared <= reducedRateSquared" in vehicle_drive
+          and "if (!_isDriven && _visualLodReference != null)" in vehicle_drive
+          and "_nextWheelVisualUpdateTime = Time.time + interval" in vehicle_drive,
+          "Vehicle wheel visual poses must remain full-rate for the player and use distance-based update intervals for distant NPC vehicles")
     check("obstacleCheckInterval = 0.12f" in traffic_driver
           and "private bool IsObstacleBlocking()" in traffic_driver
           and "Time.fixedTime < _nextObstacleCheckTime" in traffic_driver

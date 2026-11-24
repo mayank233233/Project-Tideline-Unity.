@@ -8,7 +8,7 @@ using UnityEngine;
 namespace ProjectTideline.Editor
 {
     /// <summary>
-    /// Creates the authored dialogue graphs for PORT SABLE's three independent prologues.
+    /// Creates the authored dialogue graphs for PORT SABLE's three independent prologues. Mara's prologue uses separate opening and post-delivery graphs.
     /// Graphs use the existing DialogueController, MissionSignalBus and NPCRelationshipLedger.
     /// </summary>
     public static class PortSablePrologueDialogueBuilder
@@ -25,6 +25,7 @@ namespace ProjectTideline.Editor
             var graphs = new List<DialogueGraph>
             {
                 BuildMara(),
+                BuildMaraNicoChallenge(),
                 BuildRafi(),
                 BuildElias()
             };
@@ -57,14 +58,15 @@ namespace ProjectTideline.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("Generated or updated three PORT SABLE prologue DialogueGraph assets. " +
-                      "They are narrative assets only; they are not yet assigned to scene NPCs or mission triggers.");
+            Debug.Log("Generated or updated four DialogueGraph assets across the three PORT SABLE prologues. " +
+                      "Mara's opening and Nico follow-up are separate stages. Scene/NPC wiring is still required.");
             EditorUtility.DisplayDialog("PORT SABLE dialogue generated",
-                "Three prologue dialogue graphs were created or updated:\n" +
-                "• Mara — TWO MINUTES TO CLOSE\n" +
+                "Four dialogue graphs were created or updated across three prologues:\n" +
+                "• Mara — garage opening and work-order conversation\n" +
+                "• Mara — Nico's post-delivery choice\n" +
                 "• Rafi — LAST SONG, FIRST LIE\n" +
                 "• Elias — THE OLD TERMS\n\n" +
-                "They are not yet wired into a playable PORT SABLE scene.", "OK");
+                "Assign each graph to its DialogueInteractable in the playable scenes.", "OK");
         }
 
         private static DialogueGraph BuildMara()
@@ -76,29 +78,48 @@ namespace ProjectTideline.Editor
             {
                 Node("garage_close", "JUNO",
                     "You said you'd be done at eight. It's quarter past. I'm not asking for an apology; I'm asking if the customer knows.",
-                    Choice("The customer's car comes first.", "finish_customer_job",
-                        "prologue.mara.finish_customer_job", "juno_kade", 2),
-                    Choice("What is that notice?", "ask_about_notice",
-                        "prologue.mara.ask_about_notice", "juno_kade", -1)),
-                Node("finish_customer_job", "MARA",
-                    "The steering's straight, the latch holds, and the rattle's gone. He'll find something else to complain about.",
-                    Choice("Take the keys and go.", "nico_at_door",
-                        "prologue.mara.prioritise_work", "juno_kade", 1)),
-                Node("ask_about_notice", "JUNO",
+                    Choice("The customer's car comes first.", "work_order",
+                        "prologue.mara.work_first", "juno_kade", 2),
+                    Choice("What is that notice?", "account_notice",
+                        "prologue.mara.notice_raised", "juno_kade", -1)),
+                Node("work_order", "JUNO",
+                    "Before that car leaves, check the steering, the driver's latch and the engine rattle. Three things. No guessing because the customer is waiting.",
+                    Choice("I'll finish all three checks before the delivery.", string.Empty,
+                        "prologue.mara.work_order_accepted", "juno_kade", 1)),
+                Node("account_notice", "JUNO",
                     "It's an old account. Same name, new paper. I was going to tell you when I had something better than a number and a deadline.",
-                    Choice("You should have told me.", "nico_at_door",
+                    Choice("You should have told me.", "notice_close",
                         "prologue.mara.challenge_juno", "juno_kade", -2),
-                    Choice("Then we talk after the drive.", "nico_at_door",
+                    Choice("Then we talk after the drive.", "notice_close",
                         "prologue.mara.defer_argument", "juno_kade", 1)),
-                Node("nico_at_door", "NICO",
-                    "That the car? Thought you said you'd fixed the pull. Or are you still blaming the road?",
-                    Choice("There is one way to find out.", "mara_close",
+                Node("notice_close", "MARA",
+                    "The customer still gets their car. We can argue about the notice when the shop's empty.",
+                    Choice("Get the vehicle ready for its final checks.", string.Empty,
+                        "prologue.mara.work_order_accepted", "juno_kade", 0))
+            };
+            return graph;
+        }
+
+        private static DialogueGraph BuildMaraNicoChallenge()
+        {
+            DialogueGraph graph = ScriptableObject.CreateInstance<DialogueGraph>();
+            graph.graphId = "prologue.mara.nico_challenge";
+            graph.startNodeId = "nico_at_delivery";
+            graph.nodes = new[]
+            {
+                Node("nico_at_delivery", "NICO",
+                    "That's the customer's car? Thought you said you'd fixed the pull. Or are you still blaming the road?",
+                    Choice("There is one way to find out.", "mara_accepts_challenge",
                         "prologue.mara.accept_challenge", "nico_okoye", 2, "mara_race_choice", 1),
-                    Choice("The customer paid for a delivery, not a race.", "mara_close",
+                    Choice("The customer paid for a delivery, not a race.", "mara_declines_challenge",
                         "prologue.mara.decline_challenge", "nico_okoye", 1, "mara_race_choice", 2)),
-                Node("mara_close", "MARA",
-                    "Keys, invoice, lights. In that order. We can argue about the notice when the shop's empty.",
-                    Choice("Close the shop and leave.", string.Empty,
+                Node("mara_accepts_challenge", "NICO",
+                    "Not tonight. The customer gets the car first. But Saltline is still there tomorrow.",
+                    Choice("The car is delivered. Let's close the shop.", string.Empty,
+                        "prologue.mara.complete", "juno_kade", 1)),
+                Node("mara_declines_challenge", "NICO",
+                    "Professional, then. I'll try to remember that when you start talking about the road again.",
+                    Choice("The car is delivered. Let's close the shop.", string.Empty,
                         "prologue.mara.complete", "juno_kade", 1))
             };
             return graph;

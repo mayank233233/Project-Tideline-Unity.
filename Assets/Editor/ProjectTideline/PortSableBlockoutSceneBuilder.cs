@@ -195,7 +195,7 @@ namespace ProjectTideline.Editor
             EditorUtility.DisplayDialog("PORT SABLE blockout created",
                 "Saved and added to Build Settings:\n" + ScenePath +
                 "\n\nPlayable now: WASD / arrows or touch joystick to move; Shift / Sprint to sprint; Space / Jump to jump; mouse / right-side touch pad to look; E / Interact to use world objects.\n" +
-                "Includes Juno dialogue, a drivable delivery truck, a marked customer stop bay and an eight-objective delivery, handoff and Juno debrief mission. This is still a primitive greybox, not final art or a complete campaign.",
+                "Includes Juno dialogue, the eight-stage delivery tutorial, a four-stage first score, staged police patrol dispatch and a vehicle-gated safehouse arrival. Patrol response and all characters remain prototype greybox content, not final art or a complete campaign.",
                 "OK");
             Debug.Log("PORT SABLE Old Quay blockout scene generated: " + ScenePath);
         }

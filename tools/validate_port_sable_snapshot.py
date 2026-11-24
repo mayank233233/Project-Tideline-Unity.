@@ -410,8 +410,8 @@ def run() -> int:
           and "deliveryRoute.HasFinished" in mara_delivery_start
           and "deliveryRoute.BeginRace();" in mara_delivery_start,
           "Mara delivery start must be blocked until all workshop tasks are complete")
-    check("!deliveryRoute.HasFinished" in mara_delivery_start
-          and "deliveryRoute.IsActive" in mara_delivery_start,
+    check("|| deliveryRoute.HasFinished" in mara_delivery_start
+          and "|| deliveryRoute.IsActive" in mara_delivery_start,
           "Mara delivery route must not start twice or while already active")
     check("handoffController == null || !handoffController.HasHandedOff" in mara_nico_interactable
           and "dialogueController.Begin(dialogueGraph);" in mara_nico_interactable,
@@ -448,8 +448,9 @@ def run() -> int:
     check("four `DialogueGraph` assets" in prologue_graph_docs
           and "The four assets are intentionally not three" in prologue_graph_docs,
           "Prologue graph documentation must explain four assets across three leads")
-    check("MaraDeliveryRouteCompletionRelay" not in read("README.md")
-          and "MaraDeliveryHandoffController.cs" in read("README.md"),
+    readme = read("README.md")
+    check("MaraDeliveryRouteCompletionRelay" not in readme
+          and "MaraDeliveryHandoffController" in readme,
           "README must describe the real Mara handoff producer rather than a nonexistent route relay")
     for token in ("complete_customer_work_order", "mara.workshop.order.completed",
                   "deliver_customer_vehicle", "mara.delivery.finished",

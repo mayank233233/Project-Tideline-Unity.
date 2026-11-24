@@ -5,7 +5,10 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace ProjectTideline.Editor
 {
@@ -127,6 +130,7 @@ namespace ProjectTideline.Editor
             cameraRig.SetTarget(player.transform, new Vector3(0f, 1.45f, 0f), true);
             motor.SetMovementCamera(cameraObject.transform);
             cameraObject.transform.position = player.transform.position + new Vector3(0f, 3f, -5f);
+            BuildMobileControls();
 
             // Scene metadata helps designers understand what is functional versus placeholder.
             new GameObject("BLOCKOUT NOTES — replace primitives before release");
@@ -143,6 +147,93 @@ namespace ProjectTideline.Editor
                 "This is a primitive greybox. It has no mission logic, dialogue UI, traffic, final character art or mobile touch controls yet.",
                 "OK");
             Debug.Log("PORT SABLE Old Quay blockout scene generated: " + ScenePath);
+        }
+
+        private static void BuildMobileControls()
+        {
+            GameObject canvasObject = new GameObject("Mobile HUD — touch controls",
+                typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            Canvas canvas = canvasObject.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 20;
+            CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            GameObject eventSystemObject = new GameObject("EventSystem",
+                typeof(EventSystem), typeof(InputSystemUIInputModule));
+            InputSystemUIInputModule inputModule = eventSystemObject.GetComponent<InputSystemUIInputModule>();
+            inputModule.AssignDefaultActions();
+
+            Image joystickImage = CreateTouchImage(canvas.transform, "MOVE — virtual joystick",
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+                new Vector2(270f, 270f), new Vector2(58f, 68f),
+                new Color(0.08f, 0.12f, 0.14f, 0.48f), out RectTransform joystickRect);
+            Image knobImage = CreateTouchImage(joystickRect, "Joystick thumb",
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(112f, 112f), Vector2.zero,
+                new Color(0.75f, 0.79f, 0.77f, 0.62f), out RectTransform knobRect);
+            MobileTouchControl move = joystickImage.gameObject.AddComponent<MobileTouchControl>();
+            move.Configure(MobileTouchControlMode.MoveStick, knobRect);
+
+            Image lookImage = CreateTouchImage(canvas.transform, "LOOK — drag to orbit camera",
+                new Vector2(0.43f, 0.12f), new Vector2(1f, 1f), new Vector2(1f, 0f),
+                Vector2.zero, Vector2.zero, new Color(1f, 1f, 1f, 0.01f), out _);
+            lookImage.gameObject.AddComponent<MobileTouchControl>()
+                .Configure(MobileTouchControlMode.LookPad, null, 0.055f);
+
+            CreateActionButton(canvas.transform, "JUMP", MobileTouchControlMode.JumpButton,
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
+                new Vector2(142f, 142f), new Vector2(-170f, 170f));
+            CreateActionButton(canvas.transform, "INTERACT", MobileTouchControlMode.InteractButton,
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
+                new Vector2(126f, 126f), new Vector2(-340f, 126f));
+            CreateActionButton(canvas.transform, "SPRINT", MobileTouchControlMode.SprintButton,
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
+                new Vector2(126f, 126f), new Vector2(-170f, 350f));
+        }
+
+        private static void CreateActionButton(Transform parent, string label,
+            MobileTouchControlMode mode, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot,
+            Vector2 size, Vector2 position)
+        {
+            Image image = CreateTouchImage(parent, label, anchorMin, anchorMax, pivot, size,
+                position, new Color(0.12f, 0.18f, 0.20f, 0.72f), out RectTransform rect);
+            image.gameObject.AddComponent<MobileTouchControl>().Configure(mode);
+
+            GameObject textObject = new GameObject(label + " label", typeof(RectTransform), typeof(Text));
+            textObject.transform.SetParent(rect, false);
+            RectTransform textRect = textObject.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+            Text text = textObject.GetComponent<Text>();
+            text.text = label;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.fontSize = 25;
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.color = Color.white;
+            text.raycastTarget = false;
+        }
+
+        private static Image CreateTouchImage(Transform parent, string name,
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 size,
+            Vector2 position, Color color, out RectTransform rect)
+        {
+            GameObject surface = new GameObject(name, typeof(RectTransform), typeof(Image));
+            surface.transform.SetParent(parent, false);
+            rect = surface.GetComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = pivot;
+            rect.sizeDelta = size;
+            rect.anchoredPosition = position;
+            Image image = surface.GetComponent<Image>();
+            image.color = color;
+            image.raycastTarget = true;
+            return image;
         }
 
         private static void BuildWarehouse(string name, Vector3 centre, Vector3 size,

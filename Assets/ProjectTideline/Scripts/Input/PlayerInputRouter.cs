@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -19,9 +20,11 @@ namespace ProjectTideline
         private bool _handbrakeHeld;
         private float _throttle;
         private float _brake;
+        private bool _legacyGameplayBlocked;
+        private readonly HashSet<object> _gameplayBlockOwners = new HashSet<object>();
 
         public Vector2 Move { get; private set; }
-        public bool GameplayBlocked { get; private set; }
+        public bool GameplayBlocked => _legacyGameplayBlocked || _gameplayBlockOwners.Count > 0;
         public bool SprintHeld => !GameplayBlocked && (_sprintHeld || (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed));
         public bool HandbrakeHeld => !GameplayBlocked && (_handbrakeHeld || (Keyboard.current != null && Keyboard.current.spaceKey.isPressed));
         public float Throttle => GameplayBlocked ? 0f : Mathf.Max(_throttle, Keyboard.current != null && Keyboard.current.wKey.isPressed ? 1f : 0f);
@@ -67,11 +70,31 @@ namespace ProjectTideline
             if (Mouse.current != null) _lookDelta += Mouse.current.delta.ReadValue() * 0.045f;
         }
 
+        /// <summary>
+        /// Sets the legacy single-owner block flag. New modal systems should use
+        /// AcquireGameplayBlock/ReleaseGameplayBlock so they cannot unlock each other.
+        /// </summary>
         public void SetGameplayBlocked(bool blocked)
         {
-            if (GameplayBlocked == blocked) return;
-            GameplayBlocked = blocked;
-            if (blocked) ResetTouchState();
+            bool wasBlocked = GameplayBlocked;
+            _legacyGameplayBlocked = blocked;
+            if (!wasBlocked && GameplayBlocked) ResetTouchState();
+        }
+
+        /// <summary>Acquires an input block owned by one system or component.</summary>
+        public void AcquireGameplayBlock(object owner)
+        {
+            if (owner == null) return;
+            bool wasBlocked = GameplayBlocked;
+            if (_gameplayBlockOwners.Add(owner) && !wasBlocked && GameplayBlocked)
+                ResetTouchState();
+        }
+
+        /// <summary>Releases only the input block previously acquired by this owner.</summary>
+        public void ReleaseGameplayBlock(object owner)
+        {
+            if (owner == null) return;
+            _gameplayBlockOwners.Remove(owner);
         }
 
         /// <summary>Clears buffered movement/look/buttons at a character-control handoff.</summary>

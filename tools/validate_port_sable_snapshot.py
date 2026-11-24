@@ -681,6 +681,14 @@ def run() -> int:
           and "Market lane loading bay outline" in blockout_builder,
           "Old Quay environment must include the southern market lane, new storefronts, pier market and street furniture")
 
+    for token in ("public enum ResponsePhase { None, Dispatch, Escalated, Cooldown }",
+                  "public ResponsePhase Phase { get; private set; }",
+                  "PhaseChanged?.Invoke(next);",
+                  "SetPhase(ResponsePhase.Cooldown);",
+                  '"RESPONSE: COOLDOWN "',
+                  "Mathf.CeilToInt(_calmTimer)"):
+        check(token in police_response,
+              f"Police response director is missing explicit phase/cooldown behaviour: {token}")
     check("AddComponent<PoliceResponseDirector>()" in blockout_builder
           and "responseDirector.Configure(attentionState, player.transform, responseText);" in blockout_builder
           and 'CreateTouchImage(hudRoot, "Police response HUD background"' in blockout_builder,

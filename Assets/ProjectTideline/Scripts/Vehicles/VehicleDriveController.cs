@@ -13,6 +13,8 @@ namespace ProjectTideline
             public Transform visual;
             public bool steer;
             public bool driven = true;
+            [Tooltip("Local mesh-axis correction applied after WheelCollider.GetWorldPose.")]
+            public Vector3 visualRotationOffset;
         }
 
         [SerializeField] private WheelBinding[] wheels;
@@ -120,7 +122,8 @@ namespace ProjectTideline
             {
                 if (wheel == null || wheel.collider == null || wheel.visual == null) continue;
                 wheel.collider.GetWorldPose(out Vector3 position, out Quaternion rotation);
-                wheel.visual.SetPositionAndRotation(position, rotation);
+                Quaternion visualRotation = rotation * Quaternion.Euler(wheel.visualRotationOffset);
+                wheel.visual.SetPositionAndRotation(position, visualRotation);
             }
         }
     }

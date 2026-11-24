@@ -64,6 +64,13 @@ namespace ProjectTideline
             additionalAllowedObjectiveId = additionalObjectiveId;
         }
 
+        public void ConfigureAdditionalMissionGate(MissionDirector director, string missionId, string objectiveId)
+        {
+            if (director != null) missionDirector = director;
+            additionalMissionId = missionId;
+            additionalMissionObjectiveId = objectiveId;
+        }
+
         private bool IsCurrentMissionObjective()
         {
             if (missionDirector == null || string.IsNullOrWhiteSpace(requiredMissionId)
@@ -72,13 +79,21 @@ namespace ProjectTideline
 
             MissionDefinition mission = missionDirector.CurrentMission;
             MissionObjective objective = missionDirector.CurrentObjective;
-            return mission != null && objective != null
-                && string.Equals(mission.missionId, requiredMissionId, System.StringComparison.Ordinal)
+            if (mission == null || objective == null) return false;
+
+            bool primaryMissionAllowed =
+                string.Equals(mission.missionId, requiredMissionId, System.StringComparison.Ordinal)
                 && (string.Equals(objective.objectiveId, requiredObjectiveId, System.StringComparison.Ordinal)
                     || (!string.IsNullOrWhiteSpace(alternateAllowedObjectiveId)
                         && string.Equals(objective.objectiveId, alternateAllowedObjectiveId, System.StringComparison.Ordinal))
                     || (!string.IsNullOrWhiteSpace(additionalAllowedObjectiveId)
                         && string.Equals(objective.objectiveId, additionalAllowedObjectiveId, System.StringComparison.Ordinal)));
+            bool additionalMissionAllowed =
+                !string.IsNullOrWhiteSpace(additionalMissionId)
+                && !string.IsNullOrWhiteSpace(additionalMissionObjectiveId)
+                && string.Equals(mission.missionId, additionalMissionId, System.StringComparison.Ordinal)
+                && string.Equals(objective.objectiveId, additionalMissionObjectiveId, System.StringComparison.Ordinal);
+            return primaryMissionAllowed || additionalMissionAllowed;
         }
 
         private void Awake()

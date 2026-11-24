@@ -14,6 +14,7 @@ namespace ProjectTideline
         [SerializeField, Min(1f)] private float waypointRadius = 7f;
         [SerializeField, Min(1f)] private float obstacleCheckDistance = 9f;
         [SerializeField, Min(0.1f)] private float obstacleRadius = 0.62f;
+        [SerializeField, Min(0.02f)] private float obstacleCheckInterval = 0.12f;
         [SerializeField] private LayerMask obstacleMask = ~0;
         [SerializeField] private bool loopRoute = true;
 
@@ -22,6 +23,9 @@ namespace ProjectTideline
         private readonly RaycastHit[] _obstacleHits = new RaycastHit[10];
         private int _routeIndex;
         private bool _takeoverYield;
+        private bool _cachedObstacleBlocked;
+        private float _nextObstacleCheckTime;
+        private float _obstacleCheckPhase;
 
         public void BeginTakeoverHandoff()
         {
@@ -39,6 +43,7 @@ namespace ProjectTideline
         {
             _vehicle = GetComponent<VehicleDriveController>();
             _body = GetComponent<Rigidbody>();
+            _obstacleCheckPhase = (GetInstanceID() & 0x7fffffff) / (float)int.MaxValue;
         }
 
         private void FixedUpdate()
@@ -90,24 +95,40 @@ namespace ProjectTideline
             Vector3 localTarget = transform.InverseTransformDirection(toTarget.normalized);
             float steer = Mathf.Clamp(localTarget.x * 2.1f, -1f, 1f);
             float targetSpeed = cruisingSpeedKph * Mathf.Lerp(1f, 0.58f, Mathf.Abs(steer));
-            bool blocked = false;
-            Vector3 castOrigin = transform.position + transform.forward * 2.35f + Vector3.up * 1.12f;
-            int hitCount = Physics.SphereCastNonAlloc(
-                castOrigin, obstacleRadius, transform.forward, _obstacleHits, obstacleCheckDistance,
-                obstacleMask, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < hitCount; i++)
-            {
-                Collider obstacle = _obstacleHits[i].collider;
-                if (obstacle == null || obstacle.transform.root == transform.root) continue;
-                if (obstacle.attachedRigidbody != null && obstacle.attachedRigidbody == _body) continue;
-                blocked = true;
-                break;
-            }
+            bool blocked = IsObstacleBlocking();
 
             float currentSpeed = _vehicle.SpeedKph;
             float throttle = blocked ? 0f : Mathf.Clamp01((targetSpeed - currentSpeed) / 9f);
             float brake = blocked ? 1f : Mathf.Clamp01((currentSpeed - targetSpeed) / 8f);
             _vehicle.SetNpcDriveInput(steer, throttle, brake);
+        }
+
+        /// <summary>
+        /// Obstacle sensing is sampled less often than physics steering. The cached result
+        /// is reused between samples, and per-instance phase offsets spread queries across ticks.
+        /// </summary>
+        private bool IsObstacleBlocking()
+        {
+            if (Time.fixedTime < _nextObstacleCheckTime) return _cachedObstacleBlocked;
+
+            Vector3 castOrigin = transform.position + transform.forward * 2.35f + Vector3.up * 1.12f;
+            int hitCount = Physics.SphereCastNonAlloc(
+                castOrigin, obstacleRadius, transform.forward, _obstacleHits, obstacleCheckDistance,
+                obstacleMask, QueryTriggerInteraction.Ignore);
+
+            _cachedObstacleBlocked = false;
+            for (int i = 0; i < hitCount; i++)
+            {
+                Collider obstacle = _obstacleHits[i].collider;
+                if (obstacle == null || obstacle.transform.root == transform.root) continue;
+                if (obstacle.attachedRigidbody != null && obstacle.attachedRigidbody == _body) continue;
+                _cachedObstacleBlocked = true;
+                break;
+            }
+
+            float interval = Mathf.Max(0.02f, obstacleCheckInterval);
+            _nextObstacleCheckTime = Time.fixedTime + interval * (0.75f + _obstacleCheckPhase * 0.5f);
+            return _cachedObstacleBlocked;
         }
 
         private bool AdvanceRoute()

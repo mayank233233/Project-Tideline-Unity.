@@ -48,7 +48,8 @@ namespace ProjectTideline.Editor
         [MenuItem("Project Tideline/14 — Build Playable Old Quay Blockout", priority = 14)]
         public static void Build()
         {
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            // Batch-mode CI starts from a clean editor session and must never wait for an interactive save prompt.
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
             EnsureFolder("Assets/ProjectTideline");
@@ -216,11 +217,14 @@ namespace ProjectTideline.Editor
             Selection.activeGameObject = player;
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
-            EditorUtility.DisplayDialog("PORT SABLE blockout created",
-                "Saved and added to Build Settings:\n" + ScenePath +
-                "\n\nPlayable now: WASD / arrows or touch joystick to move; Shift / Sprint to sprint; Space / Jump to jump; mouse / right-side touch pad to look; E / Interact to use world objects.\n" +
-                "Includes Juno dialogue, the eight-stage delivery tutorial, a four-stage first score, staged police patrol dispatch and a vehicle-gated safehouse arrival. This is still a primitive greybox, not final art or a complete campaign.",
-                "OK");
+            if (!Application.isBatchMode)
+            {
+                EditorUtility.DisplayDialog("PORT SABLE blockout created",
+                    "Saved and added to Build Settings:\n" + ScenePath +
+                    "\n\nPlayable now: WASD / arrows or touch joystick to move; Shift / Sprint to sprint; Space / Jump to jump; mouse / right-side touch pad to look; E / Interact to use world objects.\n" +
+                    "Includes Juno dialogue, the eight-stage delivery tutorial, a four-stage first score, staged police patrol dispatch and a vehicle-gated safehouse arrival. This is still a primitive greybox, not final art or a complete campaign.",
+                    "OK");
+                }
             Debug.Log("PORT SABLE Old Quay blockout scene generated: " + ScenePath);
         }
 

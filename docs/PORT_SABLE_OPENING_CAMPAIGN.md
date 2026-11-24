@@ -57,6 +57,8 @@ Each prologue is a self-contained 8–12 minute first contact with a lead. They 
 
 **Character signal:** Mara is excellent under pressure, but she assumes every problem is hers alone.
 
+**Current source implementation slice (not yet scene-playable):** the Juno/work-order conversation is generated as `prologue.mara.two_minutes_to_close`; the three final checks are represented by separate steering, door-latch and engine-rattle interaction stations; the delivery route uses ordered trigger checkpoints bound to the assigned customer vehicle; and a separate `prologue.mara.nico_challenge` graph handles Nico's post-delivery choice. `MaraPrologueMissionBuilder` generates a three-objective MissionDefinition for those stages. The optional Tideglass photo inspection, authored customer NPC conversation, alternate shortcut/reward branch and missed-delivery recovery are not yet implemented. No scene/prefab references have been assigned in the repository.
+
 ### P2 — LAST SONG, FIRST LIE (Rafi Sayegh)
 
 **Location:** Lowlight venue and The Velvet Mile  

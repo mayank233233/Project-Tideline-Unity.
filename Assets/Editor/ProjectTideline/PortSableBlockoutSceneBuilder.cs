@@ -13,9 +13,9 @@ using UnityEngine.UI;
 namespace ProjectTideline.Editor
 {
     /// <summary>
-    /// Generates a self-contained, keyboard-playable Old Quay blockout scene.
+    /// Generates a self-contained, keyboard- and touch-playable Old Quay tutorial scene.
     /// It deliberately uses Unity primitives so the scene has no external art dependencies.
-    /// This is a greybox gameplay foundation, not final PORT SABLE art or mission content.
+    /// This is a greybox tutorial foundation, not final PORT SABLE art or full campaign content.
     /// </summary>
     public static class PortSableBlockoutSceneBuilder
     {
@@ -447,7 +447,7 @@ namespace ProjectTideline.Editor
                 "old_quay.harbour_ledger_inspected", "Inspect shipment ledger");
 
             GameObject reportBoard = MakeBlock("KADE MOTOR WORKS — report board",
-                new Vector3(-20f, 0.85f, -4f), new Vector3(1.5f, 1.7f, 0.35f),
+                new Vector3(-12.5f, 0.85f, -4f), new Vector3(1.5f, 1.7f, 0.35f),
                 MakeMaterial("Workshop Report Board", new Color(0.65f, 0.39f, 0.18f)));
             reportBoard.AddComponent<MissionSignalInteractable>().Configure(
                 "old_quay.juno_reported_back", "Report findings to Juno");

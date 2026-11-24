@@ -484,14 +484,6 @@ def run() -> int:
     check("handoffController == null || !handoffController.HasHandedOff" in mara_nico_interactable
           and "dialogueController.Begin(dialogueGraph);" in mara_nico_interactable,
           "Nico's follow-up dialogue must remain locked until customer handoff is complete or restored")
-    check("old_quay.saltline_customer_handoff" in blockout_builder
-          and "CustomerHandoffDialoguePath" in blockout_builder
-          and 'signalId = "mara.delivery.finished"' in blockout_builder
-          and 'relationshipCharacterId = "saltline_customer"' in blockout_builder
-          and "relationshipDelta = 2" in blockout_builder
-          and "relationshipDelta = -1" in blockout_builder
-          and 'FindProperty("dialogueGraph")' in blockout_builder,
-          "Generated Saltline customer dialogue must offer two persistent relationship outcomes and publish handoff only on choice")
     check("public bool HasFinished { get; private set; }" in route_race
           and "if (_isActive || HasFinished || !HasValidRoute())" in route_race,
           "Route completion state must gate follow-up dialogue and prevent route replay")
@@ -537,6 +529,14 @@ def run() -> int:
           and 'HasFlag("mara_work_order_accepted")' in mara_workshop,
           "Graph documentation and workshop interaction must enforce the persistent Juno acceptance gate")
     blockout_builder = read("Assets/Editor/ProjectTideline/PortSableBlockoutSceneBuilder.cs")
+    check("old_quay.saltline_customer_handoff" in blockout_builder
+          and "CustomerHandoffDialoguePath" in blockout_builder
+          and 'signalId = "mara.delivery.finished"' in blockout_builder
+          and 'relationshipCharacterId = "saltline_customer"' in blockout_builder
+          and "relationshipDelta = 2" in blockout_builder
+          and "relationshipDelta = -1" in blockout_builder
+          and 'FindProperty("dialogueGraph")' in blockout_builder,
+          "Generated Saltline customer dialogue must offer two persistent relationship outcomes and publish handoff only on choice")
     for token in (
         'PortSable_OldQuay_Blockout.unity',
         'Build Playable Old Quay Blockout',

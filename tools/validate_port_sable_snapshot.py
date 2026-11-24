@@ -224,6 +224,7 @@ def run() -> int:
           "Mara dialogue audit must require the workshop handoff and mission completion signals")
 
     required_flags = {
+        "mara_work_order_accepted": (1,),
         "mara_race_choice": (1, 2),
         "rafi_event_choice": (1, 2),
         "rafi_staff_responsibility": (1, 2),
@@ -382,6 +383,13 @@ def run() -> int:
     check("HashSet<string>(StringComparer.Ordinal)" in mara_workshop
           and "_completedTaskIds.Add(taskId)" in mara_workshop,
           "Mara workshop tasks must be unique and cannot be counted twice")
+    check('HasFlag("mara_work_order_accepted")' in mara_workshop
+          and 'GetFlag("mara_work_order_accepted") == 1' in mara_workshop
+          and "|| !IsUnlocked || IsComplete" in mara_workshop,
+          "Mara workshop inspections must require Juno's persistent work-order acceptance flag")
+    check("!orderController.IsUnlocked" in mara_workshop_interactable
+          and "Talk to Juno first" in mara_workshop_interactable,
+          "Mara workshop stations must communicate the Juno dialogue prerequisite")
     check('new MissionSignalBus.Signal("mara.workshop.task.completed", 1)' in mara_workshop
           and 'new MissionSignalBus.Signal("mara.workshop.order.completed", 1)' in mara_workshop
           and "MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;" in mara_workshop,

@@ -36,6 +36,10 @@ namespace ProjectTideline.Editor
             "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_debrief.asset";
         private const string CustomerHandoffDialoguePath =
             "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_customer_handoff.asset";
+        private const string MarketVendorDialoguePath =
+            "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_market_vendor.asset";
+        private const string CafeOwnerDialoguePath =
+            "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_cafe_owner.asset";
 
         [MenuItem("Project Tideline/14 — Build Playable Old Quay Blockout", priority = 14)]
         public static void Build()
@@ -298,6 +302,96 @@ namespace ProjectTideline.Editor
             image.color = color;
             image.raycastTarget = true;
             return image;
+        }
+
+        private static DialogueGraph EnsureMarketVendorDialogue()
+        {
+            DialogueGraph graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(MarketVendorDialoguePath);
+            if (graph == null)
+            {
+                graph = ScriptableObject.CreateInstance<DialogueGraph>();
+                AssetDatabase.CreateAsset(graph, MarketVendorDialoguePath);
+            }
+
+            graph.graphId = "old_quay.breakwater_vendor_missing_tally";
+            graph.startNodeId = "vendor_explains_missing_tally";
+            graph.nodes = new[]
+            {
+                new DialogueGraph.DialogueNode
+                {
+                    nodeId = "vendor_explains_missing_tally",
+                    speaker = "BREAKWATER MARKET VENDOR",
+                    line = "The morning delivery came in short, and the tally sheet vanished before I could check the crates. The cafe owner needs the count before closing. I marked the storage crate, but I need someone I can trust to bring the sheet back.",
+                    choices = new[]
+                    {
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "I'll bring it straight back. You have my word.",
+                            signalId = "old_quay.market_ledger.vendor_met",
+                            relationshipCharacterId = "breakwater_vendor",
+                            relationshipDelta = 2,
+                            storyFlagId = "market_vendor_promised_return",
+                            storyFlagValue = 1
+                        },
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "Just point me to the crate. I'll see what I find.",
+                            signalId = "old_quay.market_ledger.vendor_met",
+                            relationshipCharacterId = "breakwater_vendor",
+                            relationshipDelta = -1,
+                            storyFlagId = "market_vendor_promised_return",
+                            storyFlagValue = 0
+                        }
+                    }
+                }
+            };
+            EditorUtility.SetDirty(graph);
+            return graph;
+        }
+
+        private static DialogueGraph EnsureCafeOwnerDialogue()
+        {
+            DialogueGraph graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(CafeOwnerDialoguePath);
+            if (graph == null)
+            {
+                graph = ScriptableObject.CreateInstance<DialogueGraph>();
+                AssetDatabase.CreateAsset(graph, CafeOwnerDialoguePath);
+            }
+
+            graph.graphId = "old_quay.breakwater_cafe_tally_return";
+            graph.startNodeId = "owner_checks_stock_tally";
+            graph.nodes = new[]
+            {
+                new DialogueGraph.DialogueNode
+                {
+                    nodeId = "owner_checks_stock_tally",
+                    speaker = "BREAKWATER CAFE OWNER",
+                    line = "That's the sheet. I can finally reconcile the market order before the evening rush. The vendor said the crate count was wrong again. Did they ask you to pass anything on?",
+                    choices = new[]
+                    {
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "They were worried about the missing count. I said I'd return it.",
+                            signalId = "old_quay.market_ledger.tally_returned",
+                            relationshipCharacterId = "breakwater_cafe_owner",
+                            relationshipDelta = 2,
+                            storyFlagId = "market_tally_returned_with_context",
+                            storyFlagValue = 1
+                        },
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "I found the sheet. That's all I was asked to do.",
+                            signalId = "old_quay.market_ledger.tally_returned",
+                            relationshipCharacterId = "breakwater_cafe_owner",
+                            relationshipDelta = 0,
+                            storyFlagId = "market_tally_returned_with_context",
+                            storyFlagValue = 0
+                        }
+                    }
+                }
+            };
+            EditorUtility.SetDirty(graph);
+            return graph;
         }
 
         private static DialogueGraph EnsureCustomerHandoffDialogue()
@@ -826,7 +920,7 @@ namespace ProjectTideline.Editor
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector, dialogueController);
             BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);
             BuildPaperTrailWorld(missionDirector);
-            BuildMarketLedgerWorld(missionDirector);
+            BuildMarketLedgerWorld(missionDirector, dialogueController);
             // A compact four-way junction sits in the open southern block, clear of warehouse footprints.
             TrafficSignalController junctionSignals = BuildOldQuayJunction(road, paint, metal, accent);
             Transform northboundStop = MakeTrafficStopLine("Northbound stop line", -3.8f, -30.5f);
@@ -964,16 +1058,25 @@ namespace ProjectTideline.Editor
                 new Vector3(2.0f, 0.035f, 1.4f), marker, false);
         }
 
-        private static void BuildMarketLedgerWorld(MissionDirector missionDirector)
+        private static void BuildMarketLedgerWorld(MissionDirector missionDirector, DialogueController dialogueController)
         {
             GameObject vendor = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             vendor.name = "BREAKWATER PIER MARKET — stock tally vendor";
             vendor.transform.position = new Vector3(29f, 1f, 63f);
             vendor.GetComponent<Renderer>().sharedMaterial =
                 MakeMaterial("Market vendor — rust canvas", new Color(0.48f, 0.31f, 0.22f));
-            vendor.AddComponent<MissionSignalInteractable>().Configure(
-                "old_quay.market_ledger.vendor_met", "Ask about the missing stock tally", true,
-                missionDirector, "old_quay_market_ledger", "meet_market_vendor");
+            MissionDialogueSequenceInteractable vendorDialogue =
+                vendor.AddComponent<MissionDialogueSequenceInteractable>();
+            vendorDialogue.Configure(missionDirector, dialogueController, "old_quay_market_ledger",
+                new[]
+                {
+                    new MissionDialogueSequenceInteractable.DialogueStep
+                    {
+                        objectiveId = "meet_market_vendor",
+                        graph = EnsureMarketVendorDialogue(),
+                        prompt = "Talk to the market vendor"
+                    }
+                });
 
             GameObject tally = MakeBlock("STOCK TALLY — pier storage crate",
                 new Vector3(39f, 0.86f, 67f), new Vector3(0.82f, 0.10f, 0.58f),
@@ -987,14 +1090,25 @@ namespace ProjectTideline.Editor
             cafeOwner.transform.position = new Vector3(-35f, 1f, -40f);
             cafeOwner.GetComponent<Renderer>().sharedMaterial =
                 MakeMaterial("Cafe owner — dark green apron", new Color(0.24f, 0.38f, 0.32f));
-            cafeOwner.AddComponent<MissionSignalInteractable>().Configure(
-                "old_quay.market_ledger.tally_returned", "Return the stock tally", true,
-                missionDirector, "old_quay_market_ledger", "return_stock_tally");
+            MissionDialogueSequenceInteractable ownerDialogue =
+                cafeOwner.AddComponent<MissionDialogueSequenceInteractable>();
+            ownerDialogue.Configure(missionDirector, dialogueController, "old_quay_market_ledger",
+                new[]
+                {
+                    new MissionDialogueSequenceInteractable.DialogueStep
+                    {
+                        objectiveId = "return_stock_tally",
+                        graph = EnsureCafeOwnerDialogue(),
+                        prompt = "Speak to the cafe owner"
+                    }
+                });
 
             Material marker = MakeMaterial("Market ledger objective marker", new Color(0.80f, 0.56f, 0.24f));
             MakeBlock("Market vendor meeting marker", new Vector3(29f, 0.10f, 63f),
                 new Vector3(2.0f, 0.035f, 1.4f), marker, false);
             MakeBlock("Stock tally crate marker", new Vector3(39f, 0.10f, 67f),
+                new Vector3(2.0f, 0.035f, 1.4f), marker, false);
+            MakeBlock("Cafe owner meeting marker", new Vector3(-35f, 0.10f, -40f),
                 new Vector3(2.0f, 0.035f, 1.4f), marker, false);
         }
 

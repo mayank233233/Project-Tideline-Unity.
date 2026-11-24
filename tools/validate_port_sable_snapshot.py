@@ -525,6 +525,28 @@ def run() -> int:
           and "Talk to Juno first" in mara_workshop_interactable
           and 'HasFlag("mara_work_order_accepted")' in mara_workshop,
           "Graph documentation and workshop interaction must enforce the persistent Juno acceptance gate")
+    blockout_builder = read("Assets/Editor/ProjectTideline/PortSableBlockoutSceneBuilder.cs")
+    for token in (
+        'PortSable_OldQuay_Blockout.unity',
+        'Build Playable Old Quay Blockout',
+        'AddComponent<PlayerInputRouter>()',
+        'AddComponent<CharacterController>()',
+        'AddComponent<ThirdPersonMotor>()',
+        'AddComponent<ThirdPersonCameraRig>()',
+        'SetTarget(player.transform',
+        'SetMovementCamera(cameraObject.transform)',
+        'EditorBuildSettings.scenes = scenes.ToArray()',
+        'WASD / arrows to move',
+        'This is a primitive greybox',
+    ):
+        check(token in blockout_builder,
+              f"Playable Old Quay blockout builder is missing: {token}")
+    check('NewSceneMode.Single' in blockout_builder
+          and 'EditorSceneManager.SaveScene(scene, ScenePath)' in blockout_builder,
+          "Blockout builder must create and save a real Unity scene")
+    check('DestroyImmediate(body.GetComponent<Collider>())' in blockout_builder,
+          "Player visual placeholder must not add a duplicate collider to CharacterController")
+
     readme = read("README.md")
     check("MaraDeliveryRouteCompletionRelay" not in readme
           and "MaraDeliveryHandoffController" in readme,

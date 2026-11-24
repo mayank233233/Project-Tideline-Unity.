@@ -209,8 +209,6 @@ namespace ProjectTideline.Editor
         {
             Image image = CreateTouchImage(parent, label, anchorMin, anchorMax, pivot, size,
                 position, new Color(0.12f, 0.18f, 0.20f, 0.72f), out RectTransform rect);
-            image.gameObject.AddComponent<MobileTouchControl>().Configure(mode);
-
             GameObject textObject = new GameObject(label + " label", typeof(RectTransform), typeof(Text));
             textObject.transform.SetParent(rect, false);
             RectTransform textRect = textObject.GetComponent<RectTransform>();
@@ -225,6 +223,7 @@ namespace ProjectTideline.Editor
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.color = Color.white;
             text.raycastTarget = false;
+            image.gameObject.AddComponent<MobileTouchControl>().Configure(mode, null, 0.055f, text);
         }
 
         private static Image CreateTouchImage(Transform parent, string name,

@@ -152,7 +152,7 @@ namespace ProjectTideline.Editor
             EditorUtility.DisplayDialog("PORT SABLE blockout created",
                 "Saved and added to Build Settings:\n" + ScenePath +
                 "\n\nPlayable now: WASD / arrows or touch joystick to move; Shift / Sprint to sprint; Space / Jump to jump; mouse / right-side touch pad to look; E / Interact to use world objects.\n" +
-                "Includes Juno dialogue, a drivable delivery truck, a marked customer stop bay and a seven-objective delivery handoff and Juno debrief mission. This is still a primitive greybox, not final art or a complete campaign.",
+                "Includes Juno dialogue, a drivable delivery truck, a marked customer stop bay and an eight-objective delivery, handoff and Juno debrief mission. This is still a primitive greybox, not final art or a complete campaign.",
                 "OK");
             Debug.Log("PORT SABLE Old Quay blockout scene generated: " + ScenePath);
         }
@@ -289,6 +289,42 @@ namespace ProjectTideline.Editor
             };
             EditorUtility.SetDirty(graph);
 
+            DialogueGraph debriefGraph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(TutorialDebriefDialoguePath);
+            if (debriefGraph == null)
+            {
+                debriefGraph = ScriptableObject.CreateInstance<DialogueGraph>();
+                AssetDatabase.CreateAsset(debriefGraph, TutorialDebriefDialoguePath);
+            }
+            debriefGraph.graphId = "old_quay.juno_debrief";
+            debriefGraph.startNodeId = "juno_debrief";
+            debriefGraph.nodes = new[]
+            {
+                new DialogueGraph.DialogueNode
+                {
+                    nodeId = "juno_debrief",
+                    speaker = "JUNO",
+                    line = "Customer signed. That's one less problem between this workshop and next week's rent. You handled the road; I'll handle the paperwork. We are not done yet, but for tonight, the doors stay open.",
+                    choices = new[]
+                    {
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "We keep the place running.",
+                            signalId = "old_quay.juno_debrief_completed",
+                            relationshipCharacterId = "juno_kade",
+                            relationshipDelta = 1
+                        },
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "Next time, tell me the whole story.",
+                            signalId = "old_quay.juno_debrief_completed",
+                            relationshipCharacterId = "juno_kade",
+                            relationshipDelta = 0
+                        }
+                    }
+                }
+            };
+            EditorUtility.SetDirty(debriefGraph);
+
             MissionDefinition mission = AssetDatabase.LoadAssetAtPath<MissionDefinition>(TutorialMissionPath);
             if (mission == null)
             {
@@ -297,7 +333,7 @@ namespace ProjectTideline.Editor
             }
             mission.missionId = "old_quay_first_steps";
             mission.title = "OLD QUAY — THE CUSTOMER'S RUN";
-            mission.briefing = "Verify the harbour ledger, take the customer's car from Kade Motor Works, drive the Old Quay delivery route, stop in the marked bay and hand the vehicle to its customer.";
+            mission.briefing = "Verify the harbour ledger, accept the delivery job, enter the customer's car, drive the Old Quay route, stop in the marked bay, hand over the vehicle and report back to Juno.";
             mission.objectives = new[]
             {
                 new MissionObjective
@@ -323,8 +359,15 @@ namespace ProjectTideline.Editor
                 },
                 new MissionObjective
                 {
+                    objectiveId = "enter_delivery_vehicle",
+                    description = "Get into the Kade delivery car.",
+                    completionSignal = "vehicle.entered",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
                     objectiveId = "drive_customer_delivery_route",
-                    description = "Enter the customer's car and drive through all three route checkpoints.",
+                    description = "Drive through all three Old Quay-to-Saltline route checkpoints.",
                     completionSignal = "race.long_loop.finished",
                     requiredCount = 1
                 },
@@ -340,6 +383,13 @@ namespace ProjectTideline.Editor
                     objectiveId = "hand_over_customer_vehicle",
                     description = "Exit the car and hand the vehicle to the waiting customer.",
                     completionSignal = "mara.delivery.finished",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "return_to_juno",
+                    description = "Return to Kade Motor Works and tell Juno the customer accepted the delivery.",
+                    completionSignal = "old_quay.juno_debrief_completed",
                     requiredCount = 1
                 }
             };
@@ -448,13 +498,24 @@ namespace ProjectTideline.Editor
             juno.transform.position = new Vector3(-15f, 1f, -5f);
             juno.GetComponent<Renderer>().sharedMaterial =
                 MakeMaterial("Juno Placeholder Material", new Color(0.24f, 0.38f, 0.40f));
-            DialogueInteractable junoInteractable = juno.AddComponent<DialogueInteractable>();
-            SerializedObject junoSerialized = new SerializedObject(junoInteractable);
-            junoSerialized.FindProperty("dialogueController").objectReferenceValue = dialogueController;
-            junoSerialized.FindProperty("dialogueGraph").objectReferenceValue = graph;
-            junoSerialized.FindProperty("talkPrompt").stringValue = "Talk to Juno";
-            junoSerialized.FindProperty("oneShot").boolValue = true;
-            junoSerialized.ApplyModifiedPropertiesWithoutUndo();
+            MissionDialogueSequenceInteractable junoInteractable =
+                juno.AddComponent<MissionDialogueSequenceInteractable>();
+            junoInteractable.Configure(missionDirector, dialogueController, "old_quay_first_steps",
+                new[]
+                {
+                    new MissionDialogueSequenceInteractable.DialogueStep
+                    {
+                        objectiveId = "meet_juno",
+                        graph = graph,
+                        prompt = "Talk to Juno"
+                    },
+                    new MissionDialogueSequenceInteractable.DialogueStep
+                    {
+                        objectiveId = "return_to_juno",
+                        graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(TutorialDebriefDialoguePath),
+                        prompt = "Report back to Juno"
+                    }
+                });
 
             GameObject ledger = MakeBlock("HARBOUR OFFICE — shipment ledger",
                 new Vector3(7f, 0.9f, 47f), new Vector3(1.6f, 1.8f, 1.2f),
@@ -476,6 +537,34 @@ namespace ProjectTideline.Editor
 
             VehicleDeliveryCheckpoint deliveryBay = BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat);
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, missionDirector);
+
+            BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
+                new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
+            BuildAmbientPedestrian("LOCAL RESIDENT — west sidewalk", -9.35f,
+                new[] { 49f, 20f, -5f, -29f }, new Color(0.30f, 0.39f, 0.52f), 1.05f);
+        }
+
+        private static void BuildAmbientPedestrian(string name, float x, float[] routeZ,
+            Color clothingColor, float walkingSpeed)
+        {
+            Transform[] route = new Transform[routeZ.Length];
+            GameObject routeRoot = new GameObject(name + " — waypoint route");
+            for (int i = 0; i < routeZ.Length; i++)
+            {
+                GameObject node = new GameObject("Walk node " + (i + 1));
+                node.transform.SetParent(routeRoot.transform, false);
+                node.transform.position = new Vector3(x, 1f, routeZ[i]);
+                route[i] = node.transform;
+            }
+
+            GameObject pedestrian = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            pedestrian.name = name;
+            pedestrian.transform.position = route[0].position;
+            pedestrian.transform.localScale = new Vector3(0.72f, 1f, 0.72f);
+            pedestrian.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial(name + " — placeholder material", clothingColor);
+            pedestrian.AddComponent<AmbientPedestrianWalker>()
+                .Configure(route, walkingSpeed, 1.1f);
         }
 
         private static VehicleDriveController BuildCustomerDeliveryVehicle(Transform cameraTransform,

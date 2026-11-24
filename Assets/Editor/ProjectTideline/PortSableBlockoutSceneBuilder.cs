@@ -729,34 +729,37 @@ namespace ProjectTideline.Editor
             Transform southboundStop = MakeTrafficStopLine("Southbound stop line", 3.8f, -15.5f);
             Transform eastboundStop = MakeTrafficStopLine("Eastbound stop line", -7.5f, -26.8f);
             Transform westboundStop = MakeTrafficStopLine("Westbound stop line", 7.5f, -19.2f);
+            TrafficPedestrianCrossing crosswalk = BuildOldQuayPedestrianCrossing(junctionSignals);
 
             // Main-road traffic: two cars in each direction, with stop-line awareness.
             BuildAmbientTrafficVehicle("Old Quay traffic — northbound A",
                 new[] { new Vector3(-3.8f, 0.1f, -34f), new Vector3(-3.8f, 0.1f, -12f),
                         new Vector3(-3.8f, 0.1f, 12f), new Vector3(-3.8f, 0.1f, 46f) },
-                new Color(0.22f, 0.30f, 0.34f), junctionSignals, northboundStop, true);
+                new Color(0.22f, 0.30f, 0.34f), junctionSignals, northboundStop, true, crosswalk);
             BuildAmbientTrafficVehicle("Old Quay traffic — northbound B",
                 new[] { new Vector3(-3.8f, 0.1f, -14f), new Vector3(-3.8f, 0.1f, 8f),
                         new Vector3(-3.8f, 0.1f, 30f), new Vector3(-3.8f, 0.1f, 46f) },
-                new Color(0.43f, 0.34f, 0.22f), junctionSignals, northboundStop, true);
+                new Color(0.43f, 0.34f, 0.22f), junctionSignals, northboundStop, true, crosswalk);
             BuildAmbientTrafficVehicle("Old Quay traffic — southbound A",
                 new[] { new Vector3(3.8f, 0.1f, 46f), new Vector3(3.8f, 0.1f, 22f),
                         new Vector3(3.8f, 0.1f, -2f), new Vector3(3.8f, 0.1f, -34f) },
-                new Color(0.38f, 0.27f, 0.19f), junctionSignals, southboundStop, true);
+                new Color(0.38f, 0.27f, 0.19f), junctionSignals, southboundStop, true, crosswalk);
             BuildAmbientTrafficVehicle("Old Quay traffic — southbound B",
                 new[] { new Vector3(3.8f, 0.1f, 24f), new Vector3(3.8f, 0.1f, 2f),
                         new Vector3(3.8f, 0.1f, -20f), new Vector3(3.8f, 0.1f, -34f) },
-                new Color(0.20f, 0.34f, 0.30f), junctionSignals, southboundStop, true);
+                new Color(0.20f, 0.34f, 0.30f), junctionSignals, southboundStop, true, crosswalk);
 
             // Cross-street traffic gives the second signal phase a real purpose.
             BuildAmbientTrafficVehicle("Old Quay traffic — eastbound",
                 new[] { new Vector3(-42f, 0.1f, -26.8f), new Vector3(-20f, 0.1f, -26.8f),
-                        new Vector3(20f, 0.1f, -26.8f), new Vector3(42f, 0.1f, -26.8f) },
-                new Color(0.34f, 0.28f, 0.40f), junctionSignals, eastboundStop, false);
+                        new Vector3(-10f, 0.1f, -26.8f), new Vector3(-6f, 0.1f, -25.8f),
+                        new Vector3(-3.8f, 0.1f, -22f), new Vector3(-3.8f, 0.1f, -14f),
+                        new Vector3(-3.8f, 0.1f, 12f), new Vector3(-3.8f, 0.1f, 46f) },
+                new Color(0.34f, 0.28f, 0.40f), junctionSignals, eastboundStop, false, crosswalk);
             BuildAmbientTrafficVehicle("Old Quay traffic — westbound",
                 new[] { new Vector3(42f, 0.1f, -19.2f), new Vector3(20f, 0.1f, -19.2f),
                         new Vector3(-20f, 0.1f, -19.2f), new Vector3(-42f, 0.1f, -19.2f) },
-                new Color(0.36f, 0.37f, 0.25f), junctionSignals, westboundStop, false);
+                new Color(0.36f, 0.37f, 0.25f), junctionSignals, westboundStop, false, crosswalk);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
                 new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
@@ -803,7 +806,8 @@ namespace ProjectTideline.Editor
         }
 
         private static void BuildAmbientTrafficVehicle(string name, Vector3[] routePoints,
-            Color bodyColor, TrafficSignalController signal, Transform stopLine, bool usesMainRoadSignal)
+            Color bodyColor, TrafficSignalController signal, Transform stopLine, bool usesMainRoadSignal,
+            TrafficPedestrianCrossing pedestrianCrossing)
         {
             if (routePoints == null || routePoints.Length < 2) return;
 
@@ -929,7 +933,7 @@ namespace ProjectTideline.Editor
             trafficSerialized.FindProperty("obstacleCheckDistance").floatValue = 7f;
             trafficSerialized.FindProperty("obstacleRadius").floatValue = 0.55f;
             trafficSerialized.ApplyModifiedPropertiesWithoutUndo();
-            traffic.ConfigureSignal(signal, stopLine, usesMainRoadSignal);
+            traffic.ConfigureSignal(signal, stopLine, usesMainRoadSignal, pedestrianCrossing);
         }
 
         private static TrafficSignalController BuildOldQuayJunction(Material road, Material paint,
@@ -953,7 +957,12 @@ namespace ProjectTideline.Editor
             MakeBlock("Southeast signal pole", new Vector3(7f, 1.5f, -15.2f),
                 new Vector3(0.18f, 3f, 0.18f), metal, false);
 
+            Renderer pedestrianRed = BuildTrafficSignalHead("Pedestrian dont-walk", new Vector3(-8.5f, 2.25f, -23f),
+                new Color(0.85f, 0.035f, 0.02f));
+            Renderer pedestrianGreen = BuildTrafficSignalHead("Pedestrian walk", new Vector3(-8.5f, 1.8f, -23f),
+                new Color(0.08f, 0.8f, 0.16f));
             controller.Configure(mainRed, mainGreen, crossRed, crossGreen, 16f, 2f, 12f, 2f);
+            controller.ConfigurePedestrianSignals(pedestrianRed, pedestrianGreen);
             return controller;
         }
 
@@ -974,6 +983,44 @@ namespace ProjectTideline.Editor
             GameObject stop = new GameObject(name);
             stop.transform.position = new Vector3(x, 0.1f, z);
             return stop.transform;
+        }
+
+        private static TrafficPedestrianCrossing BuildOldQuayPedestrianCrossing(TrafficSignalController signals)
+        {
+            GameObject crossing = new GameObject("Old Quay — marked pedestrian crossing occupancy");
+            crossing.transform.position = new Vector3(0f, 1f, -23f);
+            BoxCollider volume = crossing.AddComponent<BoxCollider>();
+            volume.isTrigger = true;
+            volume.size = new Vector3(11f, 2.5f, 3.2f);
+            TrafficPedestrianCrossing occupancy = crossing.AddComponent<TrafficPedestrianCrossing>();
+
+            Material marking = MakeMaterial("Crosswalk safety marking", new Color(0.86f, 0.84f, 0.73f));
+            for (int stripe = 0; stripe < 7; stripe++)
+            {
+                MakeBlock("Crosswalk stripe " + (stripe + 1),
+                    new Vector3(-4.5f + stripe * 1.5f, 0.12f, -23f),
+                    new Vector3(0.72f, 0.035f, 2.4f), marking, false);
+            }
+
+            Transform[] route = new Transform[2];
+            GameObject routeRoot = new GameObject("Crossing pedestrian — signal-gated route");
+            for (int i = 0; i < route.Length; i++)
+            {
+                GameObject node = new GameObject("Crosswalk route node " + (i + 1));
+                node.transform.SetParent(routeRoot.transform, false);
+                node.transform.position = new Vector3(i == 0 ? -9f : 9f, 1f, -23f);
+                route[i] = node.transform;
+            }
+            GameObject pedestrian = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            pedestrian.name = "DOCK WORKER — signal-gated crosswalk pedestrian";
+            pedestrian.transform.position = route[0].position;
+            pedestrian.transform.localScale = new Vector3(0.72f, 1f, 0.72f);
+            pedestrian.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial("Crosswalk pedestrian — muted ochre", new Color(0.58f, 0.39f, 0.24f));
+            AmbientPedestrianWalker walker = pedestrian.AddComponent<AmbientPedestrianWalker>();
+            walker.Configure(route, 1.1f, 0.6f);
+            walker.ConfigureCrossingSignal(signals);
+            return occupancy;
         }
 
         private static void BuildAmbientPedestrian(string name, float x, float[] routeZ,

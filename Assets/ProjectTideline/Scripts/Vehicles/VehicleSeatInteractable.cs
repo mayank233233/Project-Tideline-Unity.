@@ -29,6 +29,7 @@ namespace ProjectTideline
         [SerializeField, Min(0.1f)] private float takeoverSequenceSeconds = 0.85f;
 
         private GameObject _occupant;
+        private GameObject _lastDriver;
         private CharacterController _characterController;
         private ThirdPersonMotor _motor;
         private bool _npcOccupied;
@@ -47,6 +48,8 @@ namespace ProjectTideline
         public bool IsTransitioning => _transitioning;
         public bool IsOccupied => _occupant != null;
         public bool IsOccupiedBy(GameObject actor) => actor != null && _occupant == actor;
+        public bool WasLastDriver(GameObject actor) =>
+            actor != null && _lastDriver == actor && _occupant == null;
 
         public void ConfigureMissionGate(MissionDirector director, string missionId, string objectiveId,
             string alternateObjectiveId = "")
@@ -148,6 +151,7 @@ namespace ProjectTideline
             if (cameraRig == null) cameraRig = actor.GetComponentInChildren<ThirdPersonCameraRig>();
 
             _occupant = actor;
+            _lastDriver = actor;
             _characterController = controller;
             _motor = motor;
             _characterController.enabled = false;

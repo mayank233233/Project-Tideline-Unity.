@@ -22,7 +22,14 @@ namespace ProjectTideline
         [SerializeField] private float handbrakeTorque = 950f;
         [SerializeField] private float downforce = 28f;
         [SerializeField] private Transform centerOfMass;
+        [Header("Distant NPC Wheel Visual LOD")]
+        [SerializeField] private float fullRateVisualDistance = 25f;
+        [SerializeField] private float reducedRateVisualDistance = 60f;
+        [SerializeField, Min(0.02f)] private float reducedVisualInterval = 0.1f;
+        [SerializeField, Min(0.02f)] private float distantVisualInterval = 0.25f;
         private Rigidbody _body;
+        private Transform _visualLodReference;
+        private float _nextWheelVisualUpdateTime;
         private bool _isDriven;
         private bool _npcDriving;
         private float _npcSteer;
@@ -36,6 +43,7 @@ namespace ProjectTideline
         private void Awake()
         {
             _body = GetComponent<Rigidbody>();
+            if (Camera.main != null) _visualLodReference = Camera.main.transform;
             if (centerOfMass != null) _body.centerOfMass = transform.InverseTransformPoint(centerOfMass.position);
         }
 
@@ -95,6 +103,20 @@ namespace ProjectTideline
         private void LateUpdate()
         {
             if (wheels == null) return;
+            if (!_isDriven && _visualLodReference != null)
+            {
+                float distanceSquared = (_visualLodReference.position - transform.position).sqrMagnitude;
+                float fullRateSquared = fullRateVisualDistance * fullRateVisualDistance;
+                float reducedRateSquared = reducedRateVisualDistance * reducedRateVisualDistance;
+                float interval = distanceSquared <= fullRateSquared ? 0f
+                    : distanceSquared <= reducedRateSquared ? Mathf.Max(0.02f, reducedVisualInterval)
+                    : Mathf.Max(0.02f, distantVisualInterval);
+                if (interval > 0f)
+                {
+                    if (Time.time < _nextWheelVisualUpdateTime) return;
+                    _nextWheelVisualUpdateTime = Time.time + interval;
+                }
+            }
             foreach (WheelBinding wheel in wheels)
             {
                 if (wheel == null || wheel.collider == null || wheel.visual == null) continue;

@@ -17,6 +17,7 @@ namespace ProjectTideline
         [SerializeField, Min(0.02f)] private float obstacleCheckInterval = 0.12f;
         [SerializeField] private LayerMask obstacleMask = ~0;
         [SerializeField] private bool loopRoute = true;
+        [SerializeField] private bool recycleAtRouteEnd = true;
         [Header("Distant Traffic Decision LOD")]
         [SerializeField, Min(0f)] private float fullRateDecisionDistance = 35f;
         [SerializeField, Min(0f)] private float reducedRateDecisionDistance = 80f;
@@ -176,6 +177,40 @@ namespace ProjectTideline
                 if (next >= route.Length)
                 {
                     if (!loopRoute) return false;
+
+                    if (recycleAtRouteEnd)
+                    {
+                        // The road is a finite straight blockout. Recycle at the route boundary
+                        // instead of asking the car to make an artificial U-turn in the road.
+                        Transform first = route[0];
+                        Transform second = route.Length > 1 ? route[1] : null;
+                        if (first == null || second == null) return false;
+
+                        Vector3 direction = second.position - first.position;
+                        direction.y = 0f;
+                        if (direction.sqrMagnitude < 0.01f) return false;
+                        direction.Normalize();
+
+                        Vector3 spawnPosition = first.position - direction * Mathf.Max(4f, waypointRadius * 1.5f);
+                        Quaternion spawnRotation = Quaternion.LookRotation(direction, Vector3.up);
+                        if (_body != null)
+                        {
+                            _body.position = spawnPosition;
+                            _body.rotation = spawnRotation;
+                            _body.linearVelocity = Vector3.zero;
+                            _body.angularVelocity = Vector3.zero;
+                        }
+                        else
+                        {
+                            transform.SetPositionAndRotation(spawnPosition, spawnRotation);
+                        }
+
+                        _routeIndex = 0;
+                        _cachedObstacleBlocked = false;
+                        _nextObstacleCheckTime = Time.fixedTime;
+                        return true;
+                    }
+
                     next = 0;
                 }
                 _routeIndex = next;

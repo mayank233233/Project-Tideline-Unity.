@@ -1154,10 +1154,8 @@ namespace ProjectTideline.Editor
         private static void BuildPaperTrailWorld(MissionDirector missionDirector)
         {
             Material clerkMaterial = MakeMaterial("Freight clerk — slate workwear", new Color(0.34f, 0.40f, 0.43f));
-            GameObject clerk = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            clerk.name = "FREIGHT CLERK — duplicate manifest lead";
-            clerk.transform.position = new Vector3(9.4f, 1f, 38f);
-            clerk.GetComponent<Renderer>().sharedMaterial = clerkMaterial;
+            GameObject clerk = BuildPedestrianCharacter("FREIGHT CLERK — duplicate manifest lead",
+                new Vector3(9.4f, 1f, 38f), new Color(0.34f, 0.40f, 0.43f));
             clerk.AddComponent<MissionSignalInteractable>().Configure(
                 "old_quay.paper_trail.clerk_met", "Ask about the duplicate manifest", true,
                 missionDirector, "old_quay_paper_trail", "meet_freight_clerk");
@@ -1169,11 +1167,8 @@ namespace ProjectTideline.Editor
                 "old_quay.paper_trail.manifest_recovered", "Recover duplicate manifest", true,
                 missionDirector, "old_quay_paper_trail", "recover_duplicate_manifest");
 
-            GameObject dropContact = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            dropContact.name = "SALTLlNE CONTACT — manifest handoff";
-            dropContact.transform.position = new Vector3(10.2f, 1f, 7f);
-            dropContact.GetComponent<Renderer>().sharedMaterial =
-                MakeMaterial("Manifest contact — muted blue", new Color(0.25f, 0.34f, 0.43f));
+            GameObject dropContact = BuildPedestrianCharacter("SALTLlNE CONTACT — manifest handoff",
+                new Vector3(10.2f, 1f, 7f), new Color(0.25f, 0.34f, 0.43f));
             dropContact.AddComponent<MissionSignalInteractable>().Configure(
                 "old_quay.paper_trail.manifest_delivered", "Hand over manifest copy", true,
                 missionDirector, "old_quay_paper_trail", "deliver_manifest_copy");
@@ -1187,11 +1182,8 @@ namespace ProjectTideline.Editor
 
         private static void BuildMarketLedgerWorld(MissionDirector missionDirector, DialogueController dialogueController)
         {
-            GameObject vendor = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            vendor.name = "BREAKWATER PIER MARKET — stock tally vendor";
-            vendor.transform.position = new Vector3(29f, 1f, 63f);
-            vendor.GetComponent<Renderer>().sharedMaterial =
-                MakeMaterial("Market vendor — rust canvas", new Color(0.48f, 0.31f, 0.22f));
+            GameObject vendor = BuildPedestrianCharacter("BREAKWATER PIER MARKET — stock tally vendor",
+                new Vector3(29f, 1f, 63f), new Color(0.48f, 0.31f, 0.22f));
             MissionDialogueSequenceInteractable vendorDialogue =
                 vendor.AddComponent<MissionDialogueSequenceInteractable>();
             vendorDialogue.Configure(missionDirector, dialogueController, "old_quay_market_ledger",
@@ -1212,11 +1204,8 @@ namespace ProjectTideline.Editor
                 "old_quay.market_ledger.tally_recovered", "Recover stock tally", true,
                 missionDirector, "old_quay_market_ledger", "recover_stock_tally");
 
-            GameObject cafeOwner = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            cafeOwner.name = "BREAKWATER CAFE — owner awaiting stock tally";
-            cafeOwner.transform.position = new Vector3(-35f, 1f, -40f);
-            cafeOwner.GetComponent<Renderer>().sharedMaterial =
-                MakeMaterial("Cafe owner — dark green apron", new Color(0.24f, 0.38f, 0.32f));
+            GameObject cafeOwner = BuildPedestrianCharacter("BREAKWATER CAFE — owner awaiting stock tally",
+                new Vector3(-35f, 1f, -40f), new Color(0.24f, 0.38f, 0.32f));
             MissionDialogueSequenceInteractable ownerDialogue =
                 cafeOwner.AddComponent<MissionDialogueSequenceInteractable>();
             ownerDialogue.Configure(missionDirector, dialogueController, "old_quay_market_ledger",

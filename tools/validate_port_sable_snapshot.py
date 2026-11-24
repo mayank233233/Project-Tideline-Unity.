@@ -711,6 +711,31 @@ def run() -> int:
         check(token in route_start_interactable,
               f"Delivery route start objective gate is missing: {token}")
 
+    for token in (
+        "public event Action<int, int> ProgressChanged",
+        "NotifyProgressChanged();",
+        "TryRegisterCheckpoint",
+    ):
+        check(token in route_controller,
+              f"Route checkpoint progress event is missing: {token}")
+    for token in (
+        "SetDeliveryRoute(RouteRaceController route)",
+        "OnRouteProgressChanged(int completed, int total)",
+        "ROUTE CHECKPOINTS",
+        "ROUTE COMPLETE — stop in the marked bay",
+    ):
+        check(token in mission_status_display,
+              f"Live delivery progress HUD is missing: {token}")
+    for token in (
+        "missionDisplay.SetDeliveryRoute(deliveryRoute)",
+        "Route gate post — left",
+        "Route gate post — right",
+        "Route gate crossbar",
+        "Delivery bay stop line",
+    ):
+        check(token in blockout_builder,
+              f"Visible delivery route/bay guidance is missing: {token}")
+
     mission_signal_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MissionSignalInteractable.cs")
     mission_status_display = read("Assets/ProjectTideline/Scripts/UI/MissionStatusDisplay.cs")
     mission_dialogue_sequence = read("Assets/ProjectTideline/Scripts/Interaction/MissionDialogueSequenceInteractable.cs")

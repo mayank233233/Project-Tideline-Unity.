@@ -35,12 +35,23 @@ namespace ProjectTideline
         public bool IsComplete => _configurationValid && RequiredTaskCount > 0
             && CompletedTaskCount == RequiredTaskCount;
 
-        public event Action<int, int> ProgressChanged;
+        private string _pendingTaskId;
+        private bool _pendingTaskAborted;
 
         private void Awake()
         {
             ValidateConfiguration();
             _completedTaskIds.Clear();
+        }
+
+        private void OnEnable()
+        {
+            MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;
+        }
+
+        private void OnDisable()
+        {
+            MissionSignalBus.DispatchAborted -= OnSignalDispatchAborted;
         }
 
         public bool IsTaskCompleted(string taskId)
@@ -57,7 +68,8 @@ namespace ProjectTideline
 
             int completed = CompletedTaskCount;
             int required = RequiredTaskCount;
-            ProgressChanged?.Invoke(completed, required);
+            _pendingTaskId = taskId;
+            _pendingTaskAborted = false;
 
             if (completed == required)
             {
@@ -72,7 +84,20 @@ namespace ProjectTideline
                 MissionSignalBus.Publish("mara.workshop.task.completed", 1);
             }
 
-            return true;
+            bool aborted = _pendingTaskAborted;
+            _pendingTaskId = null;
+            _pendingTaskAborted = false;
+            return !aborted;
+        }
+
+        private void OnSignalDispatchAborted(int dispatched)
+        {
+            if (string.IsNullOrWhiteSpace(_pendingTaskId)) return;
+
+            _completedTaskIds.Remove(_pendingTaskId);
+            _pendingTaskAborted = true;
+            Debug.LogWarning("Mara workshop task '" + _pendingTaskId +
+                "' was rolled back because its mission-signal batch aborted. Repeat the inspection after the signal loop is fixed.", this);
         }
 
         private void ValidateConfiguration()

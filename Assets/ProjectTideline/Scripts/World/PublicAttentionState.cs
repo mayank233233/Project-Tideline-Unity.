@@ -17,8 +17,13 @@ namespace ProjectTideline
         [SerializeField, Range(0, 100)] private int startingAttention;
         [SerializeField, Range(0, 100)] private int noticedThreshold = 25;
         [SerializeField, Range(0, 100)] private int escalatedThreshold = 60;
+        [Header("Quiet-time pressure decay")]
+        [SerializeField, Min(0f)] private float quietPeriodBeforeDecay = 22f;
+        [SerializeField, Min(0.1f)] private float attentionDecayPerSecond = 1.1f;
 
         private int _value;
+        private float _quietSeconds;
+        private float _decayFraction;
         public int Value => _value;
         public AttentionBand Band => GetBand(_value);
         public event Action<int, AttentionBand> AttentionChanged;
@@ -36,6 +41,25 @@ namespace ProjectTideline
             DontDestroyOnLoad(gameObject);
         }
 
+        private void Update()
+        {
+            if (_value <= 0) return;
+            _quietSeconds += Time.deltaTime;
+            if (_quietSeconds < quietPeriodBeforeDecay) return;
+
+            _decayFraction += Time.deltaTime * attentionDecayPerSecond;
+            int decay = Mathf.FloorToInt(_decayFraction);
+            if (decay <= 0) return;
+            _decayFraction -= decay;
+
+            AttentionBand previousBand = Band;
+            _value = Mathf.Max(0, _value - decay);
+            AttentionBand nextBand = Band;
+            AttentionChanged?.Invoke(_value, nextBand);
+            if (nextBand != previousBand)
+                MissionSignalBus.Publish("world.attention.band." + nextBand.ToString().ToLowerInvariant(), 1);
+        }
+
         private void OnEnable() => MissionSignalBus.Raised += OnMissionSignal;
         private void OnDisable() => MissionSignalBus.Raised -= OnMissionSignal;
 
@@ -50,6 +74,8 @@ namespace ProjectTideline
         {
             int next = Mathf.Clamp(value, 0, 100);
             if (next == _value) return;
+            _quietSeconds = 0f;
+            _decayFraction = 0f;
             AttentionBand previousBand = Band;
             _value = next;
             AttentionBand nextBand = Band;
@@ -74,6 +100,8 @@ namespace ProjectTideline
         public void Restore(int value)
         {
             _value = Mathf.Clamp(value, 0, 100);
+            _quietSeconds = 0f;
+            _decayFraction = 0f;
             // Restore the HUD state without making every nearby pedestrian react to a loaded save.
             AttentionRestored?.Invoke(_value, Band);
         }

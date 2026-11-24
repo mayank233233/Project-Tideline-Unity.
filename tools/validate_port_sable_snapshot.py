@@ -590,8 +590,10 @@ def run() -> int:
           and 'objectiveId = "recover_case"' in blockout_builder
           and 'objectiveId = "enter_score_getaway_vehicle"' in blockout_builder
           and 'objectiveId = "escape_to_safehouse"' in blockout_builder
-          and "campaign.arraySize = 2;" in blockout_builder,
-          "Old Quay campaign must chain the tutorial into the four-stage first criminal score")
+          and "campaign.arraySize = 3;" in blockout_builder
+          and "EnsurePaperTrailMission()" in blockout_builder
+          and "campaign.GetArrayElementAtIndex(2).objectReferenceValue = paperTrailMission" in blockout_builder,
+          "Old Quay campaign must chain the tutorial, first score and Paper Trail follow-up")
     check('BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);' in blockout_builder
           and '"old_quay.score.case_recovered"' in blockout_builder
           and '"old_quay.score.safehouse_reached"' in blockout_builder

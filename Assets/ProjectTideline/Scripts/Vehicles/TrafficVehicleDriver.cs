@@ -18,6 +18,11 @@ namespace ProjectTideline
         [SerializeField] private LayerMask obstacleMask = ~0;
         [SerializeField] private bool loopRoute = true;
         [SerializeField] private bool recycleAtRouteEnd = true;
+        [Header("Traffic Signal")]
+        [SerializeField] private TrafficSignalController trafficSignal;
+        [SerializeField] private Transform signalStopLine;
+        [SerializeField] private bool usesMainRoadSignal = true;
+        [SerializeField, Min(2f)] private float signalApproachDistance = 16f;
         [Header("Distant Traffic Decision LOD")]
         [SerializeField, Min(0f)] private float fullRateDecisionDistance = 35f;
         [SerializeField, Min(0f)] private float reducedRateDecisionDistance = 80f;
@@ -34,6 +39,13 @@ namespace ProjectTideline
         private bool _cachedObstacleBlocked;
         private float _nextObstacleCheckTime;
         private float _obstacleCheckPhase;
+
+        public void ConfigureSignal(TrafficSignalController signal, Transform stopLine, bool mainRoad)
+        {
+            trafficSignal = signal;
+            signalStopLine = stopLine;
+            usesMainRoadSignal = mainRoad;
+        }
 
         public void BeginTakeoverHandoff()
         {
@@ -108,12 +120,31 @@ namespace ProjectTideline
             Vector3 localTarget = transform.InverseTransformDirection(toTarget.normalized);
             float steer = Mathf.Clamp(localTarget.x * 2.1f, -1f, 1f);
             float targetSpeed = cruisingSpeedKph * Mathf.Lerp(1f, 0.58f, Mathf.Abs(steer));
-            bool blocked = IsObstacleBlocking();
+            bool signalRequiresStop = IsTrafficSignalBlocking();
+            bool blocked = IsObstacleBlocking() || signalRequiresStop;
 
             float currentSpeed = _vehicle.SpeedKph;
             float throttle = blocked ? 0f : Mathf.Clamp01((targetSpeed - currentSpeed) / 9f);
             float brake = blocked ? 1f : Mathf.Clamp01((currentSpeed - targetSpeed) / 8f);
             _vehicle.SetNpcDriveInput(steer, throttle, brake);
+        }
+
+        private bool IsTrafficSignalBlocking()
+        {
+            if (trafficSignal == null || signalStopLine == null) return false;
+
+            bool green = usesMainRoadSignal
+                ? trafficSignal.IsMainRoadGreen
+                : trafficSignal.IsCrossStreetGreen;
+            if (green) return false;
+
+            Vector3 toStopLine = signalStopLine.position - transform.position;
+            toStopLine.y = 0f;
+            float signedDistance = Vector3.Dot(toStopLine, transform.forward);
+
+            // Ignore a stop line once the vehicle has crossed it; otherwise stop only
+            // inside the approach window so cars brake before entering the junction.
+            return signedDistance >= -1.5f && signedDistance <= Mathf.Max(2f, signalApproachDistance);
         }
 
         private bool ShouldUpdateTrafficDecision()

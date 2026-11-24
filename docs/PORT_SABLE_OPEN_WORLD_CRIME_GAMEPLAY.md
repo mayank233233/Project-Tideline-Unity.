@@ -41,7 +41,7 @@ A job should have a distinct premise, location, cast, player objective, gameplay
 
 The world should react to disruptive player actions through a readable, game-facing pressure model. Escalation can change pursuit intensity, available mission opportunities, NPC reactions and narrative attention. It should be fair, legible and tuned for fun. It is a fictional game system, not a real-world law-enforcement or evasion simulator.
 
-Existing `PublicAttentionState` is only a small narrative attention value driven by selected mission signals. It is not a complete wanted-level, dispatch, pursuit, search, arrest or law-response system.
+`PublicAttentionState` currently tracks a small attention value driven by vehicle-takeover, collision and confrontation signals. The Old Quay scene builder now wires an event-driven `PolicePressureHUD` that maps its Calm / Noticed / Escalated bands to Low / Noticed / Elevated police-pressure feedback. This is only the first presentation layer: there are still no dispatched police units, pursuit behaviours, search/arrest states or complete law-response system.
 
 ### 5. Three playable protagonists
 

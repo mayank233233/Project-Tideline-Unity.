@@ -280,6 +280,7 @@ def run() -> int:
     vehicle_drive = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDriveController.cs")
     traffic_driver = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficVehicleDriver.cs")
     pedestrian_crossing = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficPedestrianCrossing.cs")
+    junction_reservation = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficJunctionReservation.cs")
     pedestrian_walker = read("Assets/ProjectTideline/Scripts/World/AmbientPedestrianWalker.cs")
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
     attention = read("Assets/ProjectTideline/Scripts/World/PublicAttentionState.cs")
@@ -628,7 +629,9 @@ def run() -> int:
     check("BuildOldQuayPedestrianCrossing(junctionSignals)" in blockout_builder
           and "crosswalk" in blockout_builder
           and "new Vector3(-6f, 0.1f, -25.8f)" in blockout_builder
-          and "new Vector3(-3.8f, 0.1f, -22f)" in blockout_builder,
+          and "new Vector3(-3.8f, 0.1f, -22f)" in blockout_builder
+          and "BuildOldQuayJunctionReservation()" in blockout_builder
+          and "ConfigureJunctionReservation(junctionReservation, stopLine)" in blockout_builder,
           "Old Quay must build a protected crossing and at least one curved junction-turn route")
     for token in ("TrafficPedestrianCrossing", "IsPedestrianCrossingOccupied()",
                   "pedestrianYieldApproachDistance", "pedestrianCrossing.IsOccupied"):
@@ -638,6 +641,14 @@ def run() -> int:
                   "IsOccupied => _occupants.Count > 0"):
         check(token in pedestrian_crossing,
               f"Crosswalk occupancy tracker is missing: {token}")
+    for token in ("TryReserve(TrafficVehicleDriver vehicle)", "_reservedBy != vehicle",
+                  "OnTriggerExit", "_reservedBy = null"):
+        check(token in junction_reservation,
+              f"Exclusive junction reservation is missing: {token}")
+    check("IsJunctionReservationBlocking()" in traffic_driver
+          and "junctionReservation.TryReserve(this)" in traffic_driver
+          and "junctionReservationDistance" in traffic_driver,
+          "Traffic cars must wait for an exclusive junction reservation before entering")
     for token in ("IsPedestrianWalkAllowed", "pedestrianWalkDuration",
                   "ConfigurePedestrianSignals", "phase == 4"):
         check(token in traffic_signal,

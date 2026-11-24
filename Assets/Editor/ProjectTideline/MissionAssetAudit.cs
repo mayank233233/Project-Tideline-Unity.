@@ -392,22 +392,22 @@ namespace ProjectTideline.Editor
 
                 string producer = sourcePath.Replace('\\', '/');
                 foreach (Match match in Regex.Matches(source,
-                    @"MissionSignalBus\\.Publish\\s*\\(\\s*""(?<signal>[^""]+)"""))
+                    @"MissionSignalBus\.Publish\s*\(\s*""(?<signal>[^""]+)"""))
                     catalog.Add(match.Groups["signal"].Value, producer);
 
                 foreach (Match match in Regex.Matches(source,
-                    @"new\\s+MissionSignalBus\\.Signal\\s*\\(\\s*""(?<signal>[^""]+)"""))
+                    @"new\s+MissionSignalBus\.Signal\s*\(\s*""(?<signal>[^""]+)"""))
                     catalog.Add(match.Groups["signal"].Value, producer);
 
-                if (source.Contains("MissionSignalBus.Publish(\\"relationship.changed.\\" +"))
+                if (source.Contains("MissionSignalBus.Publish(\"relationship.changed.\" +"))
                     catalog.HasRelationshipPattern = true;
-                if (source.Contains("MissionSignalBus.Publish(\\"world.attention.band.\\" +"))
+                if (source.Contains("MissionSignalBus.Publish(\"world.attention.band.\" +"))
                     catalog.HasAttentionBandPattern = true;
 
                 if (Path.GetFileName(sourcePath) == "RouteRaceController.cs")
                 {
                     Match prefix = Regex.Match(source,
-                        @"signalPrefix\\s*=\\s*""(?<prefix>[^""]+)""");
+                        @"signalPrefix\s*=\s*""(?<prefix>[^""]+)""");
                     if (prefix.Success
                         && source.Contains('"' + ".started" + '"')
                         && source.Contains('"' + ".checkpoint" + '"')

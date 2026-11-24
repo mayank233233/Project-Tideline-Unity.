@@ -711,6 +711,7 @@ def run() -> int:
         check(token in route_start_interactable,
               f"Delivery route start objective gate is missing: {token}")
 
+    mission_status_display = read("Assets/ProjectTideline/Scripts/UI/MissionStatusDisplay.cs")
     for token in (
         "public event Action<int, int> ProgressChanged",
         "NotifyProgressChanged();",

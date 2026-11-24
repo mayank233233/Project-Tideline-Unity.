@@ -197,13 +197,26 @@ def run() -> int:
 
     builder = read("Assets/Editor/ProjectTideline/PortSablePrologueDialogueBuilder.cs")
     dialogue_audit = read("Assets/Editor/ProjectTideline/PortSablePrologueDialogueAudit.cs")
+    mara_mission_builder = read("Assets/Editor/ProjectTideline/MaraPrologueMissionBuilder.cs")
+    mara_workshop = read("Assets/ProjectTideline/Scripts/World/MaraWorkshopOrderController.cs")
+    mara_workshop_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MaraWorkshopTaskInteractable.cs")
+    mara_delivery_relay = read("Assets/ProjectTideline/Scripts/Interaction/MaraDeliveryRouteCompletionRelay.cs")
     for graph_id in (
         "prologue.mara.two_minutes_to_close",
+        "prologue.mara.nico_challenge",
         "prologue.rafi.last_song_first_lie",
         "prologue.elias.the_old_terms",
     ):
         check(graph_id in builder, f"Missing generated prologue graph ID: {graph_id}")
         check(graph_id in dialogue_audit, f"Dialogue audit does not expect graph ID: {graph_id}")
+
+    check("BuildMaraNicoChallenge()" in builder
+          and "prologue.mara.nico_challenge" in builder
+          and "The steering's straight, the latch holds, and the rattle's gone." not in builder,
+          "Mara's opening dialogue must hand off to workshop gameplay and use a separate post-delivery Nico graph")
+    check("prologue.mara.work_order_accepted" in dialogue_audit
+          and "prologue.mara.complete" in dialogue_audit,
+          "Mara dialogue audit must require the workshop handoff and mission completion signals")
 
     required_flags = {
         "mara_race_choice": (1, 2),
@@ -358,6 +371,34 @@ def run() -> int:
           "ProximityInteractor must dispatch focused dialogue interactions through IInteractable")
     check("MissionSignalBus.Publish(choice.signalId, Mathf.Max(1, choice.signalAmount));" in dialogue_controller,
           "DialogueController must publish authored choice signals")
+    for task_id in ("steering_check", "door_latch_check", "engine_rattle_check"):
+        check(f'"{task_id}"' in mara_workshop,
+              f"Mara workshop order is missing required task {task_id}")
+    check("HashSet<string>(StringComparer.Ordinal)" in mara_workshop
+          and "_completedTaskIds.Add(taskId)" in mara_workshop,
+          "Mara workshop tasks must be unique and cannot be counted twice")
+    check('new MissionSignalBus.Signal("mara.workshop.task.completed", 1)' in mara_workshop
+          and 'new MissionSignalBus.Signal("mara.workshop.order.completed", 1)' in mara_workshop
+          and "MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;" in mara_workshop,
+          "Mara workshop final task must batch completion and roll back on signal-batch abort")
+    check("orderController.TryCompleteTask(taskId, actor);" in mara_workshop_interactable,
+          "Mara workshop inspection stations must route through their shared order controller")
+    check("routeController.Finished += OnRouteFinished;" in mara_delivery_relay
+          and 'MissionSignalBus.Publish("mara.delivery.finished", 1);' in mara_delivery_relay,
+          "Mara delivery relay must publish the mission-specific route-finish signal")
+    check("public event Action Finished;" in route_race
+          and "MissionSignalBus.DispatchCompleted += OnSignalDispatchCompleted;" in route_race
+          and "MissionSignalBus.DispatchAborted += OnSignalDispatchAborted;" in route_race
+          and "NotifyFinished();" in route_race,
+          "Route completion relay must fire only after signal dispatch completes and recover aborted finishes")
+    check("vehicle != playerVehicle" in route_race
+          and "playerVehicle == null" in route_race,
+          "Route race must be bound to one designated player vehicle")
+    for token in ("complete_customer_work_order", "mara.workshop.order.completed",
+                  "deliver_customer_vehicle", "mara.delivery.finished",
+                  "resolve_nico_challenge", "prologue.mara.complete"):
+        check(token in mara_mission_builder,
+              f"Mara mission builder is missing objective contract token: {token}")
     check("public sealed class CinematicConfrontationInteractable" in confrontation_interactable
           and "confrontationController.Begin(actor, opponentAnimator);" in confrontation_interactable
           and "opponentAnimator == null" in confrontation_interactable,

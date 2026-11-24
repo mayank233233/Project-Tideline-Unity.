@@ -525,7 +525,7 @@ namespace ProjectTideline.Editor
                 missionDirector, "old_quay_first_steps", "inspect_harbour_ledger");
 
             VehicleSeatInteractable deliverySeat;
-            VehicleDriveController deliveryVehicle = BuildCustomerDeliveryVehicle(cameraTransform, out deliverySeat);
+            VehicleDriveController deliveryVehicle = BuildCustomerDeliveryVehicle(cameraTransform, missionDirector, out deliverySeat);
             RouteRaceController deliveryRoute = BuildCustomerDeliveryRoute(deliveryVehicle);
             missionDisplay.SetDeliveryRoute(deliveryRoute);
 
@@ -569,7 +569,7 @@ namespace ProjectTideline.Editor
         }
 
         private static VehicleDriveController BuildCustomerDeliveryVehicle(Transform cameraTransform,
-            out VehicleSeatInteractable seat)
+            MissionDirector missionDirector, out VehicleSeatInteractable seat)
         {
             GameObject car = new GameObject("CUSTOMER DELIVERY CAR — Kade Motor Works");
             car.transform.position = new Vector3(0f, 0f, -13.5f);
@@ -699,6 +699,7 @@ namespace ProjectTideline.Editor
             seatSerialized.FindProperty("cameraRig").objectReferenceValue =
                 cameraTransform.GetComponent<ThirdPersonCameraRig>();
             seatSerialized.ApplyModifiedPropertiesWithoutUndo();
+            seat.ConfigureMissionGate(missionDirector, "old_quay_first_steps", "enter_delivery_vehicle");
 
             return driveController;
         }

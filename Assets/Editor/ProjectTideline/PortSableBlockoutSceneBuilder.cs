@@ -745,7 +745,7 @@ namespace ProjectTideline.Editor
             bayTrigger.size = new Vector3(9f, 3f, 6f);
 
             VehicleDeliveryCheckpoint bay = bayObject.AddComponent<VehicleDeliveryCheckpoint>();
-            bay.Configure(deliveryVehicle, deliverySeat);
+            bay.Configure(deliveryVehicle, deliverySeat, FindDeliveryRoute(deliveryVehicle));
             return bay;
         }
 

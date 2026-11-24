@@ -29,7 +29,7 @@ The source includes:
 - `DialogueInteractable.cs` and `CinematicConfrontationInteractable.cs`: open authored dialogue and the non-graphic confrontation sequence through the existing proximity-interaction path; their scene references still need to be assigned.
 - `RouteRaceStartInteractable.cs`, `RouteRaceController.cs` and `RouteRaceCheckpoint.cs`: ordered player-driven route checkpoints with start/checkpoint/finish/cancel signals. This prototype has no rival timing, placement result or outcome-choice layer.
 - `MissionSignalBus.cs`: FIFO nested dispatch, exception-isolated listeners, batch publication for multiple outcomes from one action, and runaway-batch abort recovery. The unused generic `IInteractable.SignalId` API has been removed.
-- `MaraWorkshopOrderController.cs` / `MaraWorkshopTaskInteractable.cs`: three distinct final vehicle checks; the mission only advances after all three tasks complete.
+- `MaraWorkshopOrderController.cs` / `MaraWorkshopTaskInteractable.cs`: three distinct final vehicle checks, locked until Juno's dialogue persists `mara_work_order_accepted = 1`; the mission advances only after all three tasks complete.
 - `MaraDeliveryHandoffController.cs` / `MaraCustomerHandoffInteractable.cs`: emit `mara.delivery.finished` only after the assigned route has finished and the customer explicitly accepts the vehicle.
 - `MaraDeliveryStartInteractable.cs` / `MaraPostDeliveryDialogueInteractable.cs`: gate route start until the workshop order is complete and gate Nico's graph until customer handoff is complete.
 - `MaraPrologueMissionBuilder.cs`: generates one three-objective `two_minutes_to_close` MissionDefinition after both Mara dialogue graphs exist.

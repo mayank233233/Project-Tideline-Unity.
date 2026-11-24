@@ -1,6 +1,6 @@
 # Project Tideline — mission signal producer and objective contract audit
 
-**Audit target:** PORT SABLE source snapshot on 24 November 2026 (updated after the interaction/dialogue implementation pass).  
+**Audit target:** PORT SABLE source snapshot on 24 November 2026 (updated after dialogue, confrontation and route-race interaction work).  
 **Scope:** campaign registry, runtime signal publishers, interaction entry points, dialogue builders, mission save/restore code and tracked Unity content.  
 **Verification type:** source inspection plus repository static checks. Unity compilation, Editor generation, scene execution and Play Mode were not run.
 
@@ -30,7 +30,7 @@ The gameplay verbs below are copied from `CampaignCanon`. The final column descr
 | THE CUT | Three-perspective playable set piece | **Not authored.** No staged sequence/checkpoint/lead-coordination completion contract exists. |
 | NO SAFE HOUSE | Hub setup and relationship interaction | **Not authored.** No hub upgrade, resource-spend or support-contact availability producer is present. |
 | RUNNING TAB | Compact open-world job and negotiation | **Not authored.** No job lifecycle, payment/favour outcome or job-completion producer is present. |
-| THE LONG LOOP | Authored route race and vehicle mastery | **Not authored.** Vehicle collision exists, but race start, checkpoint, finish, result and winner signals do not. A collision is not a race result. |
+| THE LONG LOOP | Authored route race and vehicle mastery | **Mission contract not authored.** A reusable route-race prototype now emits `race.long_loop.started`, `.checkpoint`, `.finished` and `.cancelled`; it accepts only sequential checkpoints crossed by a player-driven vehicle. No PORT SABLE race scene, rival/result comparison, winner choice or MissionDefinition exists yet. A route finish is not a competitive race result. |
 | THE GUEST LIST | Live social navigation and event timing | **Not authored.** No guest-list, access, timed-event or venue-stage producer is present. |
 | DRY DOCK | Harbour traversal and multi-party negotiation | **Not authored.** General vehicle events exist, but no harbour-route objective or property-dispute outcome producer is defined. |
 | THE OFFER | Three-perspective negotiation and choice | **Not authored.** Authored dialogue choices can emit signals, but no mission-specific choices, graph assignment or objective contract exists. |
@@ -63,6 +63,10 @@ These are signals the current source can emit. Their existence does not establis
 | `relationship.changed.<characterId>` | `NPCRelationshipLedger.ChangeValue` | Non-zero relationship mutation with mission-signal publication enabled | Emits once per mutation, can repeat. `DialogueController` suppresses this generic signal when a choice has its own authored `signalId`. |
 | `story.flag.changed` | `NarrativeStateLedger.SetFlag` / `ClearFlag` | Flag set or successful clear with mission-signal publication enabled | A set emits even if the stored value is unchanged; clearing emits only when a flag existed. Explicit dialogue-choice signals suppress this generic signal for that choice. |
 | Authored `choice.signalId` | `DialogueController.SelectChoice` | A dialogue choice is selected | The graph authors the signal ID and amount. The prologue builder defines choice signals, but its own documentation says generated graphs are not assigned to scene NPCs or mission triggers. No PORT SABLE mission currently consumes these signals. |
+| `race.long_loop.started` | `RouteRaceController.BeginRace` | A configured route with at least one valid ordered trigger starts through `RouteRaceStartInteractable` | Once per start. Invalid route configuration or an already-active event is rejected. |
+| `race.long_loop.checkpoint` | `RouteRaceController.TryRegisterCheckpoint` | The player-driven vehicle enters the exact next configured checkpoint | Once per checkpoint per run. Skipped, repeated, out-of-order and NPC-driven vehicle entries are ignored. |
+| `race.long_loop.finished` | `RouteRaceController.TryRegisterCheckpoint` | The final configured checkpoint is accepted | Once per successful run. This means the route was completed; it does not encode time, rank, rival outcome or player choice. |
+| `race.long_loop.cancelled` | `RouteRaceController.CancelRace` | An active route is explicitly cancelled by a caller | Once per cancellation. No UI cancellation control or scene caller is currently wired. |
 
 ### Generic interaction signal metadata removed
 
@@ -77,6 +81,7 @@ This is deliberate: the old `void Interact(GameObject actor)` contract cannot re
 | Vehicle seats | `ProximityInteractor` finds `IInteractable` components and calls `VehicleSeatInteractable.Interact`; the seat component emits its three specific signals on successful transitions. | No tracked scene/prefab proves a configured seat, vehicle controller, driver seat, exit point, camera rig or NPC takeover setup. |
 | Vehicle collision | `VehicleDriveController` contains a Unity collision callback and publishes `vehicle.collision` when its conditions pass. | No tracked vehicle prefab/scene proves Rigidbody, colliders, wheel bindings or player-driven collision setup. |
 | Dialogue | `ProximityInteractor` dispatches focused `IInteractable` instances; the new `DialogueInteractable` calls `DialogueController.Begin(dialogueGraph)` using Inspector-assigned references. The controller rejects missing/invalid start nodes and overlapping conversations. | The code path now exists, but no tracked NPC prefab or scene assigns the graph/controller references. The prologue builder still explicitly says its generated graphs are not assigned to scene NPCs or mission triggers, and generated graph assets are not included in this source snapshot. |
+| Route race | `ProximityInteractor` dispatches `RouteRaceStartInteractable`; the route controller validates an ordered array of trigger checkpoints. Each `RouteRaceCheckpoint` accepts only a player-driven `VehicleDriveController`. | No tracked scene/prefab assigns the start interactable, route controller or checkpoint array. No rival AI, timing/placement result, or authored winner/protect-rival choice is implemented. |
 | Confrontation | `ProximityInteractor` dispatches `CinematicConfrontationInteractable`, which calls `CinematicConfrontationController.Begin(actor, opponentAnimator)`; `Finish` emits the result after the sequence. | The source-level path now exists, but no tracked scene/prefab assigns the controller or opponent Animator. This is not verified playable scene wiring. |
 | Relationships and story flags | Both ledgers store and serialize their state; dialogue choices apply consequences before publishing their explicit signal. | No scene/bootstrap asset proves that the persistent ledger instances and dialogue UI are configured in a playable PORT SABLE scene. |
 | Public attention | A persistent component listens to upstream mission signals and emits band-transition signals. | No tracked scene proves that the component exists or that a playable objective can cause the required transition. |
@@ -90,6 +95,7 @@ The current save path has the following semantics:
 - Relationship and narrative-flag JSON are imported silently. The import paths do not republish `relationship.changed.*` or `story.flag.changed`.
 - `PublicAttentionState.Restore` restores the value and raises its local UI/state event, but does not publish a mission signal.
 - The signal queue itself is transient and is not serialized. No historic vehicle, dialogue or confrontation event is replayed after loading.
+- The route-race controller's active flag and next checkpoint index are transient. Saving mid-race does not preserve route progress; after the scene is recreated, the route must be started again. The mission objective should listen for `race.long_loop.finished`, not count checkpoint events as durable mission progress, unless route progress is later added to the save schema.
 
 **Design consequence:** a MissionDefinition objective must not depend on a one-time event that happened before the active objective or that is expected to replay during load. If a later branch depends on an earlier choice, evaluate the persisted story flag or relationship value when resolving the branch. If an objective needs to observe a newly selected choice, its dialogue choice must emit the exact objective signal while that objective is active, and the objective progress must be saved after the resulting dispatch/advance has completed.
 
@@ -103,10 +109,10 @@ The current source now raises an internal `DispatchAborted` notification after c
 
 ## 6. Required implementation gates
 
-1. Decide whether generic interactions should publish an authored signal. If yes, implement it once at the interaction boundary with explicit duplicate/failed-interaction semantics; otherwise remove or clearly deprecate the unused `SignalId` property.
+1. Keep mission signals owned by concrete successful interactions. The unused generic `IInteractable.SignalId` API has been removed so rejected interactions cannot generate false objective progress.
 2. Attach `DialogueInteractable` to each prologue NPC in a real scene/prefab and assign its DialogueController and generated graph references; then test each prologue end-to-end.
 3. Attach and configure `CinematicConfrontationInteractable` on the intended opponent in a real scene/prefab, assign its controller and Animator, and test success, timeout/failure, withdrawal and disable cleanup.
-4. Implement the missing gameplay domains required by the campaign: race checkpoints/results, venue event state, job lifecycle, hub upgrades/resources, recruit selection, faction standing, score stages and pursuit/set-piece stages.
+4. Extend the route-race prototype with rival timing/placement and authored win/protect-rival outcomes. Other missing domains still include venue event state, job lifecycle, hub upgrades/resources, recruit selection, faction standing, score stages and pursuit/set-piece stages.
 5. For every objective, record: stable objective ID, exact signal ID, producer class/method, world interaction path, required count, whether it can repeat, whether it can be missed, and how partial progress survives save/restore.
 6. Extend the Unity Editor audit to resolve each objective signal against an explicit producer declaration and generated dialogue data. A source registry alone must not claim scene wiring.
 7. Generate MissionDefinition assets only after those contracts and producers exist. Then run Editor audits, Unity compilation, Play Mode objective completion, and fresh/restored-save test cases.
@@ -116,6 +122,7 @@ The current source now raises an internal `DispatchAborted` notification after c
 - Removed the unused generic `IInteractable.SignalId` API rather than emitting false-positive completion events for failed interactions.
 - Added `DialogueInteractable`, which uses the existing proximity-interaction route to open a configured dialogue graph.
 - Added `CinematicConfrontationInteractable`, which uses the same route to start a configured non-graphic confrontation sequence; its controller still owns outcome signal emission.
+- Added a route-race prototype: `RouteRaceStartInteractable` starts it, `RouteRaceCheckpoint` trigger components feed ordered progress, and `RouteRaceController` emits route start/checkpoint/finish/cancel signals. It does not yet model a rival or competitive result.
 - Changed `DialogueController.Begin` to return success/failure, reject overlapping conversations and reject graphs whose start node is missing. Disabling the controller now closes the active graph and releases the gameplay input lock.
 - These are reusable source components only. No PORT SABLE scene or NPC prefab is included or claimed wired.
 

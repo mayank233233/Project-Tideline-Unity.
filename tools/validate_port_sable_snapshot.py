@@ -276,6 +276,7 @@ def run() -> int:
     route_race = read("Assets/ProjectTideline/Scripts/World/RouteRaceController.cs")
     route_checkpoint = read("Assets/ProjectTideline/Scripts/World/RouteRaceCheckpoint.cs")
     vehicle_seat = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleSeatInteractable.cs")
+    vehicle_arrival_zone = read("Assets/ProjectTideline/Scripts/World/MissionVehicleArrivalZone.cs")
     vehicle_drive = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDriveController.cs")
     traffic_driver = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficVehicleDriver.cs")
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
@@ -407,6 +408,20 @@ def run() -> int:
           and "_quietSeconds < quietPeriodBeforeDecay" in attention
           and "_value = Mathf.Max(0, _value - decay);" in attention,
           "Public attention must cool down after a configurable quiet period and publish pressure-band changes")
+    check('"old_quay.score.case_recovered": AddAttention((int)Math.Min(100L, 42L * amount))' in attention
+          and '"old_quay.score.safehouse_reached": ResolveAtGarage(100)' in attention,
+          "First score recovery must raise police pressure and safehouse arrival must resolve it")
+    check("ConfigureAdditionalMissionGate" in vehicle_seat
+          and "additionalMissionId" in vehicle_seat
+          and "additionalMissionObjectiveId" in vehicle_seat
+          and "additionalMissionAllowed" in vehicle_seat,
+          "Vehicle seat must allow the authored next-mission getaway objective without opening it during the tutorial")
+    check("other.attachedRigidbody" in vehicle_arrival_zone
+          and "requiredVehicle.IsDriven" in vehicle_arrival_zone
+          and "requiredSeat.IsOccupied" in vehicle_arrival_zone
+          and "missionDirector.CurrentObjective" in vehicle_arrival_zone
+          and "MissionSignalBus.Publish(completionSignal, 1);" in vehicle_arrival_zone,
+          "Safehouse arrival must require the designated occupied player vehicle and the active mission objective")
     check("AttentionChanged += OnAttentionChanged" in pressure_hud
           and "AttentionRestored += OnAttentionRestored" in pressure_hud
           and "AttentionChanged -= OnAttentionChanged" in pressure_hud
@@ -560,6 +575,20 @@ def run() -> int:
           and 'HasFlag("mara_work_order_accepted")' in mara_workshop,
           "Graph documentation and workshop interaction must enforce the persistent Juno acceptance gate")
     blockout_builder = read("Assets/Editor/ProjectTideline/PortSableBlockoutSceneBuilder.cs")
+    check("EnsureFirstScoreMission()" in blockout_builder
+          and 'mission.missionId = "old_quay_first_score";' in blockout_builder
+          and 'objectiveId = "accept_score"' in blockout_builder
+          and 'objectiveId = "recover_case"' in blockout_builder
+          and 'objectiveId = "enter_score_getaway_vehicle"' in blockout_builder
+          and 'objectiveId = "escape_to_safehouse"' in blockout_builder
+          and "campaign.arraySize = 2;" in blockout_builder,
+          "Old Quay campaign must chain the tutorial into the four-stage first criminal score")
+    check('BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);' in blockout_builder
+          and '"old_quay.score.case_recovered"' in blockout_builder
+          and '"old_quay.score.safehouse_reached"' in blockout_builder
+          and "arrival.Configure(getawayVehicle, getawaySeat, missionDirector" in blockout_builder
+          and 'ConfigureAdditionalMissionGate(missionDirector' in blockout_builder,
+          "First score must wire its contact, case, gated getaway vehicle and safehouse arrival zone")
     check("AddComponent<PoliceResponseDirector>()" in blockout_builder
           and "responseDirector.Configure(attentionState, player.transform, responseText);" in blockout_builder
           and 'CreateTouchImage(hudRoot, "Police response HUD background"' in blockout_builder,

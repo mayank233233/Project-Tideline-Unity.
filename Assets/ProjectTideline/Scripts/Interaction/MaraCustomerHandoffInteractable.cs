@@ -20,7 +20,7 @@ namespace ProjectTideline
                 if (handoffController == null) return "Customer unavailable";
                 if (handoffController.HasHandedOff) return "Vehicle handed over";
                 return handoffController.CanCompleteHandoff
-                    ? "Speak to customer"
+                    ? "Hand over the vehicle"
                     : "Complete the route and park in the delivery bay";
             }
         }

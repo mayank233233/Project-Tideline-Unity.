@@ -57,6 +57,10 @@ PORT SABLE is intended to occupy the same broad genre and gameplay space as GTA 
 
 The full intended player loop and system boundaries are defined in [Open-World Crime Gameplay Pillars](docs/PORT_SABLE_OPEN_WORLD_CRIME_GAMEPLAY.md). That document is a design target, not a claim that those systems are already implemented. The current selected source snapshot still lacks the complete open-world runtime, police response, heist/job framework, traffic simulation and fully wired three-lead scene.
 
+## Content rating and presentation boundaries
+
+PORT SABLE is intended to have a mature crime-drama tone: serious criminal themes, high-stakes missions, tense pursuits, consequential character conflict and intense action. Violence must remain non-graphic in its presentation; do not add gore or gruesome injury detail. **Nudity is excluded**: no nude characters or nudity scenes. These are content boundaries, not a claim of any official age-rating certification.
+
 ## Generated Old Quay tutorial scene
 
 Run **Project Tideline → 14 — Build Playable Old Quay Blockout** from the Unity Editor after the runtime scripts have compiled. The command creates `Assets/ProjectTideline/Scenes/PortSable_OldQuay_Blockout.unity`, generates the tutorial dialogue and mission assets, adds the scene to Build Settings, and opens it.

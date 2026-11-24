@@ -61,7 +61,7 @@ The eight-stage first-play sequence is:
 2. **Check the ledger.** Travel to the harbour office and inspect the shipment ledger.
 3. **Accept the delivery.** Return to the workshop and use the delivery order board. The route cannot be started before this objective.
 4. **Enter the vehicle.** Get into the customer's utility car. The player switches to vehicle controls and the camera follows the vehicle.
-5. **Drive the route.** Pass three ordered checkpoints from Old Quay toward Saltline. The second and third gates offset across the road to form a short S-bend; the route HUD reports checkpoint progress. Only the assigned player-driven vehicle can advance them.
+5. **Drive the route.** Pass three ordered checkpoints from Old Quay toward Saltline. The second and third gates offset across the road to form a short S-bend; the route HUD reports checkpoint progress and calls the next gate left, right or ahead. Only the assigned player-driven vehicle can advance them.
 6. **Park at the customer bay.** Stop inside the marked bay. The arrival checkpoint only accepts the assigned occupied vehicle when its speed is at or below 3 km/h.
 7. **Hand over the vehicle.** Exit the car and interact with the waiting customer. The handoff is unavailable until the route is finished and the vehicle has arrived in the bay.
 8. **Debrief with Juno.** Return to Kade Motor Works and choose a response in her objective-specific closing conversation.

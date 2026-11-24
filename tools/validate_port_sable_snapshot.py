@@ -616,6 +616,17 @@ def run() -> int:
           and "missionDirector, \"old_quay_first_steps\", \"report_to_juno\"" in blockout_builder,
           "Tutorial world interactions must be gated to their matching active objectives")
 
+    check("if (isActiveAndEnabled) Subscribe()" in mission_status_display
+          and "private void Unsubscribe()" in mission_status_display,
+          "Mission HUD must bind safely whether configured before or after OnEnable")
+    check("missionDirector.CurrentObjective" in mission_signal_interactable
+          and "string.Equals(objective.objectiveId, requiredObjectiveId" in mission_signal_interactable,
+          "Tutorial interactions must refuse out-of-order objective signals")
+    check("if (dialogueController.Begin(dialogueGraph) && oneShot)" in dialogue_interactable,
+          "One-shot dialogue must only mark itself used after the controller accepts Begin")
+    check('FindProperty("closeButton")' not in blockout_builder,
+          "One-shot tutorial dialogue must not expose a close path that can strand the objective")
+
     readme = read("README.md")
     check("MaraDeliveryRouteCompletionRelay" not in readme
           and "MaraDeliveryHandoffController" in readme,

@@ -436,12 +436,12 @@ namespace ProjectTideline.Editor
 
             Image vehicleStatusPanel = CreateTouchImage(hudRoot, "Vehicle speedometer panel",
                 new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
-                new Vector2(310f, 128f), new Vector2(-28f, -28f),
+                new Vector2(340f, 154f), new Vector2(-28f, -28f),
                 new Color(0.025f, 0.045f, 0.05f, 0.84f), out RectTransform vehicleStatusRect);
             vehicleStatusPanel.raycastTarget = false;
             Text vehicleSpeedText = CreateUiText(vehicleStatusRect, "Vehicle speed and parking guidance",
                 Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f),
-                Vector2.zero, Vector2.zero, 30, TextAnchor.MiddleCenter, Color.white);
+                Vector2.zero, Vector2.zero, 25, TextAnchor.MiddleCenter, Color.white);
             vehicleSpeedText.text = "0 KM/H";
             vehicleSpeedText.raycastTarget = false;
             vehicleStatusPanel.gameObject.SetActive(false);
@@ -554,6 +554,7 @@ namespace ProjectTideline.Editor
                 "start_customer_delivery", "Accept customer delivery");
 
             VehicleDeliveryCheckpoint deliveryBay = BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat, deliveryRoute);
+            missionDisplay.SetDeliveryBay(deliveryBay);
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,

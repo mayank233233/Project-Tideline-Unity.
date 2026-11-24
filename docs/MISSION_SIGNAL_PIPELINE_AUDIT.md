@@ -61,6 +61,8 @@ Previously, `MissionSignalBus.Publish()` invoked the event immediately and recur
 
 This keeps one signal-dispatch batch attached to the objective that was active when the batch began. Branch evaluation occurs after nested state changes have been applied. The abort notification itself is exception-isolated and does not raise `DispatchCompleted`.
 
+The Unity Editor mission audit now includes regression cases for `PublishBatch`: a two-signal batch with a nested signal must be delivered FIFO, and exactly one `DispatchCompleted` callback must occur after the queue drains. It also includes five pure producer-catalog cases covering literal IDs, dynamic relationship IDs, allowed attention bands, the default route-race prefix and rejection of unknown signals. These are authored tests only; the Editor menu has not yet been run.
+
 ## 3. Current source-level signal producers
 
 The inspected selected-snapshot sources currently include these explicit signal paths:
@@ -97,7 +99,7 @@ The next implementation gate is:
 
 ## 5. Verification
 
-The latest verified GitHub Actions run for the signal-producer audit pass is [45346602713](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45346602713), on commit `526185e`: **PASS — 173 checks, 38 C# files scanned**. The legacy mission sequence validator reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is absent from this selected snapshot. The static validator checks repository structure and selected source contracts; it does not execute Unity code.
+The latest verified GitHub Actions run for the signal-producer audit pass is [45346761915](https://github.com/mayank233233/Project-Tideline-Unity./actions/runs/45346761915), on commit `2dfedcb`: **PASS — 174 checks, 38 C# files scanned**. The legacy mission sequence validator reports **SKIP** because the full recovered `OldQuayVerticalSliceBuilder.cs` is absent from this selected snapshot. The static validator checks repository structure and selected source contracts; it does not execute Unity code.
 
 The legacy Old Quay sequence validator still reports `SKIP` on the selected GitHub snapshot because the full recovered `OldQuayVerticalSliceBuilder.cs` is not present there. The local recovered-tree pass from the previous audit remains a separate result.
 

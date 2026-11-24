@@ -549,6 +549,32 @@ def run() -> int:
           "Player visual placeholder must not add a duplicate collider to CharacterController")
 
     for token in (
+        "RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight",
+        "RenderSettings.ambientSkyColor",
+        "RenderSettings.ambientGroundColor",
+        "sunlight.shadows = LightShadows.Soft",
+        "sunlight.shadowStrength = 0.64f",
+        "camera.allowHDR = false",
+        "camera.allowMSAA = true",
+        "BuildQuaySurfaceDetails(wetRoad, metal, accent)",
+        "BuildAccentLight(",
+        "MakeEmissiveMaterial(",
+        "material.SetFloat(\"_Smoothness\"",
+        "light.shadows = LightShadows.None",
+        "TextMesh text = lettering.AddComponent<TextMesh>()",
+        "Freight container corrugation rib",
+        "Rain-dark road repair",
+        "Pavement storm drain",
+        "Quayside mooring bollard",
+    ):
+        check(token in blockout_builder,
+              f"Old Quay mobile graphics pass is missing: {token}")
+    check(blockout_builder.count("BuildRoadsideFacade(") >= 5,
+          "All four main Old Quay blocks must receive road-facing architectural facades")
+    check(blockout_builder.count("BuildAccentLight(") >= 3,
+          "The scene must limit point-light accents to the two authored hero locations")
+
+    for token in (
         'MaterialFolder = "Assets/ProjectTideline/Generated/Materials"',
         'EnsureFolder(MaterialFolder)',
         "AssetDatabase.CreateAsset(material, materialPath)",

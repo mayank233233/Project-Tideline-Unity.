@@ -717,10 +717,16 @@ namespace ProjectTideline.Editor
             missionDisplay.SetDeliveryBay(deliveryBay);
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector, dialogueController);
             BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);
-            BuildAmbientTrafficVehicle("Old Quay traffic — northbound", -3.8f,
+            // Two staggered cars per direction keep the blockout from feeling empty without
+            // placing vehicles nose-to-tail at the same spawn point.
+            BuildAmbientTrafficVehicle("Old Quay traffic — northbound A", -3.8f,
                 new[] { -34f, -12f, 12f, 46f }, new Color(0.22f, 0.30f, 0.34f), false);
-            BuildAmbientTrafficVehicle("Old Quay traffic — southbound", 3.8f,
+            BuildAmbientTrafficVehicle("Old Quay traffic — northbound B", -3.8f,
+                new[] { -14f, 8f, 30f, 46f }, new Color(0.43f, 0.34f, 0.22f), false);
+            BuildAmbientTrafficVehicle("Old Quay traffic — southbound A", 3.8f,
                 new[] { 46f, 22f, -2f, -34f }, new Color(0.38f, 0.27f, 0.19f), true);
+            BuildAmbientTrafficVehicle("Old Quay traffic — southbound B", 3.8f,
+                new[] { 24f, 2f, -20f, -34f }, new Color(0.20f, 0.34f, 0.30f), true);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
                 new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
@@ -797,6 +803,29 @@ namespace ProjectTideline.Editor
             cabin.transform.SetParent(car.transform, false);
             cabin.transform.localPosition = new Vector3(0f, 1.28f, -0.08f);
 
+            // Small emissive lamps improve vehicle readability at dusk without adding real-time
+            // Light components or extra physics colliders to every ambient car.
+            Material headlamp = MakeEmissiveMaterial(name + " — headlamp lens", new Color(1f, 0.82f, 0.56f), 1.15f);
+            Material tailLamp = MakeEmissiveMaterial(name + " — tail lamp lens", new Color(0.72f, 0.035f, 0.018f), 0.8f);
+            float frontZ = facesNegativeZ ? -1.86f : 1.86f;
+            float rearZ = -frontZ;
+            GameObject frontLeft = MakeBlock(name + " — left headlamp", Vector3.zero,
+                new Vector3(0.34f, 0.13f, 0.055f), headlamp, false);
+            frontLeft.transform.SetParent(car.transform, false);
+            frontLeft.transform.localPosition = new Vector3(-0.58f, 0.82f, frontZ);
+            GameObject frontRight = MakeBlock(name + " — right headlamp", Vector3.zero,
+                new Vector3(0.34f, 0.13f, 0.055f), headlamp, false);
+            frontRight.transform.SetParent(car.transform, false);
+            frontRight.transform.localPosition = new Vector3(0.58f, 0.82f, frontZ);
+            GameObject rearLeft = MakeBlock(name + " — left tail lamp", Vector3.zero,
+                new Vector3(0.30f, 0.14f, 0.055f), tailLamp, false);
+            rearLeft.transform.SetParent(car.transform, false);
+            rearLeft.transform.localPosition = new Vector3(-0.58f, 0.82f, rearZ);
+            GameObject rearRight = MakeBlock(name + " — right tail lamp", Vector3.zero,
+                new Vector3(0.30f, 0.14f, 0.055f), tailLamp, false);
+            rearRight.transform.SetParent(car.transform, false);
+            rearRight.transform.localPosition = new Vector3(0.58f, 0.82f, rearZ);
+
             Vector3[] wheelPositions =
             {
                 new Vector3(-0.82f, 0.36f, 1.14f),
@@ -853,9 +882,11 @@ namespace ProjectTideline.Editor
             SerializedObject trafficSerialized = new SerializedObject(traffic);
             SerializedProperty route = trafficSerialized.FindProperty("route");
             route.arraySize = routeZ.Length;
+            GameObject routeRoot = new GameObject(name + " — waypoint route");
             for (int i = 0; i < routeZ.Length; i++)
             {
                 GameObject waypoint = new GameObject(name + " — route node " + (i + 1));
+                waypoint.transform.SetParent(routeRoot.transform, false);
                 waypoint.transform.position = new Vector3(x, 0.1f, routeZ[i]);
                 route.GetArrayElementAtIndex(i).objectReferenceValue = waypoint.transform;
             }

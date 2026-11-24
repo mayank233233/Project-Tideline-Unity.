@@ -15,6 +15,7 @@ namespace ProjectTideline
 
         private DialogueGraph _graph;
         private DialogueGraph.DialogueNode _node;
+        private PlayerInputRouter _inputBlockRouter;
 
         public bool IsOpen => _graph != null;
 
@@ -48,8 +49,9 @@ namespace ProjectTideline
             }
 
             _graph = graph;
-            if (PlayerInputRouter.Instance != null)
-                PlayerInputRouter.Instance.SetGameplayBlocked(true);
+            _inputBlockRouter = PlayerInputRouter.Instance;
+            if (_inputBlockRouter != null)
+                _inputBlockRouter.AcquireGameplayBlock(this);
             ShowNode(startNode);
             return true;
         }
@@ -57,7 +59,9 @@ namespace ProjectTideline
         public void Close()
         {
             _graph = null;
-            if (PlayerInputRouter.Instance != null) PlayerInputRouter.Instance.SetGameplayBlocked(false);
+            if (_inputBlockRouter != null)
+                _inputBlockRouter.ReleaseGameplayBlock(this);
+            _inputBlockRouter = null;
             _node = null;
             if (panel != null)
             {

@@ -21,6 +21,10 @@ namespace ProjectTideline.Editor
     {
         private const string SceneFolder = "Assets/ProjectTideline/Scenes";
         private const string ScenePath = SceneFolder + "/PortSable_OldQuay_Blockout.unity";
+        private const string TutorialMissionPath =
+            "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_first_steps.asset";
+        private const string TutorialDialoguePath =
+            "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_intro.asset";
 
         [MenuItem("Project Tideline/14 — Build Playable Old Quay Blockout", priority = 14)]
         public static void Build()
@@ -30,6 +34,7 @@ namespace ProjectTideline.Editor
 
             EnsureFolder("Assets/ProjectTideline");
             EnsureFolder(SceneFolder);
+            MissionDefinition tutorialMission = EnsureTutorialMission();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -130,7 +135,8 @@ namespace ProjectTideline.Editor
             cameraRig.SetTarget(player.transform, new Vector3(0f, 1.45f, 0f), true);
             motor.SetMovementCamera(cameraObject.transform);
             cameraObject.transform.position = player.transform.position + new Vector3(0f, 3f, -5f);
-            BuildMobileControls();
+            Transform hudRoot = BuildMobileControls();
+            BuildTutorialGameplay(player, cameraObject.transform, hudRoot, tutorialMission);
 
             // Scene metadata helps designers understand what is functional versus placeholder.
             new GameObject("BLOCKOUT NOTES — replace primitives before release");
@@ -143,13 +149,13 @@ namespace ProjectTideline.Editor
 
             EditorUtility.DisplayDialog("PORT SABLE blockout created",
                 "Saved and added to Build Settings:\n" + ScenePath +
-                "\n\nPlayable now: WASD / arrows to move, Shift to sprint, Space to jump, mouse to orbit camera.\n" +
-                "This is a primitive greybox. It has no mission logic, dialogue UI, traffic, final character art or mobile touch controls yet.",
+                "\n\nPlayable now: WASD / arrows or touch joystick to move; Shift / Sprint to sprint; Space / Jump to jump; mouse / right-side touch pad to look; E / Interact to use world objects.\n" +
+                "Includes a three-step Juno-to-harbour-to-workshop tutorial mission. This is still a primitive greybox, not final art or a complete campaign.",
                 "OK");
             Debug.Log("PORT SABLE Old Quay blockout scene generated: " + ScenePath);
         }
 
-        private static void BuildMobileControls()
+        private static Transform BuildMobileControls()
         {
             GameObject canvasObject = new GameObject("Mobile HUD — touch controls",
                 typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -192,6 +198,7 @@ namespace ProjectTideline.Editor
             CreateActionButton(canvas.transform, "SPRINT", MobileTouchControlMode.SprintButton,
                 new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
                 new Vector2(126f, 126f), new Vector2(-170f, 350f));
+            return canvas.transform;
         }
 
         private static void CreateActionButton(Transform parent, string label,
@@ -234,6 +241,253 @@ namespace ProjectTideline.Editor
             image.color = color;
             image.raycastTarget = true;
             return image;
+        }
+
+        private static MissionDefinition EnsureTutorialMission()
+        {
+            EnsureFolder("Assets/ProjectTideline/Content");
+            EnsureFolder("Assets/ProjectTideline/Content/Dialogue");
+            EnsureFolder("Assets/ProjectTideline/Content/Dialogue/Prologues");
+            EnsureFolder("Assets/ProjectTideline/Content/Missions");
+            EnsureFolder("Assets/ProjectTideline/Content/Missions/Prologues");
+
+            DialogueGraph graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(TutorialDialoguePath);
+            if (graph == null)
+            {
+                graph = ScriptableObject.CreateInstance<DialogueGraph>();
+                AssetDatabase.CreateAsset(graph, TutorialDialoguePath);
+            }
+            graph.graphId = "old_quay.juno_first_contact";
+            graph.startNodeId = "juno_first_contact";
+            graph.nodes = new[]
+            {
+                new DialogueGraph.DialogueNode
+                {
+                    nodeId = "juno_first_contact",
+                    speaker = "JUNO",
+                    line = "The harbour office has changed the delivery ledger again. I need you to check the entry at the quay and bring back what you find. Keep it simple. We have a customer waiting.",
+                    choices = new[]
+                    {
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "I'll check the harbour ledger.",
+                            signalId = "old_quay.juno_briefing_accepted",
+                            relationshipCharacterId = "juno_kade",
+                            relationshipDelta = 1,
+                            storyFlagId = "old_quay_juno_response",
+                            storyFlagValue = 1
+                        },
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "Tell me what changed first.",
+                            signalId = "old_quay.juno_briefing_accepted",
+                            relationshipCharacterId = "juno_kade",
+                            relationshipDelta = -1,
+                            storyFlagId = "old_quay_juno_response",
+                            storyFlagValue = 2
+                        }
+                    }
+                }
+            };
+            EditorUtility.SetDirty(graph);
+
+            MissionDefinition mission = AssetDatabase.LoadAssetAtPath<MissionDefinition>(TutorialMissionPath);
+            if (mission == null)
+            {
+                mission = ScriptableObject.CreateInstance<MissionDefinition>();
+                AssetDatabase.CreateAsset(mission, TutorialMissionPath);
+            }
+            mission.missionId = "old_quay_first_steps";
+            mission.title = "OLD QUAY — FIRST STEPS";
+            mission.briefing = "Meet Juno, verify the harbour ledger and report back to Kade Motor Works.";
+            mission.objectives = new[]
+            {
+                new MissionObjective
+                {
+                    objectiveId = "meet_juno",
+                    description = "Talk to Juno at Kade Motor Works.",
+                    completionSignal = "old_quay.juno_briefing_accepted",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "inspect_harbour_ledger",
+                    description = "Go to the harbour office and inspect the shipment ledger.",
+                    completionSignal = "old_quay.harbour_ledger_inspected",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "report_to_juno",
+                    description = "Return to the workshop and report your findings.",
+                    completionSignal = "old_quay.juno_reported_back",
+                    requiredCount = 1
+                }
+            };
+            mission.completionBranches = Array.Empty<MissionBranch>();
+            mission.fallbackNextMissionId = string.Empty;
+            mission.endsCampaign = true;
+            EditorUtility.SetDirty(mission);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return mission;
+        }
+
+        private static void BuildTutorialGameplay(GameObject player, Transform cameraTransform,
+            Transform hudRoot, MissionDefinition tutorialMission)
+        {
+            new GameObject("NPC Relationship Ledger").AddComponent<NPCRelationshipLedger>();
+            new GameObject("Narrative State Ledger").AddComponent<NarrativeStateLedger>();
+
+            GameObject missionObject = new GameObject("Mission Director — Old Quay first steps");
+            MissionDirector missionDirector = missionObject.AddComponent<MissionDirector>();
+            SerializedObject missionSerialized = new SerializedObject(missionDirector);
+            SerializedProperty campaign = missionSerialized.FindProperty("campaign");
+            campaign.arraySize = 1;
+            campaign.GetArrayElementAtIndex(0).objectReferenceValue = tutorialMission;
+            missionSerialized.FindProperty("autoStart").boolValue = true;
+            missionSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            // Persistent objective text remains readable without taking over the screen.
+            Image missionPanel = CreateTouchImage(hudRoot, "Mission HUD background",
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(760f, 150f), new Vector2(28f, -28f),
+                new Color(0.035f, 0.055f, 0.06f, 0.76f), out RectTransform missionPanelRect);
+            missionPanel.raycastTarget = false;
+            Text missionText = CreateUiText(missionPanelRect, "Mission objective text",
+                Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f),
+                Vector2.zero, Vector2.zero, 25, TextAnchor.MiddleLeft, Color.white);
+            missionText.rectTransform.offsetMin = new Vector2(22f, 12f);
+            missionText.rectTransform.offsetMax = new Vector2(-22f, -12f);
+            missionObject.AddComponent<MissionStatusDisplay>().Configure(missionDirector, missionText);
+
+            // Interaction prompt is driven by ProximityInteractor focus, not by a timer.
+            Image promptPanel = CreateTouchImage(hudRoot, "World interaction prompt",
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(620f, 76f), new Vector2(0f, 92f),
+                new Color(0.035f, 0.055f, 0.06f, 0.82f), out RectTransform promptRect);
+            promptPanel.raycastTarget = false;
+            Text promptText = CreateUiText(promptRect, "Interaction prompt text",
+                Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f),
+                Vector2.zero, Vector2.zero, 26, TextAnchor.MiddleCenter, Color.white);
+            promptText.text = " ";
+            promptPanel.gameObject.SetActive(false);
+
+            ProximityInteractor interactor = player.AddComponent<ProximityInteractor>();
+            SerializedObject interactorSerialized = new SerializedObject(interactor);
+            interactorSerialized.FindProperty("viewOrigin").objectReferenceValue = cameraTransform;
+            interactorSerialized.FindProperty("actorRoot").objectReferenceValue = player.transform;
+            interactorSerialized.FindProperty("reach").floatValue = 3.6f;
+            interactorSerialized.FindProperty("promptRoot").objectReferenceValue = promptPanel.gameObject;
+            interactorSerialized.FindProperty("promptText").objectReferenceValue = promptText;
+            interactorSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            // Dialogue panel: two authored responses write persistent relationship/story state.
+            Image dialogueImage = CreateTouchImage(hudRoot, "Juno dialogue panel",
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(1180f, 430f), new Vector2(0f, 185f),
+                new Color(0.025f, 0.04f, 0.045f, 0.96f), out RectTransform dialogueRect);
+            CanvasGroup dialogueGroup = dialogueImage.gameObject.AddComponent<CanvasGroup>();
+            dialogueGroup.alpha = 0f;
+            dialogueGroup.interactable = false;
+            dialogueGroup.blocksRaycasts = false;
+
+            Text speakerText = CreateUiText(dialogueRect, "Dialogue speaker",
+                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 1f),
+                new Vector2(-64f, 64f), new Vector2(32f, -22f),
+                28, TextAnchor.MiddleLeft, new Color(0.91f, 0.62f, 0.28f));
+            Text lineText = CreateUiText(dialogueRect, "Dialogue line",
+                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 1f),
+                new Vector2(-64f, 150f), new Vector2(32f, -94f),
+                27, TextAnchor.UpperLeft, Color.white);
+
+            Button firstChoice = CreateUiButton(dialogueRect, "Choice — accept", "I'll check the ledger.",
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(1f, 0f),
+                new Vector2(470f, 84f), new Vector2(-18f, 28f));
+            Button secondChoice = CreateUiButton(dialogueRect, "Choice — ask", "Tell me what changed.",
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 0f),
+                new Vector2(470f, 84f), new Vector2(18f, 28f));
+            Button closeButton = CreateUiButton(dialogueRect, "Close dialogue", "×",
+                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
+                new Vector2(62f, 62f), new Vector2(-22f, -22f));
+
+            DialogueController dialogueController = dialogueImage.gameObject.AddComponent<DialogueController>();
+            SerializedObject dialogueSerialized = new SerializedObject(dialogueController);
+            dialogueSerialized.FindProperty("panel").objectReferenceValue = dialogueGroup;
+            dialogueSerialized.FindProperty("speakerText").objectReferenceValue = speakerText;
+            dialogueSerialized.FindProperty("lineText").objectReferenceValue = lineText;
+            SerializedProperty choiceButtons = dialogueSerialized.FindProperty("choiceButtons");
+            choiceButtons.arraySize = 2;
+            choiceButtons.GetArrayElementAtIndex(0).objectReferenceValue = firstChoice;
+            choiceButtons.GetArrayElementAtIndex(1).objectReferenceValue = secondChoice;
+            SerializedProperty choiceLabels = dialogueSerialized.FindProperty("choiceLabels");
+            choiceLabels.arraySize = 2;
+            choiceLabels.GetArrayElementAtIndex(0).objectReferenceValue = firstChoice.GetComponentInChildren<Text>();
+            choiceLabels.GetArrayElementAtIndex(1).objectReferenceValue = secondChoice.GetComponentInChildren<Text>();
+            dialogueSerialized.FindProperty("closeButton").objectReferenceValue = closeButton;
+            dialogueSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            DialogueGraph graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(TutorialDialoguePath);
+            GameObject juno = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            juno.name = "JUNO — workshop contact placeholder";
+            juno.transform.position = new Vector3(-15f, 1f, -5f);
+            juno.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial("Juno Placeholder Material", new Color(0.24f, 0.38f, 0.40f));
+            DialogueInteractable junoInteractable = juno.AddComponent<DialogueInteractable>();
+            SerializedObject junoSerialized = new SerializedObject(junoInteractable);
+            junoSerialized.FindProperty("dialogueController").objectReferenceValue = dialogueController;
+            junoSerialized.FindProperty("dialogueGraph").objectReferenceValue = graph;
+            junoSerialized.FindProperty("talkPrompt").stringValue = "Talk to Juno";
+            junoSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            GameObject ledger = MakeBlock("HARBOUR OFFICE — shipment ledger",
+                new Vector3(7f, 0.9f, 47f), new Vector3(1.6f, 1.8f, 1.2f),
+                MakeMaterial("Ledger Kiosk", new Color(0.32f, 0.37f, 0.35f)));
+            ledger.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.harbour_ledger_inspected", "Inspect shipment ledger");
+
+            GameObject reportBoard = MakeBlock("KADE MOTOR WORKS — report board",
+                new Vector3(-20f, 0.85f, -4f), new Vector3(1.5f, 1.7f, 0.35f),
+                MakeMaterial("Workshop Report Board", new Color(0.65f, 0.39f, 0.18f)));
+            reportBoard.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.juno_reported_back", "Report findings to Juno");
+        }
+
+        private static Button CreateUiButton(Transform parent, string name, string label,
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 size, Vector2 position)
+        {
+            Image image = CreateTouchImage(parent, name, anchorMin, anchorMax, pivot, size,
+                position, new Color(0.13f, 0.19f, 0.21f, 0.96f), out RectTransform rect);
+            Button button = image.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            Text labelText = CreateUiText(rect, name + " label", Vector2.zero, Vector2.one,
+                new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero,
+                24, TextAnchor.MiddleCenter, Color.white);
+            labelText.text = label;
+            return button;
+        }
+
+        private static Text CreateUiText(Transform parent, string name,
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 size,
+            Vector2 position, int fontSize, TextAnchor alignment, Color color)
+        {
+            GameObject textObject = new GameObject(name, typeof(RectTransform), typeof(Text));
+            textObject.transform.SetParent(parent, false);
+            RectTransform rect = textObject.GetComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = pivot;
+            rect.sizeDelta = size;
+            rect.anchoredPosition = position;
+            Text text = textObject.GetComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = fontSize;
+            text.alignment = alignment;
+            text.color = color;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+            text.raycastTarget = false;
+            return text;
         }
 
         private static void BuildWarehouse(string name, Vector3 centre, Vector3 size,

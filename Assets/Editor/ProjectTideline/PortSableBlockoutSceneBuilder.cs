@@ -48,25 +48,36 @@ namespace ProjectTideline.Editor
             Material paint = MakeMaterial("Road Marking", new Color(0.78f, 0.72f, 0.55f));
             Material warehouse = MakeMaterial("Harbour Warehouse", new Color(0.30f, 0.34f, 0.34f));
             Material brick = MakeMaterial("Old Quay Brick", new Color(0.39f, 0.25f, 0.20f));
-            Material glass = MakeMaterial("Dark Window Glass", new Color(0.08f, 0.16f, 0.19f), 0.35f);
-            Material metal = MakeMaterial("Salt-Worn Metal", new Color(0.20f, 0.25f, 0.26f), 0.72f);
-            Material water = MakeMaterial("Harbour Water", new Color(0.035f, 0.16f, 0.19f), 0.18f);
+            Material glass = MakeMaterial("Dark Window Glass", new Color(0.08f, 0.16f, 0.19f), 0.35f, 0.88f);
+            Material metal = MakeMaterial("Salt-Worn Metal", new Color(0.20f, 0.25f, 0.26f), 0.72f, 0.56f);
+            Material water = MakeMaterial("Harbour Water", new Color(0.035f, 0.16f, 0.19f), 0.18f, 0.94f);
             Material playerMaterial = MakeMaterial("Player Placeholder", new Color(0.68f, 0.39f, 0.22f));
             Material accent = MakeMaterial("Port Sable Safety Ochre", new Color(0.83f, 0.48f, 0.12f));
+            Material wetRoad = MakeMaterial("Old Quay rain-dark asphalt repairs", new Color(0.055f, 0.071f, 0.078f), 0.12f, 0.92f);
+            Material lampGlow = MakeEmissiveMaterial("Old Quay sodium lamp glow", new Color(1f, 0.52f, 0.22f), 1.35f);
 
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.43f, 0.46f, 0.48f);
+            // A restrained overcast-to-late-afternoon palette: warm key light, cool harbour fill.
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.49f, 0.57f, 0.62f);
+            RenderSettings.ambientEquatorColor = new Color(0.43f, 0.45f, 0.45f);
+            RenderSettings.ambientGroundColor = new Color(0.17f, 0.19f, 0.19f);
+            RenderSettings.ambientIntensity = 0.92f;
             RenderSettings.fog = true;
-            RenderSettings.fogColor = new Color(0.43f, 0.49f, 0.51f);
+            RenderSettings.fogColor = new Color(0.47f, 0.53f, 0.54f);
             RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogStartDistance = 90f;
-            RenderSettings.fogEndDistance = 260f;
+            RenderSettings.fogStartDistance = 72f;
+            RenderSettings.fogEndDistance = 210f;
 
-            GameObject sun = new GameObject("Old Quay — overcast key light");
+            GameObject sun = new GameObject("Old Quay — warm coastal key light");
             Light sunlight = sun.AddComponent<Light>();
             sunlight.type = LightType.Directional;
-            sunlight.intensity = 1.15f;
-            sun.transform.rotation = Quaternion.Euler(38f, -32f, 0f);
+            sunlight.color = new Color(1f, 0.89f, 0.76f);
+            sunlight.intensity = 1.22f;
+            sunlight.shadows = LightShadows.Soft;
+            sunlight.shadowStrength = 0.64f;
+            sunlight.shadowBias = 0.045f;
+            sunlight.shadowNormalBias = 0.32f;
+            sun.transform.rotation = Quaternion.Euler(32f, -28f, 0f);
 
             // Walkable quay, road, sidewalks and harbour edge.
             MakeBlock("Quay foundation", new Vector3(0f, -0.55f, 12f), new Vector3(110f, 1f, 110f), ground);
@@ -81,8 +92,8 @@ namespace ProjectTideline.Editor
             for (int z = -34; z <= 48; z += 12)
             {
                 MakeBlock("Centre lane dash", new Vector3(0f, 0.09f, z), new Vector3(0.18f, 0.025f, 4.2f), paint, false);
-                BuildStreetLamp(new Vector3(-11.2f, 0f, z + 3f), metal, accent);
-                BuildStreetLamp(new Vector3(11.2f, 0f, z - 3f), metal, accent);
+                BuildStreetLamp(new Vector3(-11.2f, 0f, z + 3f), metal, lampGlow);
+                BuildStreetLamp(new Vector3(11.2f, 0f, z - 3f), metal, lampGlow);
             }
 
             // Large readable silhouettes first; finer facade elements establish scale.
@@ -95,13 +106,34 @@ namespace ProjectTideline.Editor
             BuildWarehouse("Saltline freight office", new Vector3(28f, 0f, 44f),
                 new Vector3(24f, 10f, 17f), warehouse, metal, glass, accent);
 
+            // Road-facing storefronts and loading facades give the four main blocks a readable identity.
+            BuildRoadsideFacade("KADE MOTOR WORKS", new Vector3(-15.5f, 0f, 6f),
+                31f, 11f, true, metal, glass, accent);
+            BuildRoadsideFacade("OLD QUAY COLD STORE", new Vector3(14.5f, 0f, 13f),
+                34f, 15f, false, metal, glass, accent);
+            BuildRoadsideFacade("HARBOUR EXCHANGE", new Vector3(-15.5f, 0f, 43f),
+                18f, 13f, true, metal, glass, accent);
+            BuildRoadsideFacade("SALTLlNE FREIGHT", new Vector3(16f, 0f, 44f),
+                17f, 10f, false, metal, glass, accent);
+            BuildQuaySurfaceDetails(wetRoad, metal, accent);
+            BuildAccentLight("Kade workshop warm pool", new Vector3(-13.8f, 4.2f, -4f),
+                new Color(1f, 0.62f, 0.35f), 2.0f, 9f);
+            BuildAccentLight("Saltline handoff warm pool", new Vector3(5.4f, 4.4f, 49f),
+                new Color(1f, 0.72f, 0.46f), 1.7f, 8f);
+
             // Container stacks and a simple dockside gantry give the harbour a distinct skyline.
             for (int row = 0; row < 2; row++)
             for (int col = 0; col < 3; col++)
             {
                 Material containerMat = (row + col) % 2 == 0 ? accent : metal;
-                MakeBlock("Stacked freight container", new Vector3(-39f + col * 8f, 1.35f + row * 2.7f, 61f),
+                float containerX = -39f + col * 8f;
+                float containerY = 1.35f + row * 2.7f;
+                MakeBlock("Stacked freight container", new Vector3(containerX, containerY, 61f),
                     new Vector3(7.6f, 2.6f, 5.8f), containerMat);
+                for (int rib = -2; rib <= 2; rib++)
+                    MakeBlock("Freight container corrugation rib",
+                        new Vector3(containerX + rib * 1.25f, containerY, 58.06f),
+                        new Vector3(0.075f, 2.36f, 0.075f), metal, false);
             }
             MakeBlock("Dock gantry crossbeam", new Vector3(24f, 15f, 64f), new Vector3(2f, 0.8f, 23f), accent);
             MakeBlock("Dock gantry left leg", new Vector3(15f, 7.5f, 64f), new Vector3(0.8f, 15f, 0.8f), metal);
@@ -132,9 +164,11 @@ namespace ProjectTideline.Editor
             GameObject cameraObject = new GameObject("Main Camera");
             cameraObject.tag = "MainCamera";
             Camera camera = cameraObject.AddComponent<Camera>();
-            camera.fieldOfView = 62f;
+            camera.fieldOfView = 60f;
             camera.nearClipPlane = 0.08f;
-            camera.farClipPlane = 300f;
+            camera.farClipPlane = 220f;
+            camera.allowHDR = false;
+            camera.allowMSAA = true;
             cameraObject.AddComponent<AudioListener>();
             ThirdPersonCameraRig cameraRig = cameraObject.AddComponent<ThirdPersonCameraRig>();
             cameraRig.SetTarget(player.transform, new Vector3(0f, 1.45f, 0f), true);
@@ -884,6 +918,139 @@ namespace ProjectTideline.Editor
             return text;
         }
 
+        private static void BuildRoadsideFacade(string label, Vector3 wallCentre,
+            float wallLength, float wallHeight, bool facesPositiveX,
+            Material trim, Material glass, Material signMaterial)
+        {
+            float outward = facesPositiveX ? 1f : -1f;
+            float faceX = wallCentre.x + outward * 0.16f;
+
+            // The sign is placed on the road-facing side, not the warehouse end wall.
+            MakeBlock(label + " — painted fascia",
+                new Vector3(faceX, wallHeight * 0.75f, wallCentre.z),
+                new Vector3(0.16f, 1.08f, Mathf.Min(8.4f, wallLength * 0.56f)),
+                signMaterial, false);
+
+            GameObject lettering = new GameObject(label + " — facade lettering");
+            lettering.transform.position = new Vector3(faceX + outward * 0.10f,
+                wallHeight * 0.75f, wallCentre.z);
+            lettering.transform.rotation = Quaternion.Euler(0f, facesPositiveX ? 90f : 270f, 0f);
+            TextMesh text = lettering.AddComponent<TextMesh>();
+            text.text = label;
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = 54;
+            text.characterSize = 0.105f;
+            text.anchor = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignment.Center;
+            text.color = new Color(0.96f, 0.88f, 0.70f);
+            text.richText = false;
+
+            // Three broad industrial windows, each with a simple painted steel frame.
+            float windowHeight = Mathf.Clamp(wallHeight * 0.17f, 1.35f, 2.0f);
+            float windowY = wallHeight * 0.48f;
+            float windowLength = Mathf.Min(3.1f, wallLength * 0.19f);
+            for (int i = -1; i <= 1; i++)
+            {
+                float z = wallCentre.z + i * wallLength * 0.27f;
+                MakeBlock(label + " — industrial glass",
+                    new Vector3(faceX, windowY, z),
+                    new Vector3(0.075f, windowHeight, windowLength), glass, false);
+                for (int side = -1; side <= 1; side += 2)
+                    MakeBlock(label + " — window steel jamb",
+                        new Vector3(faceX + outward * 0.055f, windowY, z + side * (windowLength * 0.5f + 0.055f)),
+                        new Vector3(0.11f, windowHeight + 0.18f, 0.11f), trim, false);
+                MakeBlock(label + " — window sill",
+                    new Vector3(faceX + outward * 0.055f, windowY - windowHeight * 0.5f, z),
+                    new Vector3(0.14f, 0.12f, windowLength + 0.2f), trim, false);
+                MakeBlock(label + " — window lintel",
+                    new Vector3(faceX + outward * 0.055f, windowY + windowHeight * 0.5f, z),
+                    new Vector3(0.14f, 0.12f, windowLength + 0.2f), trim, false);
+            }
+
+            // A single service shutter and raised curb make the entrance legible from the street.
+            float shutterLength = Mathf.Min(4.4f, wallLength * 0.28f);
+            float shutterZ = wallCentre.z;
+            MakeBlock(label + " — roller shutter",
+                new Vector3(faceX + outward * 0.045f, 2.05f, shutterZ),
+                new Vector3(0.11f, 3.05f, shutterLength), trim, false);
+            for (int stripe = 0; stripe < 5; stripe++)
+                MakeBlock(label + " — shutter slat",
+                    new Vector3(faceX + outward * 0.11f, 0.95f + stripe * 0.45f, shutterZ),
+                    new Vector3(0.035f, 0.045f, shutterLength - 0.18f), signMaterial, false);
+        }
+
+        private static void BuildQuaySurfaceDetails(Material wetRoad, Material metal, Material safety)
+        {
+            // Scattered rain-dark repairs break up the road's single flat material without decals.
+            Vector3[] patchPositions =
+            {
+                new Vector3(-3.5f, 0.086f, -18f),
+                new Vector3(2.7f, 0.086f, -2f),
+                new Vector3(-1.8f, 0.086f, 22f),
+                new Vector3(3.8f, 0.086f, 39f)
+            };
+            Vector3[] patchScales =
+            {
+                new Vector3(2.5f, 0.014f, 1.2f),
+                new Vector3(1.7f, 0.014f, 2.0f),
+                new Vector3(2.2f, 0.014f, 1.0f),
+                new Vector3(1.5f, 0.014f, 2.2f)
+            };
+            for (int i = 0; i < patchPositions.Length; i++)
+            {
+                GameObject patch = MakeBlock("Rain-dark road repair", patchPositions[i],
+                    patchScales[i], wetRoad, false);
+                patch.transform.rotation = Quaternion.Euler(0f, (i % 2 == 0 ? -13f : 19f), 0f);
+            }
+
+            // Drain covers and ochre quay bollards add scale cues beside the road.
+            for (int z = -24; z <= 48; z += 18)
+            {
+                MakeBlock("Pavement storm drain", new Vector3(-6.15f, 0.218f, z),
+                    new Vector3(0.72f, 0.022f, 0.42f), metal, false);
+                MakeBlock("Pavement storm drain", new Vector3(6.15f, 0.218f, z + 5f),
+                    new Vector3(0.72f, 0.022f, 0.42f), metal, false);
+            }
+
+            for (int x = -40; x <= 40; x += 20)
+            {
+                GameObject bollard = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                bollard.name = "Quayside mooring bollard";
+                bollard.transform.position = new Vector3(x, 0.48f, 54.2f);
+                bollard.transform.localScale = new Vector3(0.36f, 0.48f, 0.36f);
+                bollard.GetComponent<Renderer>().sharedMaterial = safety;
+                UnityEngine.Object.DestroyImmediate(bollard.GetComponent<Collider>());
+                MakeBlock("Bollard dark cap", new Vector3(x, 0.94f, 54.2f),
+                    new Vector3(0.4f, 0.12f, 0.4f), metal, false);
+            }
+        }
+
+        private static void BuildAccentLight(string name, Vector3 position, Color color,
+            float intensity, float range)
+        {
+            GameObject lightObject = new GameObject(name);
+            lightObject.transform.position = position;
+            Light light = lightObject.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = color;
+            light.intensity = intensity;
+            light.range = range;
+            light.shadows = LightShadows.None;
+            light.renderMode = LightRenderMode.Auto;
+        }
+
+        private static Material MakeEmissiveMaterial(string name, Color color, float intensity)
+        {
+            Material material = MakeMaterial(name, color, 0f, 0.82f);
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.EnableKeyword("_EMISSION");
+                material.SetColor("_EmissionColor", color * Mathf.Max(0f, intensity));
+                EditorUtility.SetDirty(material);
+            }
+            return material;
+        }
+
         private static void BuildWarehouse(string name, Vector3 centre, Vector3 size,
             Material wall, Material trim, Material window, Material sign)
         {
@@ -934,7 +1101,8 @@ namespace ProjectTideline.Editor
             return block;
         }
 
-        private static Material MakeMaterial(string name, Color color, float metallic = 0f)
+        private static Material MakeMaterial(string name, Color color, float metallic = 0f,
+            float smoothness = 0.32f)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Generated material requires a stable name.", nameof(name));
@@ -964,6 +1132,8 @@ namespace ProjectTideline.Editor
             material.color = color;
             if (material.HasProperty("_Metallic"))
                 material.SetFloat("_Metallic", metallic);
+            if (material.HasProperty("_Smoothness"))
+                material.SetFloat("_Smoothness", Mathf.Clamp01(smoothness));
             EditorUtility.SetDirty(material);
             return material;
         }

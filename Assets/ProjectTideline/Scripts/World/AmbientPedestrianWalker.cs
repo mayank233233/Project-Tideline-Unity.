@@ -19,13 +19,13 @@ namespace ProjectTideline
         private int _targetIndex;
         private float _resumeAt;
 
-        public void Configure(Transform[] waypoints, float speed = 1.25f, float pause = 0.8f)
+        public void Configure(Transform[] waypoints, float speed = 1.25f, float pause = 0.8f, float startDelay = 0f)
         {
             route = waypoints;
             walkingSpeed = Mathf.Max(0.1f, speed);
             pauseAtWaypoint = Mathf.Max(0f, pause);
             _targetIndex = route != null && route.Length > 1 ? 1 : 0;
-            _resumeAt = 0f;
+            _resumeAt = Time.time + Mathf.Max(0f, startDelay);
         }
 
         public void ConfigureCrossingSignal(TrafficSignalController signal)

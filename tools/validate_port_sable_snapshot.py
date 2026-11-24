@@ -265,6 +265,10 @@ def run() -> int:
           and "while (PendingSignals.Count > 0)" in mission_signal_bus
           and "if (IsDispatching)" in mission_signal_bus,
           "MissionSignalBus must drain nested signals through a queue before completing dispatch")
+    check("public readonly struct Signal" in mission_signal_bus
+          and "public static void PublishBatch(params Signal[] signals)" in mission_signal_bus
+          and "DispatchPendingSignals();" in mission_signal_bus,
+          "MissionSignalBus must support atomic batches of signals from one gameplay action")
     check("handlers.GetInvocationList()" in mission_signal_bus
           and "Debug.LogException(exception)" in mission_signal_bus,
           "MissionSignalBus must isolate subscriber exceptions and continue dispatching other listeners")
@@ -321,13 +325,15 @@ def run() -> int:
     check(relationship_write >= 0 and flag_write >= 0 and choice_signal >= 0
           and relationship_write < choice_signal and flag_write < choice_signal,
           "Dialogue choice must persist relationship and story-flag results before publishing its mission signal")
-    check('MissionSignalBus.Publish("relationship.changed." + choice.relationshipCharacterId, 1);' in dialogue_controller
-          and 'MissionSignalBus.Publish("story.flag.changed", 1);' in dialogue_controller,
-          "Dialogue choices without an explicit signal must retain generic ledger mission signals")
-    check('MissionSignalBus.Publish("vehicle.taken", 1);' in vehicle_seat
-          and 'MissionSignalBus.Publish("vehicle.entered", 1);' in vehicle_seat
-          and 'MissionSignalBus.Publish("vehicle.exited", 1);' in vehicle_seat,
-          "Vehicle seat producer must retain its three documented transition signals")
+    check("MissionSignalBus.PublishBatch(" in dialogue_controller
+          and 'new MissionSignalBus.Signal(\n                                "relationship.changed." + choice.relationshipCharacterId, 1)' in dialogue_controller
+          and 'new MissionSignalBus.Signal("story.flag.changed", 1)' in dialogue_controller,
+          "Dialogue choices without an authored signal must batch both generic ledger outcomes atomically")
+    check('new MissionSignalBus.Signal("vehicle.entered", 1)' in vehicle_seat
+          and 'new MissionSignalBus.Signal("vehicle.taken", 1)' in vehicle_seat
+          and 'MissionSignalBus.Publish("vehicle.exited", 1);' in vehicle_seat
+          and 'MissionSignalBus.Publish("vehicle.taken", 1);' not in vehicle_seat,
+          "Vehicle takeover must batch entered/taken outcomes and exit must remain a single signal")
     check('MissionSignalBus.Publish("vehicle.collision", 1);' in vehicle_drive
           and "collision.relativeVelocity.sqrMagnitude < 64f" in vehicle_drive
           and "_nextCollisionSignalAt = Time.time + 2.5f;" in vehicle_drive,
@@ -372,6 +378,12 @@ def run() -> int:
           and "checkpoint.CheckpointIndex != i" in route_race
           and "!checkpoint.HasTriggerCollider" in route_race,
           "Route race start must validate every assigned checkpoint and trigger collider")
+    final_checkpoint_batch = route_race.split("if (_nextCheckpointIndex == checkpoints.Length)", 1)[-1].split(
+        "return true;", 1)[0]
+    check("MissionSignalBus.PublishBatch(" in final_checkpoint_batch
+          and 'signalPrefix + ".checkpoint"' in final_checkpoint_batch
+          and 'signalPrefix + ".finished"' in final_checkpoint_batch,
+          "Final checkpoint and race-finished signals must be dispatched in one interaction batch")
     check("other.GetComponentInParent<VehicleDriveController>()" in route_checkpoint
           and "controller.TryRegisterCheckpoint(this, vehicle);" in route_checkpoint
           and "trigger != null && trigger.isTrigger" in route_checkpoint,

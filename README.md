@@ -57,6 +57,10 @@ PORT SABLE is intended to occupy the same broad genre and gameplay space as GTA 
 
 The full intended player loop and system boundaries are defined in [Open-World Crime Gameplay Pillars](docs/PORT_SABLE_OPEN_WORLD_CRIME_GAMEPLAY.md). That document is a design target, not a claim that those systems are already implemented. The current selected source snapshot still lacks the complete open-world runtime, police response, heist/job framework, traffic simulation and fully wired three-lead scene.
 
+## Police-response prototype
+
+The generated Old Quay scene includes a deliberately simple arcade response director. Public-attention bands dispatch one or two placeholder patrol vehicles; when attention returns to Calm, the HUD enters a visible cooldown countdown before clearing those units. The director exposes explicit None, Dispatch, Escalated and Cooldown phases for future UI and mission integration. This is not a complete wanted/search system: there is no investigation AI, arrest loop, dispatch network or production pursuit behaviour, and the generated scene still requires Unity runtime testing.
+
 ## Content rating and presentation boundaries
 
 PORT SABLE is intended to have a mature crime-drama tone: serious criminal themes, high-stakes missions, tense pursuits, consequential character conflict and intense action. Violence must remain non-graphic in its presentation; do not add gore or gruesome injury detail. **Nudity is excluded**: no nude characters or nudity scenes. These are content boundaries, not a claim of any official age-rating certification.

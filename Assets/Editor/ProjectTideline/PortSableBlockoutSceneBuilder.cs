@@ -592,22 +592,22 @@ namespace ProjectTideline.Editor
             chassis.transform.localPosition = new Vector3(0f, 0.78f, 0f);
 
             GameObject hood = MakeBlock("Front bonnet", Vector3.zero,
-                new Vector3(1.84f, 0.26f, 1.02f), bodyPaint);
+                new Vector3(1.84f, 0.26f, 1.02f), bodyPaint, false);
             hood.transform.SetParent(car.transform, false);
             hood.transform.localPosition = new Vector3(0f, 1.04f, 1.12f);
 
             GameObject rearDeck = MakeBlock("Rear utility deck", Vector3.zero,
-                new Vector3(1.78f, 0.22f, 0.92f), trim);
+                new Vector3(1.78f, 0.22f, 0.92f), trim, false);
             rearDeck.transform.SetParent(car.transform, false);
             rearDeck.transform.localPosition = new Vector3(0f, 1.02f, -1.18f);
 
             GameObject frontBumper = MakeBlock("Front bumper", Vector3.zero,
-                new Vector3(1.98f, 0.18f, 0.18f), trim);
+                new Vector3(1.98f, 0.18f, 0.18f), trim, false);
             frontBumper.transform.SetParent(car.transform, false);
             frontBumper.transform.localPosition = new Vector3(0f, 0.53f, 1.9f);
 
             GameObject rearBumper = MakeBlock("Rear bumper", Vector3.zero,
-                new Vector3(1.98f, 0.18f, 0.18f), trim);
+                new Vector3(1.98f, 0.18f, 0.18f), trim, false);
             rearBumper.transform.SetParent(car.transform, false);
             rearBumper.transform.localPosition = new Vector3(0f, 0.53f, -1.9f);
 
@@ -619,7 +619,7 @@ namespace ProjectTideline.Editor
                 frontLamp.transform.localPosition = new Vector3(side * 0.64f, 0.86f, 1.92f);
 
                 GameObject sideTrim = MakeBlock("Door sill", Vector3.zero,
-                    new Vector3(0.12f, 0.22f, 1.55f), trim);
+                    new Vector3(0.12f, 0.22f, 1.55f), trim, false);
                 sideTrim.transform.SetParent(car.transform, false);
                 sideTrim.transform.localPosition = new Vector3(side * 0.91f, 0.66f, -0.02f);
             }

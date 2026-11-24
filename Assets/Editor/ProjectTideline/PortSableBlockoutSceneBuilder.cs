@@ -28,6 +28,8 @@ namespace ProjectTideline.Editor
             "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_first_score.asset";
         private const string PaperTrailMissionPath =
             "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_paper_trail.asset";
+        private const string MarketLedgerMissionPath =
+            "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_market_ledger.asset";
         private const string TutorialDialoguePath =
             "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_intro.asset";
         private const string TutorialDebriefDialoguePath =
@@ -48,6 +50,7 @@ namespace ProjectTideline.Editor
             MissionDefinition tutorialMission = EnsureTutorialMission();
             MissionDefinition firstScoreMission = EnsureFirstScoreMission();
             MissionDefinition paperTrailMission = EnsurePaperTrailMission();
+            MissionDefinition marketLedgerMission = EnsureMarketLedgerMission();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -190,7 +193,7 @@ namespace ProjectTideline.Editor
             motor.SetMovementCamera(cameraObject.transform);
             cameraObject.transform.position = player.transform.position + new Vector3(0f, 3f, -5f);
             Transform hudRoot = BuildMobileControls();
-            BuildTutorialGameplay(player, cameraObject.transform, hudRoot, tutorialMission, firstScoreMission, paperTrailMission);
+            BuildTutorialGameplay(player, cameraObject.transform, hudRoot, tutorialMission, firstScoreMission, paperTrailMission, marketLedgerMission);
 
             // Scene metadata helps designers understand what is functional versus placeholder.
             new GameObject("BLOCKOUT NOTES — replace primitives before release");
@@ -587,6 +590,52 @@ namespace ProjectTideline.Editor
             };
             mission.completionBranches = Array.Empty<MissionBranch>();
             mission.fallbackNextMissionId = string.Empty;
+            mission.endsCampaign = false;
+            EditorUtility.SetDirty(mission);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return mission;
+        }
+
+        private static MissionDefinition EnsureMarketLedgerMission()
+        {
+            EnsureFolder("Assets/ProjectTideline/Content/Missions/Prologues");
+            MissionDefinition mission = AssetDatabase.LoadAssetAtPath<MissionDefinition>(MarketLedgerMissionPath);
+            if (mission == null)
+            {
+                mission = ScriptableObject.CreateInstance<MissionDefinition>();
+                AssetDatabase.CreateAsset(mission, MarketLedgerMissionPath);
+            }
+
+            mission.missionId = "old_quay_market_ledger";
+            mission.title = "The Market Ledger";
+            mission.briefing = "A Breakwater Pier stallholder is missing a tally sheet after a late delivery. Find the vendor, recover the marked stock tally and return it to the Breakwater Cafe owner."; 
+            mission.objectives = new[]
+            {
+                new MissionObjective
+                {
+                    objectiveId = "meet_market_vendor",
+                    description = "Speak to the Breakwater Pier market vendor about the missing stock tally.",
+                    completionSignal = "old_quay.market_ledger.vendor_met",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "recover_stock_tally",
+                    description = "Recover the marked stock tally from the pier-side storage crate.",
+                    completionSignal = "old_quay.market_ledger.tally_recovered",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "return_stock_tally",
+                    description = "Return the stock tally to the Breakwater Cafe owner.",
+                    completionSignal = "old_quay.market_ledger.tally_returned",
+                    requiredCount = 1
+                }
+            };
+            mission.completionBranches = Array.Empty<MissionBranch>();
+            mission.fallbackNextMissionId = string.Empty;
             mission.endsCampaign = true;
             EditorUtility.SetDirty(mission);
             AssetDatabase.SaveAssets();
@@ -596,7 +645,7 @@ namespace ProjectTideline.Editor
 
         private static void BuildTutorialGameplay(GameObject player, Transform cameraTransform,
             Transform hudRoot, MissionDefinition tutorialMission, MissionDefinition firstScoreMission,
-            MissionDefinition paperTrailMission)
+            MissionDefinition paperTrailMission, MissionDefinition marketLedgerMission)
         {
             new GameObject("NPC Relationship Ledger").AddComponent<NPCRelationshipLedger>();
             new GameObject("Narrative State Ledger").AddComponent<NarrativeStateLedger>();
@@ -605,10 +654,11 @@ namespace ProjectTideline.Editor
             MissionDirector missionDirector = missionObject.AddComponent<MissionDirector>();
             SerializedObject missionSerialized = new SerializedObject(missionDirector);
             SerializedProperty campaign = missionSerialized.FindProperty("campaign");
-            campaign.arraySize = 3;
+            campaign.arraySize = 4;
             campaign.GetArrayElementAtIndex(0).objectReferenceValue = tutorialMission;
             campaign.GetArrayElementAtIndex(1).objectReferenceValue = firstScoreMission;
             campaign.GetArrayElementAtIndex(2).objectReferenceValue = paperTrailMission;
+            campaign.GetArrayElementAtIndex(3).objectReferenceValue = marketLedgerMission;
             missionSerialized.FindProperty("autoStart").boolValue = true;
             missionSerialized.ApplyModifiedPropertiesWithoutUndo();
 
@@ -776,6 +826,7 @@ namespace ProjectTideline.Editor
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector, dialogueController);
             BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);
             BuildPaperTrailWorld(missionDirector);
+            BuildMarketLedgerWorld(missionDirector);
             // A compact four-way junction sits in the open southern block, clear of warehouse footprints.
             TrafficSignalController junctionSignals = BuildOldQuayJunction(road, paint, metal, accent);
             Transform northboundStop = MakeTrafficStopLine("Northbound stop line", -3.8f, -30.5f);
@@ -910,6 +961,40 @@ namespace ProjectTideline.Editor
             MakeBlock("Manifest desk marker", new Vector3(-5.5f, 0.11f, 43f),
                 new Vector3(2.2f, 0.035f, 1.4f), marker, false);
             MakeBlock("Clerk meeting marker", new Vector3(9.4f, 0.10f, 38f),
+                new Vector3(2.0f, 0.035f, 1.4f), marker, false);
+        }
+
+        private static void BuildMarketLedgerWorld(MissionDirector missionDirector)
+        {
+            GameObject vendor = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            vendor.name = "BREAKWATER PIER MARKET — stock tally vendor";
+            vendor.transform.position = new Vector3(29f, 1f, 63f);
+            vendor.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial("Market vendor — rust canvas", new Color(0.48f, 0.31f, 0.22f));
+            vendor.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.market_ledger.vendor_met", "Ask about the missing stock tally", true,
+                missionDirector, "old_quay_market_ledger", "meet_market_vendor");
+
+            GameObject tally = MakeBlock("STOCK TALLY — pier storage crate",
+                new Vector3(39f, 0.86f, 67f), new Vector3(0.82f, 0.10f, 0.58f),
+                MakeMaterial("Stock tally — faded paper", new Color(0.78f, 0.70f, 0.52f)), false);
+            tally.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.market_ledger.tally_recovered", "Recover stock tally", true,
+                missionDirector, "old_quay_market_ledger", "recover_stock_tally");
+
+            GameObject cafeOwner = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            cafeOwner.name = "BREAKWATER CAFE — owner awaiting stock tally";
+            cafeOwner.transform.position = new Vector3(-35f, 1f, -40f);
+            cafeOwner.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial("Cafe owner — dark green apron", new Color(0.24f, 0.38f, 0.32f));
+            cafeOwner.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.market_ledger.tally_returned", "Return the stock tally", true,
+                missionDirector, "old_quay_market_ledger", "return_stock_tally");
+
+            Material marker = MakeMaterial("Market ledger objective marker", new Color(0.80f, 0.56f, 0.24f));
+            MakeBlock("Market vendor meeting marker", new Vector3(29f, 0.10f, 63f),
+                new Vector3(2.0f, 0.035f, 1.4f), marker, false);
+            MakeBlock("Stock tally crate marker", new Vector3(39f, 0.10f, 67f),
                 new Vector3(2.0f, 0.035f, 1.4f), marker, false);
         }
 

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace ProjectTideline
@@ -18,6 +19,7 @@ namespace ProjectTideline
         public bool IsActive => _isActive;
         public int NextCheckpointIndex => _nextCheckpointIndex;
         public int CheckpointCount => checkpoints != null ? checkpoints.Length : 0;
+        public event Action Finished;
 
         public bool BeginRace()
         {
@@ -52,6 +54,7 @@ namespace ProjectTideline
                 MissionSignalBus.PublishBatch(
                     new MissionSignalBus.Signal(signalPrefix + ".checkpoint", 1),
                     new MissionSignalBus.Signal(signalPrefix + ".finished", 1));
+                NotifyFinished();
             }
             else
             {
@@ -69,6 +72,24 @@ namespace ProjectTideline
             _nextCheckpointIndex = 0;
             MissionSignalBus.Publish(signalPrefix + ".cancelled", 1);
             return true;
+        }
+
+        private void NotifyFinished()
+        {
+            Action handlers = Finished;
+            if (handlers == null) return;
+
+            foreach (Delegate subscriber in handlers.GetInvocationList())
+            {
+                try
+                {
+                    ((Action)subscriber).Invoke();
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception, this);
+                }
+            }
         }
 
         private bool HasValidRoute()

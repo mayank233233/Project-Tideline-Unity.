@@ -863,7 +863,7 @@ namespace ProjectTideline.Editor
             Material clerkMaterial = MakeMaterial("Freight clerk — slate workwear", new Color(0.34f, 0.40f, 0.43f));
             GameObject clerk = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             clerk.name = "FREIGHT CLERK — duplicate manifest lead";
-            clerk.transform.position = new Vector3(12.2f, 1f, 38f);
+            clerk.transform.position = new Vector3(9.4f, 1f, 38f);
             clerk.GetComponent<Renderer>().sharedMaterial = clerkMaterial;
             clerk.AddComponent<MissionSignalInteractable>().Configure(
                 "old_quay.paper_trail.clerk_met", "Ask about the duplicate manifest", true,
@@ -872,7 +872,6 @@ namespace ProjectTideline.Editor
             Material paperMaterial = MakeMaterial("Duplicate manifest — pale stock", new Color(0.78f, 0.72f, 0.56f));
             GameObject manifest = MakeBlock("DUPLICATE FREIGHT MANIFEST — loading desk",
                 new Vector3(-5.5f, 0.76f, 43f), new Vector3(0.9f, 0.08f, 0.62f), paperMaterial, false);
-            manifest.AddComponent<BoxCollider>();
             manifest.AddComponent<MissionSignalInteractable>().Configure(
                 "old_quay.paper_trail.manifest_recovered", "Recover duplicate manifest", true,
                 missionDirector, "old_quay_paper_trail", "recover_duplicate_manifest");
@@ -889,7 +888,7 @@ namespace ProjectTideline.Editor
             Material marker = MakeMaterial("Paper trail objective marker", new Color(0.80f, 0.56f, 0.24f));
             MakeBlock("Manifest desk marker", new Vector3(-5.5f, 0.11f, 43f),
                 new Vector3(2.2f, 0.035f, 1.4f), marker, false);
-            MakeBlock("Clerk meeting marker", new Vector3(12.2f, 0.10f, 38f),
+            MakeBlock("Clerk meeting marker", new Vector3(9.4f, 0.10f, 38f),
                 new Vector3(2.0f, 0.035f, 1.4f), marker, false);
         }
 

@@ -26,6 +26,8 @@ namespace ProjectTideline.Editor
             "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_first_steps.asset";
         private const string FirstScoreMissionPath =
             "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_first_score.asset";
+        private const string PaperTrailMissionPath =
+            "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_paper_trail.asset";
         private const string TutorialDialoguePath =
             "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_intro.asset";
         private const string TutorialDebriefDialoguePath =
@@ -45,6 +47,7 @@ namespace ProjectTideline.Editor
             EnsureFolder(MaterialFolder);
             MissionDefinition tutorialMission = EnsureTutorialMission();
             MissionDefinition firstScoreMission = EnsureFirstScoreMission();
+            MissionDefinition paperTrailMission = EnsurePaperTrailMission();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -186,7 +189,7 @@ namespace ProjectTideline.Editor
             motor.SetMovementCamera(cameraObject.transform);
             cameraObject.transform.position = player.transform.position + new Vector3(0f, 3f, -5f);
             Transform hudRoot = BuildMobileControls();
-            BuildTutorialGameplay(player, cameraObject.transform, hudRoot, tutorialMission, firstScoreMission);
+            BuildTutorialGameplay(player, cameraObject.transform, hudRoot, tutorialMission, firstScoreMission, paperTrailMission);
 
             // Scene metadata helps designers understand what is functional versus placeholder.
             new GameObject("BLOCKOUT NOTES — replace primitives before release");
@@ -537,6 +540,52 @@ namespace ProjectTideline.Editor
             };
             mission.completionBranches = Array.Empty<MissionBranch>();
             mission.fallbackNextMissionId = string.Empty;
+            mission.endsCampaign = false;
+            EditorUtility.SetDirty(mission);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return mission;
+        }
+
+        private static MissionDefinition EnsurePaperTrailMission()
+        {
+            EnsureFolder("Assets/ProjectTideline/Content/Missions/Prologues");
+            MissionDefinition mission = AssetDatabase.LoadAssetAtPath<MissionDefinition>(PaperTrailMissionPath);
+            if (mission == null)
+            {
+                mission = ScriptableObject.CreateInstance<MissionDefinition>();
+                AssetDatabase.CreateAsset(mission, PaperTrailMissionPath);
+            }
+
+            mission.missionId = "old_quay_paper_trail";
+            mission.title = "The Paper Trail";
+            mission.briefing = "The sealed case points to a second set of freight records. Find the dock clerk, recover the duplicate manifest and bring it to the Saltline contact before the trail goes cold.";
+            mission.objectives = new[]
+            {
+                new MissionObjective
+                {
+                    objectiveId = "meet_freight_clerk",
+                    description = "Find the freight clerk beside the cold store and ask about the duplicate manifest.",
+                    completionSignal = "old_quay.paper_trail.clerk_met",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "recover_duplicate_manifest",
+                    description = "Recover the duplicate freight manifest from the marked loading desk.",
+                    completionSignal = "old_quay.paper_trail.manifest_recovered",
+                    requiredCount = 1
+                },
+                new MissionObjective
+                {
+                    objectiveId = "deliver_manifest_copy",
+                    description = "Deliver the manifest copy to the Saltline contact.",
+                    completionSignal = "old_quay.paper_trail.manifest_delivered",
+                    requiredCount = 1
+                }
+            };
+            mission.completionBranches = Array.Empty<MissionBranch>();
+            mission.fallbackNextMissionId = string.Empty;
             mission.endsCampaign = true;
             EditorUtility.SetDirty(mission);
             AssetDatabase.SaveAssets();
@@ -545,7 +594,8 @@ namespace ProjectTideline.Editor
         }
 
         private static void BuildTutorialGameplay(GameObject player, Transform cameraTransform,
-            Transform hudRoot, MissionDefinition tutorialMission, MissionDefinition firstScoreMission)
+            Transform hudRoot, MissionDefinition tutorialMission, MissionDefinition firstScoreMission,
+            MissionDefinition paperTrailMission)
         {
             new GameObject("NPC Relationship Ledger").AddComponent<NPCRelationshipLedger>();
             new GameObject("Narrative State Ledger").AddComponent<NarrativeStateLedger>();
@@ -554,9 +604,10 @@ namespace ProjectTideline.Editor
             MissionDirector missionDirector = missionObject.AddComponent<MissionDirector>();
             SerializedObject missionSerialized = new SerializedObject(missionDirector);
             SerializedProperty campaign = missionSerialized.FindProperty("campaign");
-            campaign.arraySize = 2;
+            campaign.arraySize = 3;
             campaign.GetArrayElementAtIndex(0).objectReferenceValue = tutorialMission;
             campaign.GetArrayElementAtIndex(1).objectReferenceValue = firstScoreMission;
+            campaign.GetArrayElementAtIndex(2).objectReferenceValue = paperTrailMission;
             missionSerialized.FindProperty("autoStart").boolValue = true;
             missionSerialized.ApplyModifiedPropertiesWithoutUndo();
 
@@ -723,6 +774,7 @@ namespace ProjectTideline.Editor
             missionDisplay.SetDeliveryBay(deliveryBay);
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector, dialogueController);
             BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);
+            BuildPaperTrailWorld(missionDirector);
             // A compact four-way junction sits in the open southern block, clear of warehouse footprints.
             TrafficSignalController junctionSignals = BuildOldQuayJunction(road, paint, metal, accent);
             Transform northboundStop = MakeTrafficStopLine("Northbound stop line", -3.8f, -30.5f);
@@ -804,6 +856,41 @@ namespace ProjectTideline.Editor
                 new Vector3(0.16f, 0.035f, 7.4f), safehousePaint, false);
             MakeBlock("Safehouse arrival bay stop marker", new Vector3(0f, 0.10f, -37.6f),
                 new Vector3(8.4f, 0.035f, 0.16f), safehousePaint, false);
+        }
+
+        private static void BuildPaperTrailWorld(MissionDirector missionDirector)
+        {
+            Material clerkMaterial = MakeMaterial("Freight clerk — slate workwear", new Color(0.34f, 0.40f, 0.43f));
+            GameObject clerk = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            clerk.name = "FREIGHT CLERK — duplicate manifest lead";
+            clerk.transform.position = new Vector3(12.2f, 1f, 38f);
+            clerk.GetComponent<Renderer>().sharedMaterial = clerkMaterial;
+            clerk.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.paper_trail.clerk_met", "Ask about the duplicate manifest", true,
+                missionDirector, "old_quay_paper_trail", "meet_freight_clerk");
+
+            Material paperMaterial = MakeMaterial("Duplicate manifest — pale stock", new Color(0.78f, 0.72f, 0.56f));
+            GameObject manifest = MakeBlock("DUPLICATE FREIGHT MANIFEST — loading desk",
+                new Vector3(-5.5f, 0.76f, 43f), new Vector3(0.9f, 0.08f, 0.62f), paperMaterial, false);
+            manifest.AddComponent<BoxCollider>();
+            manifest.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.paper_trail.manifest_recovered", "Recover duplicate manifest", true,
+                missionDirector, "old_quay_paper_trail", "recover_duplicate_manifest");
+
+            GameObject dropContact = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            dropContact.name = "SALTLlNE CONTACT — manifest handoff";
+            dropContact.transform.position = new Vector3(10.2f, 1f, 7f);
+            dropContact.GetComponent<Renderer>().sharedMaterial =
+                MakeMaterial("Manifest contact — muted blue", new Color(0.25f, 0.34f, 0.43f));
+            dropContact.AddComponent<MissionSignalInteractable>().Configure(
+                "old_quay.paper_trail.manifest_delivered", "Hand over manifest copy", true,
+                missionDirector, "old_quay_paper_trail", "deliver_manifest_copy");
+
+            Material marker = MakeMaterial("Paper trail objective marker", new Color(0.80f, 0.56f, 0.24f));
+            MakeBlock("Manifest desk marker", new Vector3(-5.5f, 0.11f, 43f),
+                new Vector3(2.2f, 0.035f, 1.4f), marker, false);
+            MakeBlock("Clerk meeting marker", new Vector3(12.2f, 0.10f, 38f),
+                new Vector3(2.0f, 0.035f, 1.4f), marker, false);
         }
 
         private static void BuildAmbientTrafficVehicle(string name, Vector3[] routePoints,

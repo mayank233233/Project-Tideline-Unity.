@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -27,6 +28,7 @@ namespace ProjectTideline
         public Vector2 Move { get; private set; }
         public bool GameplayBlocked => _legacyGameplayBlocked || _gameplayBlockOwners.Count > 0;
         public bool VehicleControlMode => _vehicleControlMode;
+        public event Action<bool> VehicleControlModeChanged;
         public bool SprintHeld => !GameplayBlocked && (_sprintHeld || (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed));
         public bool HandbrakeHeld => !GameplayBlocked && (_handbrakeHeld || (Keyboard.current != null && Keyboard.current.spaceKey.isPressed));
         public float Throttle => GameplayBlocked ? 0f : Mathf.Max(_throttle, Keyboard.current != null && Keyboard.current.wKey.isPressed ? 1f : 0f);
@@ -122,8 +124,10 @@ namespace ProjectTideline
         public void SetHandbrake(bool value) { if (!GameplayBlocked) _handbrakeHeld = value; }
         public void SetVehicleControlMode(bool value)
         {
+            if (_vehicleControlMode == value) return;
             _vehicleControlMode = value;
             ResetTouchState();
+            VehicleControlModeChanged?.Invoke(value);
         }
         public void SetThrottle(float value) { if (!GameplayBlocked) _throttle = Mathf.Clamp01(value); }
         public void SetBrake(float value) { if (!GameplayBlocked) _brake = Mathf.Clamp01(value); }

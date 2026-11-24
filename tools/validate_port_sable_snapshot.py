@@ -447,6 +447,8 @@ def run() -> int:
         "MaraPostDeliveryDialogueInteractable",
         "MissionProgressHasPassedHandoff",
         "HasSolidInteractionCollider",
+        "actorRoot.GetComponent<CharacterController>()",
+        "actorRoot.GetComponent<ThirdPersonMotor>()",
         "isActiveAndEnabled",
         'FindProperty("autoStart")',
     ):

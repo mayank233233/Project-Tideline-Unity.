@@ -534,7 +534,7 @@ namespace ProjectTideline.Editor
             routeStart.Configure(deliveryRoute, missionDirector, "old_quay_first_steps",
                 "start_customer_delivery", "Accept customer delivery");
 
-            VehicleDeliveryCheckpoint deliveryBay = BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat);
+            VehicleDeliveryCheckpoint deliveryBay = BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat, deliveryRoute);
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, missionDirector);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
@@ -736,7 +736,8 @@ namespace ProjectTideline.Editor
         }
 
         private static VehicleDeliveryCheckpoint BuildCustomerDeliveryBay(
-            VehicleDriveController deliveryVehicle, VehicleSeatInteractable deliverySeat)
+            VehicleDriveController deliveryVehicle, VehicleSeatInteractable deliverySeat,
+            RouteRaceController deliveryRoute)
         {
             GameObject bayObject = new GameObject("SALTLINE — marked customer delivery bay");
             bayObject.transform.position = new Vector3(0f, 1.25f, 48f);
@@ -745,7 +746,7 @@ namespace ProjectTideline.Editor
             bayTrigger.size = new Vector3(9f, 3f, 6f);
 
             VehicleDeliveryCheckpoint bay = bayObject.AddComponent<VehicleDeliveryCheckpoint>();
-            bay.Configure(deliveryVehicle, deliverySeat, FindDeliveryRoute(deliveryVehicle));
+            bay.Configure(deliveryVehicle, deliverySeat, deliveryRoute);
             return bay;
         }
 

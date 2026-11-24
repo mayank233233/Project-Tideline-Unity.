@@ -14,6 +14,20 @@ The city is **Port Sable**, with seven planned districts, six major factions, ei
 
 Read the [prologue dialogue graph and scene wiring reference](docs/PORT_SABLE_PROLOGUE_DIALOGUE_GRAPHS.md), the [full story canon](PORT_SABLE_STORY_CANON.md), [visual direction and mobile rendering contract](docs/PORT_SABLE_VISUAL_TARGET.md), [three-lead integration specification](docs/PORT_SABLE_THREE_LEAD_SYSTEM.md), [criminal ecosystem and rival-crew brief](docs/PORT_SABLE_CRIMINAL_ECOSYSTEM.md), [opening campaign mission design](docs/PORT_SABLE_OPENING_CAMPAIGN.md), [narrative-state/save contract](docs/PORT_SABLE_NARRATIVE_STATE.md), the [signature score design](docs/PORT_SABLE_SIGNATURE_SCORE_ALL_THE_WAY_DOWN.md), and the [mission asset/branch audit](docs/MISSION_ASSET_BRANCH_AUDIT.md), the [mission signal pipeline audit](docs/MISSION_SIGNAL_PIPELINE_AUDIT.md), and the [mission signal producer inventory](docs/MISSION_SIGNAL_PRODUCER_INVENTORY.md).
 
+## Unity CI verification
+
+The repository includes a Unity project manifest and pinned editor version. GitHub Actions has a separate **Unity runtime verification** workflow in addition to the fast static audit.
+
+The Unity workflow:
+- Opens the project with the editor version in `ProjectSettings/ProjectVersion.txt`.
+- Runs the Old Quay scene generator in batch mode (interactive save/dialog prompts are suppressed in batch mode).
+- Loads the generated scene and checks for the player motor/input, proximity interaction, mission/dialogue, police response, traffic signal, pedestrian animation, and narrative/relationship systems.
+- Builds the enabled scenes for Linux Standalone with Unity's strict build mode and uploads the build artifact.
+
+**Repository setup required:** add a GitHub Actions repository secret named `UNITY_LICENSE` containing the contents of a valid Unity license `.ulf` file. The Unity workflow deliberately fails with a clear message when this secret is absent; the static audit remains independent of Unity licensing.
+
+A successful Unity build verifies editor compilation, generated-scene loading, required component presence, and player build completion. It does **not** prove interactive Play Mode behavior, mission branch correctness, vehicle handling, AI behavior, or performance. Those still require automated Play Mode tests and/or hands-on testing.
+
 ## Campaign data tools
 
 The source includes:

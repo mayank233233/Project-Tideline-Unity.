@@ -612,7 +612,7 @@ namespace ProjectTideline.Editor
             seatSerialized.FindProperty("vehicle").objectReferenceValue = drive;
             seatSerialized.FindProperty("driverSeat").objectReferenceValue = driverSeat.transform;
             seatSerialized.FindProperty("exitPoint").objectReferenceValue = exitPoint.transform;
-            seatSerialized.FindProperty("cameraRig").objectReferenceValue = ThirdPersonCameraRig.Instance;
+            seatSerialized.FindProperty("cameraRig").objectReferenceValue = cameraTransform.GetComponent<ThirdPersonCameraRig>();
             seatSerialized.FindProperty("startsWithNpcDriver").boolValue = false;
             seatSerialized.ApplyModifiedPropertiesWithoutUndo();
 

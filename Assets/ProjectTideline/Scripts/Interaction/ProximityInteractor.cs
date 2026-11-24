@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +17,7 @@ namespace ProjectTideline
         private IInteractable _focused;
         private VehicleSeatInteractable _activeVehicle;
         private VehicleSeatInteractable _pendingVehicle;
+        private readonly List<MonoBehaviour> _candidateBuffer = new List<MonoBehaviour>(8);
 
         public bool IsInVehicle => _activeVehicle != null;
         public bool IsVehicleTransitioning => _pendingVehicle != null || (_activeVehicle != null && _activeVehicle.IsTransitioning);
@@ -110,8 +112,8 @@ namespace ProjectTideline
             if (Physics.SphereCast(viewOrigin.position, sphereRadius, viewOrigin.forward,
                     out RaycastHit hit, reach, interactionMask, QueryTriggerInteraction.Ignore))
             {
-                MonoBehaviour[] candidates = hit.collider.GetComponentsInParent<MonoBehaviour>();
-                foreach (MonoBehaviour candidate in candidates)
+                hit.collider.GetComponentsInParent<MonoBehaviour>(true, _candidateBuffer);
+                foreach (MonoBehaviour candidate in _candidateBuffer)
                 {
                     if (candidate is IInteractable interactable)
                     {

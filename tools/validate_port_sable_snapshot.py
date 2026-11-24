@@ -680,7 +680,7 @@ def run() -> int:
         "BuildCustomerDeliveryRoute(deliveryVehicle)",
         "BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat, deliveryRoute)",
         "bay.Configure(deliveryVehicle, deliverySeat, deliveryRoute)",
-        "handoff.Configure(deliveryRoute, missionDirector, deliveryBay)",
+        "handoff.Configure(deliveryRoute, missionDirector, deliveryBay, deliverySeat)",
     ):
         check(token in blockout_builder,
               f"Generated drivable delivery sequence is missing: {token}")

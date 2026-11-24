@@ -67,6 +67,8 @@ namespace ProjectTideline.Editor
             MissionDefinition mission = FindMission(director, issues);
             DialogueGraph introGraph = FindGraph(IntroGraphId, issues);
             DialogueGraph nicoGraph = FindGraph(NicoGraphId, issues);
+            if (dialogue != null)
+                ValidateDialogueCapacity(dialogue, introGraph, nicoGraph, issues);
 
             DialogueInteractable[] introTalk = FindAll<DialogueInteractable>();
             int introBindings = 0;
@@ -201,6 +203,33 @@ namespace ProjectTideline.Editor
                 Debug.LogError("Mara prologue scene wiring audit BLOCKED:\n" + string.Join("\n", issues));
             EditorUtility.DisplayDialog("Mara prologue scene wiring — " + status,
                 string.Join("\n", rows) + (issues.Count > 0 ? "\n\n" + string.Join("\n", issues) : ""), "OK");
+        }
+
+        private static void ValidateDialogueCapacity(
+            DialogueController dialogue,
+            DialogueGraph introGraph,
+            DialogueGraph nicoGraph,
+            List<string> issues)
+        {
+            SerializedObject serialized = new SerializedObject(dialogue);
+            SerializedProperty buttons = serialized.FindProperty("choiceButtons");
+            if (buttons == null || !buttons.isArray) return;
+
+            int requiredSlots = Mathf.Max(MaxChoiceCount(introGraph), MaxChoiceCount(nicoGraph));
+            if (buttons.arraySize < requiredSlots)
+                issues.Add("DialogueController has " + buttons.arraySize +
+                    " choice slots, but Mara's opening/Nico graphs require up to " + requiredSlots +
+                    ". Increase choiceButtons and choiceLabels together.");
+        }
+
+        private static int MaxChoiceCount(DialogueGraph graph)
+        {
+            int maximum = 0;
+            if (graph == null || graph.nodes == null) return maximum;
+            foreach (DialogueGraph.DialogueNode node in graph.nodes)
+                if (node != null && node.choices != null)
+                    maximum = Mathf.Max(maximum, node.choices.Length);
+            return maximum;
         }
 
         private static void ValidateDialogueView(DialogueController dialogue, List<string> issues)

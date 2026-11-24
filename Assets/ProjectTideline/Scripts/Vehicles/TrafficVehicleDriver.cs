@@ -22,6 +22,9 @@ namespace ProjectTideline
         [SerializeField] private TrafficSignalController trafficSignal;
         [SerializeField] private Transform signalStopLine;
         [SerializeField] private bool usesMainRoadSignal = true;
+        [Header("Pedestrian Crossing")]
+        [SerializeField] private TrafficPedestrianCrossing pedestrianCrossing;
+        [SerializeField, Min(1f)] private float pedestrianYieldApproachDistance = 10f;
         [SerializeField, Min(2f)] private float signalApproachDistance = 16f;
         [Header("Distant Traffic Decision LOD")]
         [SerializeField, Min(0f)] private float fullRateDecisionDistance = 35f;
@@ -40,11 +43,13 @@ namespace ProjectTideline
         private float _nextObstacleCheckTime;
         private float _obstacleCheckPhase;
 
-        public void ConfigureSignal(TrafficSignalController signal, Transform stopLine, bool mainRoad)
+        public void ConfigureSignal(TrafficSignalController signal, Transform stopLine, bool mainRoad,
+            TrafficPedestrianCrossing crossing = null)
         {
             trafficSignal = signal;
             signalStopLine = stopLine;
             usesMainRoadSignal = mainRoad;
+            pedestrianCrossing = crossing;
         }
 
         public void BeginTakeoverHandoff()
@@ -121,7 +126,8 @@ namespace ProjectTideline
             float steer = Mathf.Clamp(localTarget.x * 2.1f, -1f, 1f);
             float targetSpeed = cruisingSpeedKph * Mathf.Lerp(1f, 0.58f, Mathf.Abs(steer));
             bool signalRequiresStop = IsTrafficSignalBlocking();
-            bool blocked = IsObstacleBlocking() || signalRequiresStop;
+            bool pedestrianRequiresStop = IsPedestrianCrossingOccupied();
+            bool blocked = IsObstacleBlocking() || signalRequiresStop || pedestrianRequiresStop;
 
             float currentSpeed = _vehicle.SpeedKph;
             float throttle = blocked ? 0f : Mathf.Clamp01((targetSpeed - currentSpeed) / 9f);
@@ -145,6 +151,16 @@ namespace ProjectTideline
             // Ignore a stop line once the vehicle has crossed it; otherwise stop only
             // inside the approach window so cars brake before entering the junction.
             return signedDistance >= -1.5f && signedDistance <= Mathf.Max(2f, signalApproachDistance);
+        }
+
+        private bool IsPedestrianCrossingOccupied()
+        {
+            if (pedestrianCrossing == null || !pedestrianCrossing.IsOccupied) return false;
+            Vector3 toCrossing = pedestrianCrossing.transform.position - transform.position;
+            toCrossing.y = 0f;
+            float distance = toCrossing.magnitude;
+            if (distance > Mathf.Max(1f, pedestrianYieldApproachDistance)) return false;
+            return Vector3.Dot(toCrossing.normalized, transform.forward) > 0.1f;
         }
 
         private bool ShouldUpdateTrafficDecision()

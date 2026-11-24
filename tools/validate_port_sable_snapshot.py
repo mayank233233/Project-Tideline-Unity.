@@ -781,6 +781,23 @@ def run() -> int:
     ):
         check(token in mission_status_display,
               f"Live delivery progress HUD is missing: {token}")
+    for token in (
+        "SetVehicleStatus(VehicleDriveController vehicle",
+        "PlayerInputRouter.Instance.VehicleControlMode",
+        "deliveryVehicle.SpeedKph",
+        "BRAKE TO 3 KM/H",
+        "PARKING SPEED OK",
+        "Mathf.RoundToInt(speed)",
+    ):
+        check(token in mission_status_display,
+              f"Vehicle speedometer/parking feedback is missing: {token}")
+    for token in (
+        "Vehicle speedometer panel",
+        "Vehicle speed and parking guidance",
+        "missionDisplay.SetVehicleStatus(deliveryVehicle, vehicleStatusPanel.gameObject, vehicleSpeedText)",
+    ):
+        check(token in blockout_builder,
+              f"Generated driving HUD speedometer wiring is missing: {token}")
     check("public Transform NextCheckpoint" in route_controller
           and "checkpoints[_nextCheckpointIndex].transform" in route_controller,
           "Route controller must expose the next ordered gate transform")

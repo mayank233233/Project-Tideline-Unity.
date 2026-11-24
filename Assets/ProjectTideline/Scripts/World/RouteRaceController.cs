@@ -11,6 +11,7 @@ namespace ProjectTideline
     public sealed class RouteRaceController : MonoBehaviour
     {
         [SerializeField] private string signalPrefix = "race.long_loop";
+        [SerializeField] private VehicleDriveController playerVehicle;
         [SerializeField] private RouteRaceCheckpoint[] checkpoints;
 
         private bool _isActive;
@@ -20,6 +21,7 @@ namespace ProjectTideline
         public bool IsActive => _isActive;
         public int NextCheckpointIndex => _nextCheckpointIndex;
         public int CheckpointCount => checkpoints != null ? checkpoints.Length : 0;
+        public VehicleDriveController PlayerVehicle => playerVehicle;
         public event Action Finished;
 
         private void OnEnable()
@@ -47,7 +49,7 @@ namespace ProjectTideline
 
         public bool TryRegisterCheckpoint(RouteRaceCheckpoint checkpoint, VehicleDriveController vehicle)
         {
-            if (!_isActive || checkpoint == null || vehicle == null || !vehicle.IsDriven
+            if (!_isActive || checkpoint == null || vehicle == null || vehicle != playerVehicle || !vehicle.IsDriven
                 || checkpoints == null || _nextCheckpointIndex < 0
                 || _nextCheckpointIndex >= checkpoints.Length)
                 return false;
@@ -130,9 +132,10 @@ namespace ProjectTideline
 
         private bool HasValidRoute()
         {
-            if (string.IsNullOrWhiteSpace(signalPrefix) || checkpoints == null || checkpoints.Length == 0)
+            if (string.IsNullOrWhiteSpace(signalPrefix) || playerVehicle == null
+                || checkpoints == null || checkpoints.Length == 0)
             {
-                Debug.LogError("Route race requires a signal prefix and at least one checkpoint.", this);
+                Debug.LogError("Route race requires a signal prefix, its designated player vehicle and at least one checkpoint.", this);
                 return false;
             }
 

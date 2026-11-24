@@ -22,7 +22,7 @@ The source includes:
 - `CampaignCanonAudit.cs`: Unity Editor validation for missing/duplicate IDs, incomplete campaign structure and the separate institution registry.
 - `MissionAssetAudit.cs`: scans serialized MissionDefinition assets, objective signals against actual source/data producers, branches, fallbacks, ending flags, unconsumed story flags and legacy builder filename wiring. A source match is not proof of scene/prefab wiring.
 - `MissionBranchEvaluator.cs`: shared branch-condition evaluator; missing relationship/story values are not coerced to zero.
-- `PortSablePrologueDialogueBuilder.cs`: creates the three lead-specific dialogue graph assets; scene/NPC wiring is still required.
+- `PortSablePrologueDialogueBuilder.cs`: creates four dialogue graphs across three lead prologues; Mara's Juno/work-order opening and Nico post-delivery scene are separate graphs, and scene/NPC wiring is still required.
 - `PortSablePrologueDialogueAudit.cs`: checks graph IDs, node links, reachability and required saved choice flags.
 - `PlayableLeadPrefabAudit.cs`: blocks missing or reused hero meshes, invalid animation rigs, missing locomotion clips and inadequate LOD setup.
 - `NarrativeStateLedger.cs`, `DialogueController.cs` and `MissionDirector.cs`: persist dialogue choice flags and evaluate later mission branches.
@@ -31,6 +31,7 @@ The source includes:
 - `MissionSignalBus.cs`: FIFO nested dispatch, exception-isolated listeners, batch publication for multiple outcomes from one action, and runaway-batch abort recovery. The unused generic `IInteractable.SignalId` API has been removed.
 - `MaraWorkshopOrderController.cs` / `MaraWorkshopTaskInteractable.cs`: three distinct final vehicle checks; the mission only advances after all three tasks complete.
 - `MaraDeliveryRouteCompletionRelay.cs`: emits `mara.delivery.finished` only after the assigned route has fully drained its final signal batch.
+- `MaraDeliveryStartInteractable.cs` / `MaraPostDeliveryDialogueInteractable.cs`: gate the drive until workshop checks pass and gate Nico's graph until the route is fully complete.
 - `MaraPrologueMissionBuilder.cs`: generates one three-objective `two_minutes_to_close` MissionDefinition after both Mara dialogue graphs exist.
 - `SaveSnapshot.cs` / `SessionSaveCoordinator.cs`: schema v3 saves the active lead, all lead positions and narrative flags, while reading v1/v2 legacy saves.
 - `CampaignMissionOutline.cs`: separate narrative-outline data type, intentionally not a playable `MissionDefinition`.

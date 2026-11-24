@@ -1228,6 +1228,24 @@ def run() -> int:
     check("does **not** compile C#" in readme,
           "README must not imply the static check is a Unity compile")
 
+    check("old_quay_paper_trail" in blockout_builder
+          and "EnsurePaperTrailMission()" in blockout_builder
+          and "BuildPaperTrailWorld(missionDirector)" in blockout_builder,
+          "Third playable Old Quay mission must be generated and wired into the scene")
+    for token in (
+        "meet_freight_clerk",
+        "recover_duplicate_manifest",
+        "deliver_manifest_copy",
+        "old_quay.paper_trail.clerk_met",
+        "old_quay.paper_trail.manifest_recovered",
+        "old_quay.paper_trail.manifest_delivered",
+    ):
+        check(token in blockout_builder,
+              f"Paper Trail mission objective or world interaction is missing: {token}")
+    check("campaign.arraySize = 3" in blockout_builder
+          and "campaign.GetArrayElementAtIndex(2).objectReferenceValue = paperTrailMission" in blockout_builder,
+          "MissionDirector campaign must progress from the first score into The Paper Trail")
+
     cs_files = sorted((ROOT / "Assets").rglob("*.cs"))
     check(len(cs_files) >= 20, "Too few C# files are present in the source snapshot")
     for file_path in cs_files:

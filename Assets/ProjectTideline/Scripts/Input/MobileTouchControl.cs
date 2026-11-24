@@ -44,10 +44,18 @@ namespace ProjectTideline
                     UpdateLook(eventData);
                     break;
                 case MobileTouchControlMode.SprintButton:
-                    if (PlayerInputRouter.Instance != null) PlayerInputRouter.Instance.SetSprint(true);
+                    if (PlayerInputRouter.Instance != null)
+                    {
+                        if (PlayerInputRouter.Instance.VehicleControlMode) PlayerInputRouter.Instance.SetThrottle(1f);
+                        else PlayerInputRouter.Instance.SetSprint(true);
+                    }
                     break;
                 case MobileTouchControlMode.JumpButton:
-                    if (PlayerInputRouter.Instance != null) PlayerInputRouter.Instance.PulseJump();
+                    if (PlayerInputRouter.Instance != null)
+                    {
+                        if (PlayerInputRouter.Instance.VehicleControlMode) PlayerInputRouter.Instance.SetHandbrake(true);
+                        else PlayerInputRouter.Instance.PulseJump();
+                    }
                     break;
                 case MobileTouchControlMode.InteractButton:
                     if (PlayerInputRouter.Instance != null) PlayerInputRouter.Instance.PulseInteract();
@@ -71,7 +79,13 @@ namespace ProjectTideline
             else if (mode == MobileTouchControlMode.SprintButton
                      && PlayerInputRouter.Instance != null)
             {
-                PlayerInputRouter.Instance.SetSprint(false);
+                if (PlayerInputRouter.Instance.VehicleControlMode) PlayerInputRouter.Instance.SetThrottle(0f);
+                else PlayerInputRouter.Instance.SetSprint(false);
+            }
+            else if (mode == MobileTouchControlMode.JumpButton
+                     && PlayerInputRouter.Instance != null && PlayerInputRouter.Instance.VehicleControlMode)
+            {
+                PlayerInputRouter.Instance.SetHandbrake(false);
             }
         }
 
@@ -101,7 +115,12 @@ namespace ProjectTideline
             if (mode == MobileTouchControlMode.MoveStick)
                 PlayerInputRouter.Instance.SetMove(Vector2.zero);
             else if (mode == MobileTouchControlMode.SprintButton)
-                PlayerInputRouter.Instance.SetSprint(false);
+            {
+                if (PlayerInputRouter.Instance.VehicleControlMode) PlayerInputRouter.Instance.SetThrottle(0f);
+                else PlayerInputRouter.Instance.SetSprint(false);
+            }
+            else if (mode == MobileTouchControlMode.JumpButton && PlayerInputRouter.Instance.VehicleControlMode)
+                PlayerInputRouter.Instance.SetHandbrake(false);
         }
     }
 }

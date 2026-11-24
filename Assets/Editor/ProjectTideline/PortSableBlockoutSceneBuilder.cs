@@ -25,6 +25,8 @@ namespace ProjectTideline.Editor
             "Assets/ProjectTideline/Content/Missions/Prologues/old_quay_first_steps.asset";
         private const string TutorialDialoguePath =
             "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_intro.asset";
+        private const string TutorialDebriefDialoguePath =
+            "Assets/ProjectTideline/Content/Dialogue/Prologues/old_quay_juno_debrief.asset";
 
         [MenuItem("Project Tideline/14 — Build Playable Old Quay Blockout", priority = 14)]
         public static void Build()
@@ -286,6 +288,42 @@ namespace ProjectTideline.Editor
                 }
             };
             EditorUtility.SetDirty(graph);
+
+            DialogueGraph debriefGraph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(TutorialDebriefDialoguePath);
+            if (debriefGraph == null)
+            {
+                debriefGraph = ScriptableObject.CreateInstance<DialogueGraph>();
+                AssetDatabase.CreateAsset(debriefGraph, TutorialDebriefDialoguePath);
+            }
+            debriefGraph.graphId = "old_quay.juno_debrief";
+            debriefGraph.startNodeId = "juno_debrief";
+            debriefGraph.nodes = new[]
+            {
+                new DialogueGraph.DialogueNode
+                {
+                    nodeId = "juno_debrief",
+                    speaker = "JUNO",
+                    line = "Customer signed. That's one less problem between this workshop and next week's rent. You handled the route. I'll handle the paperwork. We are not done yet, but for tonight, the doors stay open.",
+                    choices = new[]
+                    {
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "We keep the place running.",
+                            signalId = "old_quay.juno_debrief_completed",
+                            relationshipCharacterId = "juno_kade",
+                            relationshipDelta = 1
+                        },
+                        new DialogueGraph.DialogueChoice
+                        {
+                            label = "Next time, tell me the whole story.",
+                            signalId = "old_quay.juno_debrief_completed",
+                            relationshipCharacterId = "juno_kade",
+                            relationshipDelta = 0
+                        }
+                    }
+                }
+            };
+            EditorUtility.SetDirty(debriefGraph);
 
             MissionDefinition mission = AssetDatabase.LoadAssetAtPath<MissionDefinition>(TutorialMissionPath);
             if (mission == null)

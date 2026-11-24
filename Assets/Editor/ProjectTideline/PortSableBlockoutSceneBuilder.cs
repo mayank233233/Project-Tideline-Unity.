@@ -427,7 +427,8 @@ namespace ProjectTideline.Editor
                 Vector2.zero, Vector2.zero, 25, TextAnchor.MiddleLeft, Color.white);
             missionText.rectTransform.offsetMin = new Vector2(22f, 12f);
             missionText.rectTransform.offsetMax = new Vector2(-22f, -12f);
-            missionObject.AddComponent<MissionStatusDisplay>().Configure(missionDirector, missionText);
+            MissionStatusDisplay missionDisplay = missionObject.AddComponent<MissionStatusDisplay>();
+            missionDisplay.Configure(missionDirector, missionText);
 
             // World interaction prompt.
             Image promptPanel = CreateTouchImage(hudRoot, "World interaction prompt",
@@ -526,6 +527,7 @@ namespace ProjectTideline.Editor
             VehicleSeatInteractable deliverySeat;
             VehicleDriveController deliveryVehicle = BuildCustomerDeliveryVehicle(cameraTransform, out deliverySeat);
             RouteRaceController deliveryRoute = BuildCustomerDeliveryRoute(deliveryVehicle);
+            missionDisplay.SetDeliveryRoute(deliveryRoute);
 
             GameObject orderBoard = MakeBlock("KADE MOTOR WORKS — customer delivery order board",
                 new Vector3(-3.0f, 0.95f, -13.2f), new Vector3(0.45f, 1.9f, 0.28f),
@@ -722,6 +724,14 @@ namespace ProjectTideline.Editor
                 checkpointSerialized.FindProperty("checkpointIndex").intValue = i;
                 checkpointSerialized.ApplyModifiedPropertiesWithoutUndo();
                 checkpoints[i] = checkpoint;
+
+                Material gatePaint = MakeMaterial("Delivery route checkpoint marker", new Color(0.86f, 0.48f, 0.13f));
+                MakeBlock("Route gate post — left", new Vector3(-5.55f, 1.2f, checkpointPositions[i]),
+                    new Vector3(0.32f, 2.4f, 0.32f), gatePaint, false);
+                MakeBlock("Route gate post — right", new Vector3(5.55f, 1.2f, checkpointPositions[i]),
+                    new Vector3(0.32f, 2.4f, 0.32f), gatePaint, false);
+                MakeBlock("Route gate crossbar", new Vector3(0f, 2.48f, checkpointPositions[i]),
+                    new Vector3(11.1f, 0.28f, 0.32f), gatePaint, false);
             }
 
             SerializedObject routeSerialized = new SerializedObject(route);
@@ -745,6 +755,14 @@ namespace ProjectTideline.Editor
             BoxCollider bayTrigger = bayObject.AddComponent<BoxCollider>();
             bayTrigger.isTrigger = true;
             bayTrigger.size = new Vector3(9f, 3f, 6f);
+
+            Material bayPaint = MakeMaterial("Saltline delivery bay marking", new Color(0.88f, 0.57f, 0.21f));
+            MakeBlock("Delivery bay left boundary", new Vector3(-2.7f, 0.095f, 48f),
+                new Vector3(0.14f, 0.035f, 5.5f), bayPaint, false);
+            MakeBlock("Delivery bay right boundary", new Vector3(2.7f, 0.095f, 48f),
+                new Vector3(0.14f, 0.035f, 5.5f), bayPaint, false);
+            MakeBlock("Delivery bay stop line", new Vector3(0f, 0.095f, 50.6f),
+                new Vector3(5.4f, 0.035f, 0.16f), bayPaint, false);
 
             VehicleDeliveryCheckpoint bay = bayObject.AddComponent<VehicleDeliveryCheckpoint>();
             bay.Configure(deliveryVehicle, deliverySeat, deliveryRoute);

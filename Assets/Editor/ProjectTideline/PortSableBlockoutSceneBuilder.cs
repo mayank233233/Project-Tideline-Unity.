@@ -403,9 +403,6 @@ namespace ProjectTideline.Editor
             Button secondChoice = CreateUiButton(dialogueRect, "Choice — ask", "Tell me what changed.",
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 0f),
                 new Vector2(470f, 84f), new Vector2(18f, 28f));
-            Button closeButton = CreateUiButton(dialogueRect, "Close dialogue", "×",
-                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
-                new Vector2(62f, 62f), new Vector2(-22f, -22f));
 
             DialogueController dialogueController = dialogueImage.gameObject.AddComponent<DialogueController>();
             SerializedObject dialogueSerialized = new SerializedObject(dialogueController);
@@ -420,7 +417,6 @@ namespace ProjectTideline.Editor
             choiceLabels.arraySize = 2;
             choiceLabels.GetArrayElementAtIndex(0).objectReferenceValue = firstChoice.GetComponentInChildren<Text>();
             choiceLabels.GetArrayElementAtIndex(1).objectReferenceValue = secondChoice.GetComponentInChildren<Text>();
-            dialogueSerialized.FindProperty("closeButton").objectReferenceValue = closeButton;
             dialogueSerialized.ApplyModifiedPropertiesWithoutUndo();
 
             DialogueGraph graph = AssetDatabase.LoadAssetAtPath<DialogueGraph>(TutorialDialoguePath);

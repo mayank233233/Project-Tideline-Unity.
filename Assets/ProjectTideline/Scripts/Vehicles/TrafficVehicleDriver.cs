@@ -17,8 +17,15 @@ namespace ProjectTideline
         [SerializeField, Min(0.02f)] private float obstacleCheckInterval = 0.12f;
         [SerializeField] private LayerMask obstacleMask = ~0;
         [SerializeField] private bool loopRoute = true;
+        [Header("Distant Traffic Decision LOD")]
+        [SerializeField, Min(0f)] private float fullRateDecisionDistance = 35f;
+        [SerializeField, Min(0f)] private float reducedRateDecisionDistance = 80f;
+        [SerializeField, Min(0.02f)] private float reducedDecisionInterval = 0.1f;
+        [SerializeField, Min(0.05f)] private float distantDecisionInterval = 0.25f;
 
         private VehicleDriveController _vehicle;
+        private Transform _decisionLodReference;
+        private float _nextTrafficDecisionTime;
         private Rigidbody _body;
         private readonly RaycastHit[] _obstacleHits = new RaycastHit[10];
         private int _routeIndex;
@@ -43,6 +50,7 @@ namespace ProjectTideline
         {
             _vehicle = GetComponent<VehicleDriveController>();
             _body = GetComponent<Rigidbody>();
+            if (Camera.main != null) _decisionLodReference = Camera.main.transform;
             _obstacleCheckPhase = (GetInstanceID() & 0x7fffffff) / (float)int.MaxValue;
         }
 
@@ -64,6 +72,10 @@ namespace ProjectTideline
                 _vehicle.SetNpcDriveInput(0f, 0f, 1f, true);
                 return;
             }
+
+            // Only throttle distant AI decisions. VehicleDriveController continues running
+            // WheelCollider physics at the normal fixed timestep for every traffic vehicle.
+            if (!ShouldUpdateTrafficDecision()) return;
 
             Transform target = route[Mathf.Clamp(_routeIndex, 0, route.Length - 1)];
             if (target == null)
@@ -101,6 +113,30 @@ namespace ProjectTideline
             float throttle = blocked ? 0f : Mathf.Clamp01((targetSpeed - currentSpeed) / 9f);
             float brake = blocked ? 1f : Mathf.Clamp01((currentSpeed - targetSpeed) / 8f);
             _vehicle.SetNpcDriveInput(steer, throttle, brake);
+        }
+
+        private bool ShouldUpdateTrafficDecision()
+        {
+            if (_decisionLodReference == null) return true;
+
+            float distanceSquared = (_decisionLodReference.position - transform.position).sqrMagnitude;
+            float fullRateSquared = fullRateDecisionDistance * fullRateDecisionDistance;
+            float reducedRateSquared = Mathf.Max(fullRateDecisionDistance, reducedRateDecisionDistance);
+            reducedRateSquared *= reducedRateSquared;
+
+            float interval = distanceSquared <= fullRateSquared ? 0f
+                : distanceSquared <= reducedRateSquared ? Mathf.Max(0.02f, reducedDecisionInterval)
+                : Mathf.Max(0.05f, distantDecisionInterval);
+
+            if (interval <= 0f)
+            {
+                _nextTrafficDecisionTime = Time.fixedTime;
+                return true;
+            }
+
+            if (Time.fixedTime < _nextTrafficDecisionTime) return false;
+            _nextTrafficDecisionTime = Time.fixedTime + interval;
+            return true;
         }
 
         /// <summary>

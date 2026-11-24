@@ -576,6 +576,46 @@ def run() -> int:
         check(token in blockout_builder,
               f"Generated scene is missing mobile HUD wiring: {token}")
 
+    mission_signal_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MissionSignalInteractable.cs")
+    dialogue_interactable = read("Assets/ProjectTideline/Scripts/Interaction/DialogueInteractable.cs")
+    mission_status_display = read("Assets/ProjectTideline/Scripts/UI/MissionStatusDisplay.cs")
+    for token in (
+        "HarbourLedgerSignal = \"old_quay.harbour_ledger_inspected\"",
+        "WorkshopReportSignal = \"old_quay.juno_reported_back\"",
+        "requiredMissionId",
+        "requiredObjectiveId",
+        "!IsCurrentObjective()",
+        'MissionSignalBus.Publish("old_quay.harbour_ledger_inspected", 1)',
+        'MissionSignalBus.Publish("old_quay.juno_reported_back", 1)',
+    ):
+        check(token in mission_signal_interactable,
+              f"Tutorial mission signal interaction is missing: {token}")
+    check("dialogueController.Begin(dialogueGraph) && oneShot" in dialogue_interactable,
+          "Opening Juno dialogue must not replay the same choice signal after first completion")
+    for token in ("ProgressChanged", "MissionCompleted", "objective.description", "mission.title"):
+        check(token in mission_status_display,
+              f"Mission objective HUD is missing event-driven display behavior: {token}")
+    for token in (
+        "old_quay.juno_first_contact",
+        "old_quay.juno_briefing_accepted",
+        "old_quay_first_steps",
+        "meet_juno",
+        "inspect_harbour_ledger",
+        "report_to_juno",
+        "BuildTutorialGameplay(",
+        "MissionSignalInteractable.HarbourLedgerSignal",
+        "MissionSignalInteractable.WorkshopReportSignal",
+        'FindProperty("oneShot").boolValue = true',
+        "MissionStatusDisplay",
+        "DialogueController",
+        "ProximityInteractor",
+    ):
+        check(token in blockout_builder,
+              f"Playable Old Quay tutorial wiring is missing: {token}")
+    check("missionDirector, \"old_quay_first_steps\", \"inspect_harbour_ledger\"" in blockout_builder
+          and "missionDirector, \"old_quay_first_steps\", \"report_to_juno\"" in blockout_builder,
+          "Tutorial world interactions must be gated to their matching active objectives")
+
     readme = read("README.md")
     check("MaraDeliveryRouteCompletionRelay" not in readme
           and "MaraDeliveryHandoffController" in readme,

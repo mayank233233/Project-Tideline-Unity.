@@ -119,7 +119,7 @@ The source-producer check establishes only that a matching publisher exists in C
 - mismatch between legacy builder asset creation names and MissionDirector load names;
 - the current PORT SABLE MissionDefinition completion gap.
 
-It also runs 15 deterministic in-process tests against the production `MissionBranchEvaluator`. The menu has been authored but has **not** been run in Unity yet; those 15 cases are therefore a test harness, not a claimed pass.
+It also runs 15 deterministic in-process tests against the production `MissionBranchEvaluator`, two Edit Mode signal-bus ordering tests, and five signal-producer catalog tests. Any failed self-test now makes the overall Editor audit status `FAIL`. The menu has been authored but has **not** been run in Unity yet; these seven signal-related cases and the 15 branch cases are test harnesses, not claimed passes.
 
 ## 5. Required next implementation gates
 

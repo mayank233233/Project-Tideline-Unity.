@@ -106,8 +106,11 @@ The current GitHub source now includes:
 - `NPCRelationshipLedger.HasValue` distinguishes a never-written key from an explicitly stored value of zero.
 
 The Unity Editor menu **Project Tideline → 11 — Audit Mission Assets and Branches** checks:
+The source-producer check establishes only that a matching publisher exists in C# or generated dialogue data. It does **not** establish that the component is present, configured, enabled or reachable in a playable scene. Scene/prefab wiring and runtime completion must be tested separately.
+
 - stable/unique mission IDs and objective IDs;
 - non-empty objective arrays, completion signals and positive required counts;
+- every objective completion signal matched against a source-code publisher, a batched signal, or a generated dialogue-graph choice; supported dynamic patterns include `relationship.changed.<characterId>`, the three public-attention bands and the route controller's default `race.long_loop.*` prefix;
 - branch/fallback target existence and forward ordering;
 - branch condition source validity and range order;
 - unconditional branches that shadow later branches;

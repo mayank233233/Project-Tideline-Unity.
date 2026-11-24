@@ -264,6 +264,13 @@ def run() -> int:
     input_router = read("Assets/ProjectTideline/Scripts/Input/PlayerInputRouter.cs")
     character_animation_driver = read("Assets/ProjectTideline/Scripts/Animation/CharacterAnimationDriver.cs")
     proximity_interactor = read("Assets/ProjectTideline/Scripts/Interaction/ProximityInteractor.cs")
+    check("SetFocus(null);" in proximity_interactor
+          and "HidePrompt();" in proximity_interactor
+          and "PlayerInputRouter.Instance == null || viewOrigin == null || actorRoot == null" in proximity_interactor,
+          "Interaction prompts must clear when the player input or camera/actor binding is unavailable")
+    check("candidate.isActiveAndEnabled" in proximity_interactor
+          and "candidate.gameObject.activeInHierarchy" in proximity_interactor,
+          "Interaction focus must ignore disabled or inactive interactable components")
     mission_director = read("Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs")
     mission_signal_bus = read("Assets/ProjectTideline/Scripts/Missions/MissionSignalBus.cs")
     branch_evaluator = read("Assets/ProjectTideline/Scripts/Missions/MissionBranchEvaluator.cs")

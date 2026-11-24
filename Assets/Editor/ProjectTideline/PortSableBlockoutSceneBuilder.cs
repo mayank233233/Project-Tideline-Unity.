@@ -130,6 +130,7 @@ namespace ProjectTideline.Editor
             BuildRoadsideFacade("SALTLlNE FREIGHT", new Vector3(16f, 0f, 44f),
                 17f, 10f, false, metal, glass, accent);
             BuildQuaySurfaceDetails(wetRoad, metal, accent);
+            BuildOldQuayMarketAndSouthLane(ground, road, paint, warehouse, brick, glass, metal, accent, lampGlow);
             BuildAccentLight("Kade workshop warm pool", new Vector3(-13.8f, 4.2f, -4f),
                 new Color(1f, 0.62f, 0.35f), 2.0f, 9f);
             BuildAccentLight("Saltline handoff warm pool", new Vector3(5.4f, 4.4f, 49f),
@@ -1549,6 +1550,132 @@ namespace ProjectTideline.Editor
                 MakeBlock("Bollard dark cap", new Vector3(x, 0.94f, 54.2f),
                     new Vector3(0.4f, 0.12f, 0.4f), metal, false);
             }
+        }
+
+
+        private static void BuildOldQuayMarketAndSouthLane(Material ground, Material road, Material paint,
+            Material warehouse, Material brick, Material glass, Material metal, Material accent, Material lampGlow)
+        {
+            // A short southern market lane extends the street grid beyond the original central junction.
+            MakeBlock("Southline market lane asphalt", new Vector3(0f, 0.018f, -35f),
+                new Vector3(49f, 0.12f, 7.2f), road);
+            MakeBlock("Market lane west pavement", new Vector3(0f, 0.12f, -40.15f),
+                new Vector3(49f, 0.22f, 2.8f), ground);
+            MakeBlock("Market lane east pavement", new Vector3(0f, 0.12f, -29.85f),
+                new Vector3(49f, 0.22f, 2.8f), ground);
+            for (int x = -20; x <= 20; x += 10)
+            {
+                MakeBlock("Market lane centre dash", new Vector3(x, 0.092f, -35f),
+                    new Vector3(4.2f, 0.022f, 0.14f), paint, false);
+                MakeBlock("Market lane curb drain", new Vector3(x + 4f, 0.245f, -30.95f),
+                    new Vector3(0.65f, 0.025f, 0.32f), metal, false);
+            }
+
+            BuildWarehouse("Breakwater Cafe", new Vector3(-34f, 0f, -35f),
+                new Vector3(15f, 7.5f, 12f), brick, metal, glass, accent);
+            BuildRoadsideFacade("BREAKWATER CAFE", new Vector3(-34f, 0f, -35f),
+                12f, 7.5f, true, metal, glass, accent);
+            BuildWarehouse("Quay Tool and Tackle", new Vector3(34f, 0f, -35f),
+                new Vector3(15f, 8f, 12f), warehouse, metal, glass, accent);
+            BuildRoadsideFacade("QUAY TOOL & TACKLE", new Vector3(34f, 0f, -35f),
+                12f, 8f, false, metal, glass, accent);
+
+            Material canopy = MakeMaterial("Breakwater market faded teal canvas", new Color(0.12f, 0.31f, 0.32f));
+            Material timber = MakeMaterial("Breakwater market timber", new Color(0.34f, 0.24f, 0.16f));
+            Material crate = MakeMaterial("Harbour market crate wood", new Color(0.43f, 0.30f, 0.19f));
+            Material produce = MakeMaterial("Harbour market produce", new Color(0.56f, 0.34f, 0.18f));
+            // Open-sided fish and salvage stalls sit on the east pier, leaving a clear route around the quay.
+            MakeBlock("Breakwater market raised timber deck", new Vector3(28f, 0.43f, 66.2f),
+                new Vector3(13.5f, 0.42f, 8.5f), timber);
+            MakeBlock("Breakwater market canopy", new Vector3(28f, 4.35f, 66.2f),
+                new Vector3(14.2f, 0.28f, 9.2f), canopy);
+            for (int x = 0; x < 4; x++)
+            {
+                float px = 22.1f + x * 3.95f;
+                MakeBlock("Market canopy support post", new Vector3(px, 2.35f, 62.25f),
+                    new Vector3(0.18f, 4.0f, 0.18f), timber);
+                MakeBlock("Market canopy support post", new Vector3(px, 2.35f, 70.15f),
+                    new Vector3(0.18f, 4.0f, 0.18f), timber);
+            }
+            MakeBlock("Fish stall counter", new Vector3(24.2f, 1.05f, 65.1f),
+                new Vector3(4.6f, 1.05f, 1.1f), timber);
+            MakeBlock("Salvage stall counter", new Vector3(31.7f, 1.05f, 65.1f),
+                new Vector3(4.6f, 1.05f, 1.1f), timber);
+            MakeBlock("Fish stall sign", new Vector3(24.2f, 3.1f, 62.55f),
+                new Vector3(4.5f, 0.82f, 0.12f), accent, false);
+            MakeBlock("Salvage stall sign", new Vector3(31.7f, 3.1f, 62.55f),
+                new Vector3(4.5f, 0.82f, 0.12f), metal, false);
+            for (int i = 0; i < 6; i++)
+            {
+                float x = 21.7f + (i % 3) * 4.4f;
+                float z = 68.1f + (i / 3) * 1.25f;
+                MakeBlock("Market stacked cargo crate", new Vector3(x, 1.02f, z),
+                    new Vector3(1.15f, 1.05f, 1.05f), crate);
+                MakeBlock("Market crate lid", new Vector3(x, 1.57f, z),
+                    new Vector3(1.2f, 0.08f, 1.1f), timber, false);
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                GameObject goods = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                goods.name = "Market produce bundle";
+                goods.transform.position = new Vector3(30.3f + (i % 2) * 1.1f, 1.85f, 65.1f + (i / 2) * 0.38f);
+                goods.transform.localScale = new Vector3(0.58f, 0.38f, 0.48f);
+                goods.GetComponent<Renderer>().sharedMaterial = produce;
+                UnityEngine.Object.DestroyImmediate(goods.GetComponent<Collider>());
+            }
+            MakeBlock("Pier market wayfinding sign", new Vector3(18.4f, 2.1f, 62.2f),
+                new Vector3(0.16f, 3.8f, 1.2f), metal);
+            MakeBlock("Pier market sign face", new Vector3(18.29f, 3.1f, 62.2f),
+                new Vector3(0.08f, 1.1f, 1.0f), accent, false);
+            BuildAccentLight("Breakwater market warm lantern", new Vector3(28f, 5.0f, 66f),
+                new Color(1f, 0.67f, 0.36f), 1.3f, 11f);
+
+            // Street furniture is placed against the outer pavement edge, not in the driving lanes.
+            for (int i = 0; i < 3; i++)
+            {
+                float z = -7f + i * 22f;
+                BuildQuayBench(new Vector3(-10.45f, 0f, z), timber, metal);
+                BuildQuayBench(new Vector3(10.45f, 0f, z + 6f), timber, metal);
+                BuildStreetBin(new Vector3(-8.0f, 0f, z + 8f), metal, accent);
+                BuildStreetBin(new Vector3(8.0f, 0f, z - 4f), metal, accent);
+            }
+            BuildStreetLamp(new Vector3(-11.1f, 0f, -36f), metal, lampGlow);
+            BuildStreetLamp(new Vector3(11.1f, 0f, -36f), metal, lampGlow);
+            // Marked curbside loading bays make the market lane read as a working service street.
+            Material bayPaint = MakeMaterial("Market lane loading bay paint", new Color(0.88f, 0.67f, 0.31f));
+            for (int i = 0; i < 3; i++)
+            {
+                float x = -14f + i * 14f;
+                MakeBlock("Market lane loading bay outline", new Vector3(x, 0.095f, -39.0f),
+                    new Vector3(7.6f, 0.025f, 0.12f), bayPaint, false);
+                MakeBlock("Market lane loading bay side mark", new Vector3(x - 3.75f, 0.095f, -36.7f),
+                    new Vector3(0.12f, 0.025f, 4.6f), bayPaint, false);
+                MakeBlock("Market lane loading bay side mark", new Vector3(x + 3.75f, 0.095f, -36.7f),
+                    new Vector3(0.12f, 0.025f, 4.6f), bayPaint, false);
+            }
+        }
+
+        private static void BuildQuayBench(Vector3 position, Material timber, Material metal)
+        {
+            MakeBlock("Old Quay public bench seat", position + new Vector3(0f, 0.52f, 0f),
+                new Vector3(1.9f, 0.14f, 0.62f), timber, false);
+            MakeBlock("Old Quay public bench back", position + new Vector3(0f, 0.95f, -0.25f),
+                new Vector3(1.9f, 0.72f, 0.12f), timber, false);
+            for (int side = -1; side <= 1; side += 2)
+                MakeBlock("Old Quay bench leg", position + new Vector3(side * 0.72f, 0.25f, 0f),
+                    new Vector3(0.12f, 0.5f, 0.48f), metal, false);
+        }
+
+        private static void BuildStreetBin(Vector3 position, Material metal, Material accent)
+        {
+            GameObject bin = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            bin.name = "Old Quay public litter bin";
+            bin.transform.position = position + Vector3.up * 0.58f;
+            bin.transform.localScale = new Vector3(0.52f, 0.58f, 0.52f);
+            bin.GetComponent<Renderer>().sharedMaterial = metal;
+            UnityEngine.Object.DestroyImmediate(bin.GetComponent<Collider>());
+            MakeBlock("Old Quay litter bin rim", position + Vector3.up * 1.12f,
+                new Vector3(0.62f, 0.1f, 0.62f), accent, false);
         }
 
         private static void BuildAccentLight(string name, Vector3 position, Color color,

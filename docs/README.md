@@ -29,6 +29,7 @@
 - `Assets/ProjectTideline/Scripts/World/MaraDeliveryHandoffController.cs` and `MaraCustomerHandoffInteractable.cs`: emit the Mara-specific delivery completion only after the assigned route has finished and the customer accepts the vehicle.
 - `Assets/Editor/ProjectTideline/MaraPrologueMissionBuilder.cs`: generates the three-objective `two_minutes_to_close` MissionDefinition after both Mara dialogue graphs exist.
 - `Assets/Editor/ProjectTideline/MaraPrologueSceneWiringAudit.cs`: audits loaded-scene references for the Mara player, input, dialogue UI/graphs, workshop, route, customer handoff and mission director.
+- [PORT SABLE Prologue Dialogue Graphs](PORT_SABLE_PROLOGUE_DIALOGUE_GRAPHS.md): four generated graph IDs, authored node/choice flow, persistent choice flags and the Mara Inspector wiring matrix; graph generation is not scene wiring.
 - `docs/PORT_SABLE_PROLOGUE_DIALOGUE_GRAPHS.md`: exact four-graph inventory, node/choice flow, persistent flags and Inspector wiring contract.
 - `Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs`: rejects malformed or overlapping graphs and releases the input lock when disabled.
 - `Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs`: evaluates story-flag and relationship branches.

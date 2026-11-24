@@ -281,6 +281,8 @@ def run() -> int:
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
     attention = read("Assets/ProjectTideline/Scripts/World/PublicAttentionState.cs")
     pressure_hud = read("Assets/ProjectTideline/Scripts/UI/PolicePressureHUD.cs")
+    police_response = read("Assets/ProjectTideline/Scripts/World/PoliceResponseDirector.cs")
+    police_pursuit = read("Assets/ProjectTideline/Scripts/World/PolicePursuitVehicle.cs")
     proximity_interactor = read("Assets/ProjectTideline/Scripts/Interaction/ProximityInteractor.cs")
     interactable = read("Assets/ProjectTideline/Scripts/Interaction/IInteractable.cs")
     check("MissionBranchEvaluator.ConditionsMatch" in mission_director,
@@ -409,6 +411,20 @@ def run() -> int:
           and "AttentionBand.Escalated" in pressure_hud
           and "AttentionBand.Noticed" in pressure_hud,
           "Police-pressure HUD must map the existing attention bands into readable response tiers")
+    check("AttentionChanged += OnAttentionChanged" in police_response
+          and "AttentionChanged -= OnAttentionChanged" in police_response
+          and "EnsureUnitCount(band == PublicAttentionState.AttentionBand.Escalated ? 2 : 1)" in police_response,
+          "Police response director must subscribe safely and stage one or two patrol units by attention band")
+    check("PolicePursuitVehicle.Create(" in police_response
+          and "calmClearDelay" in police_response
+          and "ClearUnits();" in police_response
+          and "ResponseChanged?.Invoke" in police_response,
+          "Police response director must spawn patrols, retain them briefly after pressure clears, then clean up")
+    check("RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ" in police_pursuit
+          and "Quaternion.RotateTowards" in police_pursuit
+          and "_body.AddForce" in police_pursuit
+          and "Configure(chaseTarget, speed, followGap)" in police_pursuit,
+          "Police pursuit vehicle must use bounded arcade steering, acceleration and a configured player target")
     check("SignalId" not in interactable and "interaction.generic" not in interactable
           and "SignalId" not in proximity_interactor,
           "Unused generic interaction signal metadata must not remain in the interaction interface")
@@ -539,6 +555,10 @@ def run() -> int:
           and 'HasFlag("mara_work_order_accepted")' in mara_workshop,
           "Graph documentation and workshop interaction must enforce the persistent Juno acceptance gate")
     blockout_builder = read("Assets/Editor/ProjectTideline/PortSableBlockoutSceneBuilder.cs")
+    check("AddComponent<PoliceResponseDirector>()" in blockout_builder
+          and "responseDirector.Configure(attentionState, player.transform, responseText);" in blockout_builder
+          and 'CreateTouchImage(hudRoot, "Police response HUD background"' in blockout_builder,
+          "Old Quay builder must wire the police response director to the player and response HUD")
     check('new GameObject("Public Attention / Police Pressure State")' in blockout_builder
           and "AddComponent<PublicAttentionState>()" in blockout_builder
           and "AddComponent<PolicePressureHUD>()" in blockout_builder

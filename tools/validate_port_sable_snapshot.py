@@ -589,6 +589,12 @@ def run() -> int:
           and "arrival.Configure(getawayVehicle, getawaySeat, missionDirector" in blockout_builder
           and 'ConfigureAdditionalMissionGate(missionDirector' in blockout_builder,
           "First score must wire its contact, case, gated getaway vehicle and safehouse arrival zone")
+    check('BuildAmbientTrafficVehicle("Old Quay traffic — northbound"' in blockout_builder
+          and 'BuildAmbientTrafficVehicle("Old Quay traffic — southbound"' in blockout_builder
+          and "AddComponent<VehicleDriveController>()" in blockout_builder
+          and "AddComponent<TrafficVehicleDriver>()" in blockout_builder
+          and 'FindProperty("cruisingSpeedKph").floatValue = 25f' in blockout_builder,
+          "Old Quay builder must create two opposing WheelCollider traffic cars with waypoint AI and obstacle checks")
     check("AddComponent<PoliceResponseDirector>()" in blockout_builder
           and "responseDirector.Configure(attentionState, player.transform, responseText);" in blockout_builder
           and 'CreateTouchImage(hudRoot, "Police response HUD background"' in blockout_builder,

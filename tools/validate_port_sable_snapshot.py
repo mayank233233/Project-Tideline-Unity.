@@ -631,6 +631,11 @@ def run() -> int:
     check("SetVehicleControlMode(true)" in vehicle_seat
           and "SetVehicleControlMode(false)" in vehicle_seat,
           "Vehicle entry/exit must switch the shared input mapping")
+    check("SetOccupantRenderersVisible(false)" in vehicle_seat
+          and "SetOccupantRenderersVisible(true)" in vehicle_seat
+          and "GetComponentsInChildren<Renderer>(true)" in vehicle_seat
+          and "_occupantRendererWasEnabled" in vehicle_seat,
+          "Vehicle seat must hide the on-foot placeholder and restore its original renderer states on exit")
     check("additionalAllowedObjectiveId" in vehicle_seat
           and "string.Equals(objective.objectiveId, additionalAllowedObjectiveId" in vehicle_seat
           and 'seat.ConfigureMissionGate(missionDirector, "old_quay_first_steps", "enter_delivery_vehicle", "drive_customer_delivery_route", "park_in_delivery_bay")' in blockout_builder,
@@ -686,6 +691,19 @@ def run() -> int:
     ):
         check(token in vehicle_seat,
               f"Vehicle seat/input/camera integration is missing: {token}")
+    for token in (
+        "Cab roof",
+        "Front windscreen",
+        "Rear cab window",
+        "Left side window",
+        "Right side window",
+        "Cab A-pillar",
+        "Cab B-pillar",
+        "Side mirror",
+        'Material glass = MakeMaterial("Customer car — dark smoked glass"',
+    ):
+        check(token in blockout_builder,
+              f"Generated delivery vehicle cab presentation is missing: {token}")
     for token in (
         "WheelCollider",
         "wheelCollider.radius = 0.36f",

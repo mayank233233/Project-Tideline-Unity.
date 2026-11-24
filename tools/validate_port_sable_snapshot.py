@@ -338,8 +338,6 @@ def run() -> int:
           "Audit note: generic IInteractable.SignalId is not currently emitted by ProximityInteractor")
     check("MissionSignalBus.Publish(choice.signalId, Mathf.Max(1, choice.signalAmount));" in dialogue_controller,
           "DialogueController must publish authored choice signals")
-    check("objectiveCount = missionDirector != null ? missionDirector.CurrentObjectiveCount : 0" in session,
-          "Session save must persist partial objective counts")
     check("Mathf.Max(1, objective.requiredCount) - 1" in mission_director,
           "Mission progress restore must clamp an active objective below its completion threshold")
     check("candidate.objectives == null || candidate.objectives.Length == 0" in mission_director,
@@ -384,6 +382,8 @@ def run() -> int:
         check(f"TryReadKey({field}, {schema}, out snapshot)" in save,
               f"Save reader does not map {field} to schema {schema}")
     check("snapshot.schemaVersion = 3" in save, "Save writer does not force schema v3")
+    check("objectiveCount = missionDirector != null ? missionDirector.CurrentObjectiveCount : 0" in session,
+          "Session save must persist partial objective counts")
     check("schemaVersion = 3" in session, "Session coordinator does not create v3 snapshots")
     check("CaptureLeadTransforms()" in session and "RestoreLeadTransforms(" in session,
           "Session save does not capture and restore all playable lead transforms")

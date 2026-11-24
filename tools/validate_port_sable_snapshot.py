@@ -249,6 +249,7 @@ def run() -> int:
     narrative_ledger = read("Assets/ProjectTideline/Scripts/Core/NarrativeStateLedger.cs")
     dialogue_controller = read("Assets/ProjectTideline/Scripts/Dialogue/DialogueController.cs")
     dialogue_interactable = read("Assets/ProjectTideline/Scripts/Interaction/DialogueInteractable.cs")
+    confrontation_interactable = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationInteractable.cs")
     vehicle_seat = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleSeatInteractable.cs")
     vehicle_drive = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDriveController.cs")
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
@@ -348,6 +349,12 @@ def run() -> int:
           "ProximityInteractor must dispatch focused dialogue interactions through IInteractable")
     check("MissionSignalBus.Publish(choice.signalId, Mathf.Max(1, choice.signalAmount));" in dialogue_controller,
           "DialogueController must publish authored choice signals")
+    check("public sealed class CinematicConfrontationInteractable" in confrontation_interactable
+          and "confrontationController.Begin(actor, opponentAnimator);" in confrontation_interactable
+          and "opponentAnimator == null" in confrontation_interactable,
+          "Cinematic confrontation must have an explicit proximity-interaction entry component")
+    check("public bool Begin(GameObject actor, Animator opponentAnimator)" in confrontation,
+          "CinematicConfrontationController must expose a guarded begin operation")
     check("Mathf.Max(1, objective.requiredCount) - 1" in mission_director,
           "Mission progress restore must clamp an active objective below its completion threshold")
     check("candidate.objectives == null || candidate.objectives.Length == 0" in mission_director,

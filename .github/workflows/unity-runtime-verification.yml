@@ -1,4 +1,4 @@
-name: Unity runtime verification
+name: Unity build verification
 
 on:
   push:

@@ -438,19 +438,22 @@ namespace ProjectTideline.Editor
             junoSerialized.FindProperty("dialogueController").objectReferenceValue = dialogueController;
             junoSerialized.FindProperty("dialogueGraph").objectReferenceValue = graph;
             junoSerialized.FindProperty("talkPrompt").stringValue = "Talk to Juno";
+            junoSerialized.FindProperty("oneShot").boolValue = true;
             junoSerialized.ApplyModifiedPropertiesWithoutUndo();
 
             GameObject ledger = MakeBlock("HARBOUR OFFICE — shipment ledger",
                 new Vector3(7f, 0.9f, 47f), new Vector3(1.6f, 1.8f, 1.2f),
                 MakeMaterial("Ledger Kiosk", new Color(0.32f, 0.37f, 0.35f)));
             ledger.AddComponent<MissionSignalInteractable>().Configure(
-                "old_quay.harbour_ledger_inspected", "Inspect shipment ledger");
+                MissionSignalInteractable.HarbourLedgerSignal, "Inspect shipment ledger", true,
+                missionDirector, "old_quay_first_steps", "inspect_harbour_ledger");
 
             GameObject reportBoard = MakeBlock("KADE MOTOR WORKS — report board",
                 new Vector3(-12.5f, 0.85f, -4f), new Vector3(1.5f, 1.7f, 0.35f),
                 MakeMaterial("Workshop Report Board", new Color(0.65f, 0.39f, 0.18f)));
             reportBoard.AddComponent<MissionSignalInteractable>().Configure(
-                "old_quay.juno_reported_back", "Report findings to Juno");
+                MissionSignalInteractable.WorkshopReportSignal, "Report findings to Juno", true,
+                missionDirector, "old_quay_first_steps", "report_to_juno");
         }
 
         private static Button CreateUiButton(Transform parent, string name, string label,

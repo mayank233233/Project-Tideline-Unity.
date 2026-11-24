@@ -23,6 +23,10 @@ namespace ProjectTideline
         [SerializeField] private float maxSteerAngle = 29f;
         [SerializeField] private float handbrakeTorque = 950f;
         [SerializeField] private float downforce = 28f;
+        [Header("Player Reverse")]
+        [SerializeField, Min(1f)] private float maxReverseSpeedKph = 10f;
+        [SerializeField, Min(0f)] private float reverseEngageSpeedKph = 1f;
+        [SerializeField, Range(0.1f, 1f)] private float reverseTorqueMultiplier = 0.62f;
         [SerializeField] private Transform centerOfMass;
         [Header("Distant NPC Wheel Visual LOD")]
         [SerializeField] private float fullRateVisualDistance = 25f;
@@ -80,6 +84,23 @@ namespace ProjectTideline
                 ? Mathf.Max(input.Brake, Mathf.Max(0f, -moveAxis))
                 : _npcDriving ? _npcBrake : 1f;
             bool handbrake = _isDriven && input != null && input.HandbrakeHeld;
+
+            // The S key / touch brake first slows a forward-moving vehicle. Once nearly
+            // stopped, continued input selects reverse, with a hard reverse-speed ceiling.
+            if (_isDriven && brake > 0f)
+            {
+                float longitudinalSpeedKph = Vector3.Dot(_body.linearVelocity, transform.forward) * 3.6f;
+                if (longitudinalSpeedKph <= reverseEngageSpeedKph
+                    && longitudinalSpeedKph > -Mathf.Max(1f, maxReverseSpeedKph))
+                {
+                    throttle = -brake * reverseTorqueMultiplier;
+                    brake = 0f;
+                }
+                else
+                {
+                    throttle = 0f;
+                }
+            }
 
             foreach (WheelBinding wheel in wheels)
             {

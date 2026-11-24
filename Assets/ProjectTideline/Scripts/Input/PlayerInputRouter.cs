@@ -18,6 +18,7 @@ namespace ProjectTideline
         private bool _confrontPressed;
         private bool _breakAwayPressed;
         private bool _handbrakeHeld;
+        private bool _vehicleControlMode;
         private float _throttle;
         private float _brake;
         private bool _legacyGameplayBlocked;
@@ -25,6 +26,7 @@ namespace ProjectTideline
 
         public Vector2 Move { get; private set; }
         public bool GameplayBlocked => _legacyGameplayBlocked || _gameplayBlockOwners.Count > 0;
+        public bool VehicleControlMode => _vehicleControlMode;
         public bool SprintHeld => !GameplayBlocked && (_sprintHeld || (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed));
         public bool HandbrakeHeld => !GameplayBlocked && (_handbrakeHeld || (Keyboard.current != null && Keyboard.current.spaceKey.isPressed));
         public float Throttle => GameplayBlocked ? 0f : Mathf.Max(_throttle, Keyboard.current != null && Keyboard.current.wKey.isPressed ? 1f : 0f);
@@ -118,6 +120,14 @@ namespace ProjectTideline
 
         public void SetSprint(bool value) { if (!GameplayBlocked) _sprintHeld = value; }
         public void SetHandbrake(bool value) { if (!GameplayBlocked) _handbrakeHeld = value; }
+        public void SetVehicleControlMode(bool value)
+        {
+            _vehicleControlMode = value;
+            _sprintHeld = false;
+            _throttle = 0f;
+            _brake = 0f;
+            _handbrakeHeld = false;
+        }
         public void SetThrottle(float value) { if (!GameplayBlocked) _throttle = Mathf.Clamp01(value); }
         public void SetBrake(float value) { if (!GameplayBlocked) _brake = Mathf.Clamp01(value); }
         public void PulseJump() { if (!GameplayBlocked) _jumpPressed = true; }
@@ -175,6 +185,7 @@ namespace ProjectTideline
             _confrontPressed = false;
             _breakAwayPressed = false;
             _handbrakeHeld = false;
+            _vehicleControlMode = false;
             _throttle = 0f;
             _brake = 0f;
             Move = Vector2.zero;

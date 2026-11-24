@@ -87,6 +87,12 @@ namespace ProjectTideline.Editor
             // Walkable quay, road, sidewalks and harbour edge.
             MakeBlock("Quay foundation", new Vector3(0f, -0.55f, 12f), new Vector3(110f, 1f, 110f), ground);
             MakeBlock("Main street asphalt", new Vector3(0f, 0.015f, 8f), new Vector3(13f, 0.12f, 94f), road);
+            MakeBlock("Old Quay southern cross street", new Vector3(0f, 0.025f, -23f),
+                new Vector3(94f, 0.12f, 9.5f), road);
+            MakeBlock("Cross street centre dash A", new Vector3(-31f, 0.095f, -23f),
+                new Vector3(4.2f, 0.025f, 0.16f), paint, false);
+            MakeBlock("Cross street centre dash B", new Vector3(31f, 0.095f, -23f),
+                new Vector3(4.2f, 0.025f, 0.16f), paint, false);
             MakeBlock("West pavement", new Vector3(-9.2f, 0.08f, 8f), new Vector3(5.2f, 0.25f, 94f), ground);
             MakeBlock("East pavement", new Vector3(9.2f, 0.08f, 8f), new Vector3(5.2f, 0.25f, 94f), ground);
             MakeBlock("Harbour retaining wall", new Vector3(0f, 1.1f, 57f), new Vector3(110f, 3.2f, 2.2f), metal);
@@ -717,16 +723,40 @@ namespace ProjectTideline.Editor
             missionDisplay.SetDeliveryBay(deliveryBay);
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector, dialogueController);
             BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);
-            // Two staggered cars per direction keep the blockout from feeling empty without
-            // placing vehicles nose-to-tail at the same spawn point.
-            BuildAmbientTrafficVehicle("Old Quay traffic — northbound A", -3.8f,
-                new[] { -34f, -12f, 12f, 46f }, new Color(0.22f, 0.30f, 0.34f), false);
-            BuildAmbientTrafficVehicle("Old Quay traffic — northbound B", -3.8f,
-                new[] { -14f, 8f, 30f, 46f }, new Color(0.43f, 0.34f, 0.22f), false);
-            BuildAmbientTrafficVehicle("Old Quay traffic — southbound A", 3.8f,
-                new[] { 46f, 22f, -2f, -34f }, new Color(0.38f, 0.27f, 0.19f), true);
-            BuildAmbientTrafficVehicle("Old Quay traffic — southbound B", 3.8f,
-                new[] { 24f, 2f, -20f, -34f }, new Color(0.20f, 0.34f, 0.30f), true);
+            // A compact four-way junction sits in the open southern block, clear of warehouse footprints.
+            TrafficSignalController junctionSignals = BuildOldQuayJunction(road, paint, metal, accent);
+            Transform northboundStop = MakeTrafficStopLine("Northbound stop line", -3.8f, -30.5f);
+            Transform southboundStop = MakeTrafficStopLine("Southbound stop line", 3.8f, -15.5f);
+            Transform eastboundStop = MakeTrafficStopLine("Eastbound stop line", -7.5f, -26.8f);
+            Transform westboundStop = MakeTrafficStopLine("Westbound stop line", 7.5f, -19.2f);
+
+            // Main-road traffic: two cars in each direction, with stop-line awareness.
+            BuildAmbientTrafficVehicle("Old Quay traffic — northbound A",
+                new[] { new Vector3(-3.8f, 0.1f, -34f), new Vector3(-3.8f, 0.1f, -12f),
+                        new Vector3(-3.8f, 0.1f, 12f), new Vector3(-3.8f, 0.1f, 46f) },
+                new Color(0.22f, 0.30f, 0.34f), junctionSignals, northboundStop, true);
+            BuildAmbientTrafficVehicle("Old Quay traffic — northbound B",
+                new[] { new Vector3(-3.8f, 0.1f, -14f), new Vector3(-3.8f, 0.1f, 8f),
+                        new Vector3(-3.8f, 0.1f, 30f), new Vector3(-3.8f, 0.1f, 46f) },
+                new Color(0.43f, 0.34f, 0.22f), junctionSignals, northboundStop, true);
+            BuildAmbientTrafficVehicle("Old Quay traffic — southbound A",
+                new[] { new Vector3(3.8f, 0.1f, 46f), new Vector3(3.8f, 0.1f, 22f),
+                        new Vector3(3.8f, 0.1f, -2f), new Vector3(3.8f, 0.1f, -34f) },
+                new Color(0.38f, 0.27f, 0.19f), junctionSignals, southboundStop, true);
+            BuildAmbientTrafficVehicle("Old Quay traffic — southbound B",
+                new[] { new Vector3(3.8f, 0.1f, 24f), new Vector3(3.8f, 0.1f, 2f),
+                        new Vector3(3.8f, 0.1f, -20f), new Vector3(3.8f, 0.1f, -34f) },
+                new Color(0.20f, 0.34f, 0.30f), junctionSignals, southboundStop, true);
+
+            // Cross-street traffic gives the second signal phase a real purpose.
+            BuildAmbientTrafficVehicle("Old Quay traffic — eastbound",
+                new[] { new Vector3(-42f, 0.1f, -26.8f), new Vector3(-20f, 0.1f, -26.8f),
+                        new Vector3(20f, 0.1f, -26.8f), new Vector3(42f, 0.1f, -26.8f) },
+                new Color(0.34f, 0.28f, 0.40f), junctionSignals, eastboundStop, false);
+            BuildAmbientTrafficVehicle("Old Quay traffic — westbound",
+                new[] { new Vector3(42f, 0.1f, -19.2f), new Vector3(20f, 0.1f, -19.2f),
+                        new Vector3(-20f, 0.1f, -19.2f), new Vector3(-42f, 0.1f, -19.2f) },
+                new Color(0.36f, 0.37f, 0.25f), junctionSignals, westboundStop, false);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
                 new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
@@ -772,14 +802,18 @@ namespace ProjectTideline.Editor
                 new Vector3(8.4f, 0.035f, 0.16f), safehousePaint, false);
         }
 
-        private static void BuildAmbientTrafficVehicle(string name, float x, float[] routeZ,
-            Color bodyColor, bool facesNegativeZ)
+        private static void BuildAmbientTrafficVehicle(string name, Vector3[] routePoints,
+            Color bodyColor, TrafficSignalController signal, Transform stopLine, bool usesMainRoadSignal)
         {
-            if (routeZ == null || routeZ.Length < 2) return;
+            if (routePoints == null || routePoints.Length < 2) return;
+
+            Vector3 initialDirection = routePoints[1] - routePoints[0];
+            initialDirection.y = 0f;
+            if (initialDirection.sqrMagnitude < 0.01f) return;
 
             GameObject car = new GameObject(name);
-            car.transform.position = new Vector3(x, 0f, routeZ[0]);
-            car.transform.rotation = Quaternion.Euler(0f, facesNegativeZ ? 180f : 0f, 0f);
+            car.transform.position = new Vector3(routePoints[0].x, 0f, routePoints[0].z);
+            car.transform.rotation = Quaternion.LookRotation(initialDirection.normalized, Vector3.up);
 
             Rigidbody body = car.AddComponent<Rigidbody>();
             body.mass = 1220f;
@@ -807,8 +841,8 @@ namespace ProjectTideline.Editor
             // Light components or extra physics colliders to every ambient car.
             Material headlamp = MakeEmissiveMaterial(name + " — headlamp lens", new Color(1f, 0.82f, 0.56f), 1.15f);
             Material tailLamp = MakeEmissiveMaterial(name + " — tail lamp lens", new Color(0.72f, 0.035f, 0.018f), 0.8f);
-            float frontZ = facesNegativeZ ? -1.86f : 1.86f;
-            float rearZ = -frontZ;
+            const float frontZ = 1.86f;
+            const float rearZ = -1.86f;
             GameObject frontLeft = MakeBlock(name + " — left headlamp", Vector3.zero,
                 new Vector3(0.34f, 0.13f, 0.055f), headlamp, false);
             frontLeft.transform.SetParent(car.transform, false);
@@ -881,13 +915,13 @@ namespace ProjectTideline.Editor
             TrafficVehicleDriver traffic = car.AddComponent<TrafficVehicleDriver>();
             SerializedObject trafficSerialized = new SerializedObject(traffic);
             SerializedProperty route = trafficSerialized.FindProperty("route");
-            route.arraySize = routeZ.Length;
+            route.arraySize = routePoints.Length;
             GameObject routeRoot = new GameObject(name + " — waypoint route");
-            for (int i = 0; i < routeZ.Length; i++)
+            for (int i = 0; i < routePoints.Length; i++)
             {
                 GameObject waypoint = new GameObject(name + " — route node " + (i + 1));
                 waypoint.transform.SetParent(routeRoot.transform, false);
-                waypoint.transform.position = new Vector3(x, 0.1f, routeZ[i]);
+                waypoint.transform.position = routePoints[i];
                 route.GetArrayElementAtIndex(i).objectReferenceValue = waypoint.transform;
             }
             trafficSerialized.FindProperty("cruisingSpeedKph").floatValue = 25f;
@@ -895,6 +929,51 @@ namespace ProjectTideline.Editor
             trafficSerialized.FindProperty("obstacleCheckDistance").floatValue = 7f;
             trafficSerialized.FindProperty("obstacleRadius").floatValue = 0.55f;
             trafficSerialized.ApplyModifiedPropertiesWithoutUndo();
+            traffic.ConfigureSignal(signal, stopLine, usesMainRoadSignal);
+        }
+
+        private static TrafficSignalController BuildOldQuayJunction(Material road, Material paint,
+            Material metal, Material accent)
+        {
+            GameObject junction = new GameObject("Old Quay — timed four-way traffic junction");
+            TrafficSignalController controller = junction.AddComponent<TrafficSignalController>();
+
+            // Two compact signal heads use enabled emissive lenses, avoiding extra real-time lights.
+            Renderer mainRed = BuildTrafficSignalHead("Main road red", new Vector3(-7f, 3.1f, -30.8f),
+                new Color(0.85f, 0.035f, 0.02f));
+            Renderer mainGreen = BuildTrafficSignalHead("Main road green", new Vector3(-7f, 2.65f, -30.8f),
+                new Color(0.08f, 0.8f, 0.16f));
+            Renderer crossRed = BuildTrafficSignalHead("Cross street red", new Vector3(7f, 3.1f, -15.2f),
+                new Color(0.85f, 0.035f, 0.02f));
+            Renderer crossGreen = BuildTrafficSignalHead("Cross street green", new Vector3(7f, 2.65f, -15.2f),
+                new Color(0.08f, 0.8f, 0.16f));
+
+            MakeBlock("Northwest signal pole", new Vector3(-7f, 1.5f, -30.8f),
+                new Vector3(0.18f, 3f, 0.18f), metal, false);
+            MakeBlock("Southeast signal pole", new Vector3(7f, 1.5f, -15.2f),
+                new Vector3(0.18f, 3f, 0.18f), metal, false);
+
+            controller.Configure(mainRed, mainGreen, crossRed, crossGreen, 16f, 2f, 12f, 2f);
+            return controller;
+        }
+
+        private static Renderer BuildTrafficSignalHead(string name, Vector3 position, Color glow)
+        {
+            GameObject lens = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            lens.name = "Traffic signal lens — " + name;
+            lens.transform.position = position;
+            lens.transform.localScale = Vector3.one * 0.34f;
+            Renderer renderer = lens.GetComponent<Renderer>();
+            renderer.sharedMaterial = MakeEmissiveMaterial(name + " emissive", glow, 1.4f);
+            UnityEngine.Object.DestroyImmediate(lens.GetComponent<Collider>());
+            return renderer;
+        }
+
+        private static Transform MakeTrafficStopLine(string name, float x, float z)
+        {
+            GameObject stop = new GameObject(name);
+            stop.transform.position = new Vector3(x, 0.1f, z);
+            return stop.transform;
         }
 
         private static void BuildAmbientPedestrian(string name, float x, float[] routeZ,

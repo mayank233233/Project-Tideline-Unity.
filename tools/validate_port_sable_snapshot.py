@@ -262,6 +262,8 @@ def run() -> int:
               f"Dialogue audit must validate the specific choice {signal}")
 
     input_router = read("Assets/ProjectTideline/Scripts/Input/PlayerInputRouter.cs")
+    character_animation_driver = read("Assets/ProjectTideline/Scripts/Animation/CharacterAnimationDriver.cs")
+    proximity_interactor = read("Assets/ProjectTideline/Scripts/Interaction/ProximityInteractor.cs")
     mission_director = read("Assets/ProjectTideline/Scripts/Missions/MissionDirector.cs")
     mission_signal_bus = read("Assets/ProjectTideline/Scripts/Missions/MissionSignalBus.cs")
     branch_evaluator = read("Assets/ProjectTideline/Scripts/Missions/MissionBranchEvaluator.cs")
@@ -392,6 +394,16 @@ def run() -> int:
           and "ReleaseGameplayBlock(object owner)" in input_router
           and "GameplayBlocked => _legacyGameplayBlocked || _gameplayBlockOwners.Count > 0" in input_router,
           "PlayerInputRouter must track independently owned gameplay input blocks")
+    check("GetDistanceUpdateInterval()" in character_animation_driver
+          and "lodReference" in character_animation_driver
+          and "fullRateDistance" in character_animation_driver
+          and "reducedRateDistance" in character_animation_driver
+          and "animationDeltaTime" in character_animation_driver,
+          "CharacterAnimationDriver must reduce distant NPC parameter-update frequency while preserving near-player full-rate animation")
+    check("List<MonoBehaviour> _candidateBuffer" in proximity_interactor
+          and "GetComponentsInParent<MonoBehaviour>(true, _candidateBuffer)" in proximity_interactor
+          and "MonoBehaviour[] candidates" not in proximity_interactor,
+          "ProximityInteractor must reuse a component buffer instead of allocating a candidate array during interaction scans")
     check("_inputBlockRouter = PlayerInputRouter.Instance;" in dialogue_controller
           and "_inputBlockRouter.AcquireGameplayBlock(this);" in dialogue_controller
           and "_inputBlockRouter.ReleaseGameplayBlock(this);" in dialogue_controller

@@ -428,7 +428,7 @@ def run() -> int:
     check("RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ" in police_pursuit
           and "Quaternion.RotateTowards" in police_pursuit
           and "_body.AddForce" in police_pursuit
-          and "Configure(chaseTarget, speed, followGap)" in police_pursuit,
+          and "Configure(chaseTarget, speed, followGap, redLight, blueLight)" in police_pursuit,
           "Police pursuit vehicle must use bounded arcade steering, acceleration and a configured player target")
     check("SignalId" not in interactable and "interaction.generic" not in interactable
           and "SignalId" not in proximity_interactor,

@@ -115,6 +115,22 @@ namespace ProjectTideline
                 new Vector3(0.28f, 0.1f, 0.22f), new Color(0.95f, 0.08f, 0.06f));
             CreateVisual(root.transform, "Right blue light", new Vector3(0.34f, 1.72f, 0.12f),
                 new Vector3(0.28f, 0.1f, 0.22f), new Color(0.06f, 0.24f, 0.98f));
+            for (int side = -1; side <= 1; side += 2)
+            {
+                for (int axle = -1; axle <= 1; axle += 2)
+                {
+                    GameObject wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    wheel.name = "Patrol tyre";
+                    wheel.transform.SetParent(root.transform, false);
+                    wheel.transform.localPosition = new Vector3(side * 0.96f, 0.34f, axle * 1.28f);
+                    wheel.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                    wheel.transform.localScale = new Vector3(0.23f, 0.34f, 0.34f);
+                    Collider wheelCollider = wheel.GetComponent<Collider>();
+                    if (wheelCollider != null) Object.Destroy(wheelCollider);
+                    Renderer wheelRenderer = wheel.GetComponent<Renderer>();
+                    if (wheelRenderer != null) wheelRenderer.material.color = new Color(0.025f, 0.03f, 0.035f);
+                }
+            }
 
             PolicePursuitVehicle pursuit = root.AddComponent<PolicePursuitVehicle>();
             pursuit.Configure(chaseTarget, speed, followGap);

@@ -628,7 +628,11 @@ def run() -> int:
           "Unoccupied player vehicles must hold the parking brake")
 
     delivery_checkpoint = read("Assets/ProjectTideline/Scripts/Vehicles/VehicleDeliveryCheckpoint.cs")
-    customer_handoff = read("Assets/ProjectTideline/Scripts/Interaction/CustomerHandoffInteractable.cs")
+    customer_handoff = read("Assets/ProjectTideline/Scripts/Interaction/MaraCustomerHandoffInteractable.cs")
+    handoff_controller = read("Assets/ProjectTideline/Scripts/World/MaraDeliveryHandoffController.cs")
+    route_start_interactable = read("Assets/ProjectTideline/Scripts/Interaction/RouteRaceStartInteractable.cs")
+    route_controller = read("Assets/ProjectTideline/Scripts/World/RouteRaceController.cs")
+    route_checkpoint = read("Assets/ProjectTideline/Scripts/World/RouteRaceCheckpoint.cs")
     for token in (
         'DeliveryArrivedSignal = "old_quay.delivery_arrived"',
         "OnTriggerStay(Collider other)",
@@ -640,10 +644,17 @@ def run() -> int:
         check(token in delivery_checkpoint,
               f"Delivery bay checkpoint is missing: {token}")
     for token in (
-        'HandoffAcceptedSignal = "old_quay.customer_handoff_accepted"',
-        "deliveryCheckpoint.HasArrived",
-        "deliverySeat.IsOccupiedBy(actor)",
-        'MissionSignalBus.Publish("old_quay.customer_handoff_accepted", 1)',
+        "CanCompleteHandoff",
+        "deliveryRoute.HasFinished",
+        "deliveryBay.HasArrived",
+        'MissionSignalBus.Publish("mara.delivery.finished", 1)',
+    ):
+        check(token in handoff_controller,
+              f"Customer handoff controller is missing: {token}")
+    for token in (
+        "handoffController.CanCompleteHandoff",
+        "handoffController.TryCompleteHandoff(actor)",
+        "Hand over the vehicle",
     ):
         check(token in customer_handoff,
               f"Customer handoff interaction is missing: {token}")
@@ -651,32 +662,51 @@ def run() -> int:
         "public bool IsOccupied => _occupant != null",
         "SetVehicleControlMode(true)",
         "SetVehicleControlMode(false)",
+        "cameraRig.SetTarget(actor.transform",
     ):
         check(token in vehicle_seat,
-              f"Vehicle seat/input integration is missing: {token}")
+              f"Vehicle seat/input/camera integration is missing: {token}")
     for token in (
         "WheelCollider",
         "wheelCollider.radius = 0.36f",
-        "VehicleDriveController drive = vehicleObject.AddComponent<VehicleDriveController>()",
-        "new WheelBindingSetup(-0.86f, 1.28f, true, false",
-        "new WheelBindingSetup(0.86f, -1.28f, false, true",
+        "CUSTOMER DELIVERY CAR",
+        "VehicleDriveController driveController = car.AddComponent<VehicleDriveController>()",
+        "new Vector3(-0.84f, 0.40f, 1.18f)",
+        "new Vector3(0.84f, 0.40f, -1.18f)",
         "VehicleSeatInteractable",
-        "Customer bay — left stop line",
-        "checkpoint.Configure(deliveryVehicle, deliverySeat)",
-        "handoff.Configure(checkpoint, deliverySeat)",
+        "BuildCustomerDeliveryRoute(deliveryVehicle)",
+        "BuildCustomerDeliveryBay(deliveryVehicle, deliverySeat)",
+        "deliveryBay.Configure(deliveryVehicle, deliverySeat)",
+        "handoff.Configure(deliveryRoute, missionDirector, deliveryBay)",
     ):
         check(token in blockout_builder,
               f"Generated drivable delivery sequence is missing: {token}")
-    for objective in (
-        "enter_delivery_car",
-        "deliver_to_customer",
-        "customer_handoff",
+    for token in (
+        "race.long_loop.started",
         "vehicle.entered",
+        "race.long_loop.finished",
         "old_quay.delivery_arrived",
-        "old_quay.customer_handoff_accepted",
+        "mara.delivery.finished",
+        "old_quay.juno_debrief_completed",
+        "start_customer_delivery",
+        "enter_delivery_vehicle",
+        "drive_customer_delivery_route",
+        "park_in_delivery_bay",
+        "hand_over_customer_vehicle",
+        "return_to_juno",
+        "checkpointIndex",
+        "TryRegisterCheckpoint",
     ):
-        check(objective in blockout_builder,
-              f"Generated tutorial mission is missing delivery objective/signal: {objective}")
+        check(token in blockout_builder + route_controller + route_checkpoint,
+              f"Generated ordered delivery mission is missing: {token}")
+    for token in (
+        "missionDirector.CurrentObjective",
+        "requiredObjectiveId",
+        "raceController.BeginRace()",
+        "Complete the previous objective first",
+    ):
+        check(token in route_start_interactable,
+              f"Delivery route start objective gate is missing: {token}")
 
     mission_signal_interactable = read("Assets/ProjectTideline/Scripts/Interaction/MissionSignalInteractable.cs")
     dialogue_interactable = read("Assets/ProjectTideline/Scripts/Interaction/DialogueInteractable.cs")

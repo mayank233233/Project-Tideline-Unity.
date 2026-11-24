@@ -588,6 +588,7 @@ namespace ProjectTideline.Editor
 
             Material bodyPaint = MakeMaterial("Customer car — deep harbour blue", new Color(0.10f, 0.22f, 0.29f), 0.48f);
             Material trim = MakeMaterial("Customer car — dark trim", new Color(0.055f, 0.07f, 0.075f), 0.62f);
+            Material glass = MakeMaterial("Customer car — dark smoked glass", new Color(0.08f, 0.16f, 0.18f), 0.18f);
             Material lamp = MakeMaterial("Customer car — warm lamp", new Color(0.92f, 0.78f, 0.46f), 0.12f);
 
             GameObject chassis = MakeBlock("Car chassis and body", Vector3.zero,
@@ -626,6 +627,29 @@ namespace ProjectTideline.Editor
                     new Vector3(0.12f, 0.22f, 1.55f), trim, false);
                 sideTrim.transform.SetParent(car.transform, false);
                 sideTrim.transform.localPosition = new Vector3(side * 0.91f, 0.66f, -0.02f);
+            }
+
+            // Add a readable utility-car cab silhouette. The driver placeholder is hidden while seated.
+            MakeBlock("Cab roof", new Vector3(0f, 1.73f, 0.12f),
+                new Vector3(1.82f, 0.18f, 1.72f), bodyPaint, false);
+            MakeBlock("Front windscreen", new Vector3(0f, 1.42f, 0.91f),
+                new Vector3(1.55f, 0.52f, 0.07f), glass, false);
+            MakeBlock("Rear cab window", new Vector3(0f, 1.40f, -0.72f),
+                new Vector3(1.50f, 0.44f, 0.07f), glass, false);
+            MakeBlock("Left side window", new Vector3(-0.92f, 1.42f, 0.10f),
+                new Vector3(0.07f, 0.48f, 1.28f), glass, false);
+            MakeBlock("Right side window", new Vector3(0.92f, 1.42f, 0.10f),
+                new Vector3(0.07f, 0.48f, 1.28f), glass, false);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                MakeBlock("Cab A-pillar", new Vector3(side * 0.80f, 1.41f, 0.88f),
+                    new Vector3(0.12f, 0.68f, 0.14f), bodyPaint, false);
+                MakeBlock("Cab B-pillar", new Vector3(side * 0.80f, 1.41f, -0.57f),
+                    new Vector3(0.12f, 0.68f, 0.14f), bodyPaint, false);
+                MakeBlock("Side mirror", new Vector3(side * 1.02f, 1.35f, 0.73f),
+                    new Vector3(0.16f, 0.12f, 0.22f), trim, false);
+                MakeBlock("Front door lower panel", new Vector3(side * 0.94f, 0.91f, 0.08f),
+                    new Vector3(0.08f, 0.30f, 1.48f), bodyPaint, false);
             }
 
             Transform centreOfMass = new GameObject("Centre of mass").transform;

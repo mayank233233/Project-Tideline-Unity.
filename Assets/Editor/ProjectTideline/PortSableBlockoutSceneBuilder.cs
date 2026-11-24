@@ -717,6 +717,10 @@ namespace ProjectTideline.Editor
             missionDisplay.SetDeliveryBay(deliveryBay);
             BuildCustomerHandoffActor(deliveryRoute, deliveryBay, deliverySeat, missionDirector, dialogueController);
             BuildFirstScoreWorld(deliveryVehicle, deliverySeat, missionDirector);
+            BuildAmbientTrafficVehicle("Old Quay traffic — northbound", -3.8f,
+                new[] { -34f, -12f, 12f, 46f }, new Color(0.22f, 0.30f, 0.34f), false);
+            BuildAmbientTrafficVehicle("Old Quay traffic — southbound", 3.8f,
+                new[] { 46f, 22f, -2f, -34f }, new Color(0.38f, 0.27f, 0.19f), true);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
                 new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
@@ -760,6 +764,106 @@ namespace ProjectTideline.Editor
                 new Vector3(0.16f, 0.035f, 7.4f), safehousePaint, false);
             MakeBlock("Safehouse arrival bay stop marker", new Vector3(0f, 0.10f, -37.6f),
                 new Vector3(8.4f, 0.035f, 0.16f), safehousePaint, false);
+        }
+
+        private static void BuildAmbientTrafficVehicle(string name, float x, float[] routeZ,
+            Color bodyColor, bool facesNegativeZ)
+        {
+            if (routeZ == null || routeZ.Length < 2) return;
+
+            GameObject car = new GameObject(name);
+            car.transform.position = new Vector3(x, 0f, routeZ[0]);
+            car.transform.rotation = Quaternion.Euler(0f, facesNegativeZ ? 180f : 0f, 0f);
+
+            Rigidbody body = car.AddComponent<Rigidbody>();
+            body.mass = 1220f;
+            body.linearDamping = 0.16f;
+            body.angularDamping = 1.4f;
+            body.interpolation = RigidbodyInterpolation.Interpolate;
+            body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            BoxCollider chassisCollider = car.AddComponent<BoxCollider>();
+            chassisCollider.center = new Vector3(0f, 0.72f, 0f);
+            chassisCollider.size = new Vector3(1.9f, 0.62f, 3.8f);
+
+            Material paint = MakeMaterial(name + " — body paint", bodyColor, 0.32f, 0.48f);
+            Material trim = MakeMaterial(name + " — dark trim", new Color(0.045f, 0.055f, 0.06f), 0.28f);
+            GameObject chassis = MakeBlock(name + " — chassis visual", Vector3.zero,
+                new Vector3(1.86f, 0.58f, 3.72f), paint, false);
+            chassis.transform.SetParent(car.transform, false);
+            chassis.transform.localPosition = new Vector3(0f, 0.76f, 0f);
+            GameObject cabin = MakeBlock(name + " — cabin visual", Vector3.zero,
+                new Vector3(1.48f, 0.56f, 1.82f), trim, false);
+            cabin.transform.SetParent(car.transform, false);
+            cabin.transform.localPosition = new Vector3(0f, 1.28f, -0.08f);
+
+            Vector3[] wheelPositions =
+            {
+                new Vector3(-0.82f, 0.36f, 1.14f),
+                new Vector3(0.82f, 0.36f, 1.14f),
+                new Vector3(-0.82f, 0.36f, -1.14f),
+                new Vector3(0.82f, 0.36f, -1.14f)
+            };
+            WheelCollider[] wheelColliders = new WheelCollider[4];
+            Transform[] wheelVisuals = new Transform[4];
+            for (int i = 0; i < wheelPositions.Length; i++)
+            {
+                GameObject wheelObject = new GameObject("Traffic WheelCollider " + i);
+                wheelObject.transform.SetParent(car.transform, false);
+                wheelObject.transform.localPosition = wheelPositions[i];
+                WheelCollider wheel = wheelObject.AddComponent<WheelCollider>();
+                wheel.radius = 0.34f;
+                wheel.suspensionDistance = 0.18f;
+                wheel.mass = 24f;
+                wheel.forceAppPointDistance = 0.12f;
+                wheelColliders[i] = wheel;
+
+                GameObject visual = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                visual.name = "Traffic tyre visual " + i;
+                visual.transform.SetParent(car.transform, false);
+                visual.transform.localPosition = wheelPositions[i];
+                visual.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                visual.transform.localScale = new Vector3(0.23f, 0.34f, 0.34f);
+                visual.GetComponent<Renderer>().sharedMaterial = trim;
+                UnityEngine.Object.DestroyImmediate(visual.GetComponent<Collider>());
+                wheelVisuals[i] = visual.transform;
+            }
+
+            VehicleDriveController drive = car.AddComponent<VehicleDriveController>();
+            SerializedObject driveSerialized = new SerializedObject(drive);
+            SerializedProperty bindings = driveSerialized.FindProperty("wheels");
+            bindings.arraySize = 4;
+            for (int i = 0; i < 4; i++)
+            {
+                SerializedProperty binding = bindings.GetArrayElementAtIndex(i);
+                binding.FindPropertyRelative("collider").objectReferenceValue = wheelColliders[i];
+                binding.FindPropertyRelative("visual").objectReferenceValue = wheelVisuals[i];
+                binding.FindPropertyRelative("steer").boolValue = i < 2;
+                binding.FindPropertyRelative("driven").boolValue = i >= 2;
+                binding.FindPropertyRelative("visualRotationOffset").vector3Value = new Vector3(0f, 0f, 90f);
+            }
+            driveSerialized.FindProperty("motorTorque").floatValue = 1050f;
+            driveSerialized.FindProperty("brakeTorque").floatValue = 2200f;
+            driveSerialized.FindProperty("maxSteerAngle").floatValue = 28f;
+            driveSerialized.FindProperty("handbrakeTorque").floatValue = 3200f;
+            driveSerialized.FindProperty("downforce").floatValue = 18f;
+            driveSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            TrafficVehicleDriver traffic = car.AddComponent<TrafficVehicleDriver>();
+            SerializedObject trafficSerialized = new SerializedObject(traffic);
+            SerializedProperty route = trafficSerialized.FindProperty("route");
+            route.arraySize = routeZ.Length;
+            for (int i = 0; i < routeZ.Length; i++)
+            {
+                GameObject waypoint = new GameObject(name + " — route node " + (i + 1));
+                waypoint.transform.position = new Vector3(x, 0.1f, routeZ[i]);
+                route.GetArrayElementAtIndex(i).objectReferenceValue = waypoint.transform;
+            }
+            trafficSerialized.FindProperty("cruisingSpeedKph").floatValue = 25f;
+            trafficSerialized.FindProperty("waypointRadius").floatValue = 5f;
+            trafficSerialized.FindProperty("obstacleCheckDistance").floatValue = 7f;
+            trafficSerialized.FindProperty("obstacleRadius").floatValue = 0.55f;
+            trafficSerialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void BuildAmbientPedestrian(string name, float x, float[] routeZ,

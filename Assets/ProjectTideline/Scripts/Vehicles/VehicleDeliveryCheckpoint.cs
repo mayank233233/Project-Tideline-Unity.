@@ -42,7 +42,7 @@ namespace ProjectTideline
             if (!driverSeat.IsOccupied || deliveryVehicle.SpeedKph > maximumHandoffSpeedKph) return;
 
             _arrived = true;
-            MissionSignalBus.Publish(DeliveryArrivedSignal, 1);
+            MissionSignalBus.Publish("old_quay.delivery_arrived", 1);
         }
     }
 }

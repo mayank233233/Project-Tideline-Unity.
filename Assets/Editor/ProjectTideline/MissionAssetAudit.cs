@@ -352,6 +352,9 @@ namespace ProjectTideline.Editor
             report.Add("");
             report.Add("Mission signal bus tests:");
             report.AddRange(RunSignalBusSelfTests());
+            report.Add("");
+            report.Add("Signal producer catalog tests:");
+            report.AddRange(RunSignalProducerCatalogSelfTests());
 
             File.WriteAllLines(ReportPath, report);
             AssetDatabase.Refresh();
@@ -636,6 +639,36 @@ namespace ProjectTideline.Editor
 
             if (failures.Count == 0) failures.Add("PASS — 15 branch evaluator cases.");
             else failures.Insert(0, "FAIL — " + failures.Count + " branch evaluator cases.");
+            return failures;
+        }
+
+        private static List<string> RunSignalProducerCatalogSelfTests()
+        {
+            var failures = new List<string>();
+            var catalog = new SignalProducerCatalog();
+            catalog.Add("vehicle.entered", "VehicleSeatInteractable");
+            catalog.HasRelationshipPattern = true;
+            catalog.HasAttentionBandPattern = true;
+            catalog.RouteRacePrefix = "race.long_loop";
+
+            Test("literal signal resolves to its registered producer",
+                catalog.TryResolve("vehicle.entered", out string literalProducer)
+                    && literalProducer == "VehicleSeatInteractable", failures);
+            Test("dynamic relationship signal requires a non-empty character ID",
+                catalog.TryResolve("relationship.changed.mina_sato", out _)
+                    && !catalog.TryResolve("relationship.changed.", out _), failures);
+            Test("only the three authored attention bands are accepted",
+                catalog.TryResolve("world.attention.band.noticed", out _)
+                    && !catalog.TryResolve("world.attention.band.alarmed", out _), failures);
+            Test("route race prefix resolves only its four declared outcomes",
+                catalog.TryResolve("race.long_loop.finished", out _)
+                    && !catalog.TryResolve("race.long_loop.winner", out _), failures);
+            Test("unknown signals are rejected",
+                !catalog.TryResolve("interaction.generic", out _)
+                    && !catalog.TryResolve("missing.signal", out _), failures);
+
+            if (failures.Count == 0) failures.Add("PASS — 5 signal producer catalog cases.");
+            else failures.Insert(0, "FAIL — " + failures.Count + " signal producer catalog cases.");
             return failures;
         }
 

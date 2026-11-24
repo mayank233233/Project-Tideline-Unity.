@@ -547,6 +547,35 @@ def run() -> int:
     check('DestroyImmediate(body.GetComponent<Collider>())' in blockout_builder,
           "Player visual placeholder must not add a duplicate collider to CharacterController")
 
+    mobile_controls = read("Assets/ProjectTideline/Scripts/Input/MobileTouchControl.cs")
+    for token in (
+        "IPointerDownHandler",
+        "IDragHandler",
+        "IPointerUpHandler",
+        "MobileTouchControlMode.MoveStick",
+        "MobileTouchControlMode.LookPad",
+        "MobileTouchControlMode.SprintButton",
+        "MobileTouchControlMode.JumpButton",
+        "MobileTouchControlMode.InteractButton",
+        "PlayerInputRouter.Instance.SetMove(direction)",
+        "PlayerInputRouter.Instance.AddLookDelta",
+        "PlayerInputRouter.Instance.SetSprint(false)",
+    ):
+        check(token in mobile_controls,
+              f"Mobile touch control implementation is missing: {token}")
+    for token in (
+        "CanvasScaler",
+        "GraphicRaycaster",
+        "InputSystemUIInputModule",
+        "AssignDefaultActions()",
+        "BuildMobileControls()",
+        '"MOVE — virtual joystick"',
+        '"LOOK — drag to orbit camera"',
+        '"INTERACT"',
+    ):
+        check(token in blockout_builder,
+              f"Generated scene is missing mobile HUD wiring: {token}")
+
     readme = read("README.md")
     check("MaraDeliveryRouteCompletionRelay" not in readme
           and "MaraDeliveryHandoffController" in readme,

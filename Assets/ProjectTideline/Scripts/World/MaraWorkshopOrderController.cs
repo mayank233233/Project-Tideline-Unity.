@@ -33,7 +33,12 @@ namespace ProjectTideline
 
         public int CompletedTaskCount => _completedTaskIds.Count;
         public int RequiredTaskCount => _requiredTaskSet != null ? _requiredTaskSet.Count : 0;
-        public bool IsComplete => _configurationValid && RequiredTaskCount > 0
+        public bool IsUnlocked => MissionProgressHasPassedWorkOrder()
+            || (NarrativeStateLedger.Instance != null
+                && NarrativeStateLedger.Instance.HasFlag("mara_work_order_accepted")
+                && NarrativeStateLedger.Instance.GetFlag("mara_work_order_accepted") == 1);
+
+        public bool IsComplete => _configurationValid && IsUnlocked && RequiredTaskCount > 0
             && (CompletedTaskCount == RequiredTaskCount || MissionProgressHasPassedWorkOrder());
 
         private bool MissionProgressHasPassedWorkOrder()
@@ -69,7 +74,7 @@ namespace ProjectTideline
 
         public bool TryCompleteTask(string taskId, GameObject actor)
         {
-            if (!_configurationValid || !isActiveAndEnabled || actor == null || IsComplete
+            if (!_configurationValid || !isActiveAndEnabled || actor == null || !IsUnlocked || IsComplete
                 || string.IsNullOrWhiteSpace(taskId) || !_requiredTaskSet.Contains(taskId)
                 || !_completedTaskIds.Add(taskId))
                 return false;

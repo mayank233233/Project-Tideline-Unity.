@@ -54,7 +54,12 @@ namespace ProjectTideline
 
         private void Update()
         {
-            if (PlayerInputRouter.Instance == null || viewOrigin == null || actorRoot == null) return;
+            if (PlayerInputRouter.Instance == null || viewOrigin == null || actorRoot == null)
+            {
+                SetFocus(null);
+                HidePrompt();
+                return;
+            }
             if (PlayerInputRouter.Instance.GameplayBlocked)
             {
                 SetFocus(null);
@@ -115,7 +120,10 @@ namespace ProjectTideline
                 hit.collider.GetComponentsInParent<MonoBehaviour>(true, _candidateBuffer);
                 foreach (MonoBehaviour candidate in _candidateBuffer)
                 {
-                    if (candidate is IInteractable interactable)
+                    if (candidate is IInteractable interactable
+                        && candidate != null
+                        && candidate.isActiveAndEnabled
+                        && candidate.gameObject.activeInHierarchy)
                     {
                         found = interactable;
                         break;

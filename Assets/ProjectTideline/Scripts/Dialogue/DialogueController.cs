@@ -118,11 +118,23 @@ namespace ProjectTideline
                 }
                 else
                 {
-                    // Preserve generic ledger signals for choices that have no explicit signal.
-                    if (relationshipChanged)
+                    // Both state changes belong to this single choice. Enqueue both signals
+                    // together so objective progression cannot occur between them.
+                    if (relationshipChanged && storyFlagChanged)
+                    {
+                        MissionSignalBus.PublishBatch(
+                            new MissionSignalBus.Signal(
+                                "relationship.changed." + choice.relationshipCharacterId, 1),
+                            new MissionSignalBus.Signal("story.flag.changed", 1));
+                    }
+                    else if (relationshipChanged)
+                    {
                         MissionSignalBus.Publish("relationship.changed." + choice.relationshipCharacterId, 1);
-                    if (storyFlagChanged)
+                    }
+                    else if (storyFlagChanged)
+                    {
                         MissionSignalBus.Publish("story.flag.changed", 1);
+                    }
                 }
             }
 

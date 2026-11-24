@@ -325,6 +325,16 @@ namespace ProjectTideline.Editor
             if (assets.Count == 0)
                 warnings.Add("No serialized MissionDefinition assets exist in this checkout. Running a Unity scene builder is required to create the legacy testbed assets; PORT SABLE still needs its own authored mission assets.");
 
+            List<string> evaluatorSelfTests = RunEvaluatorSelfTests();
+            List<string> signalBusSelfTests = RunSignalBusSelfTests();
+            List<string> producerCatalogSelfTests = RunSignalProducerCatalogSelfTests();
+            if (evaluatorSelfTests.Any(result => result.StartsWith("FAIL", StringComparison.Ordinal)))
+                errors.Add("Mission branch evaluator self-tests failed.");
+            if (signalBusSelfTests.Any(result => result.StartsWith("FAIL", StringComparison.Ordinal)))
+                errors.Add("Mission signal bus self-tests failed.");
+            if (producerCatalogSelfTests.Any(result => result.StartsWith("FAIL", StringComparison.Ordinal)))
+                errors.Add("Mission signal producer catalog self-tests failed.");
+
             string status = errors.Count == 0
                 ? (portSableMissing == 0 ? "PASS" : "BLOCKED — PORT SABLE MISSION ASSETS MISSING")
                 : "FAIL";
@@ -348,13 +358,13 @@ namespace ProjectTideline.Editor
             else foreach (string warning in warnings) report.Add("BLOCKED: " + warning);
             report.Add("");
             report.Add("Pure branch evaluator tests:");
-            report.AddRange(RunEvaluatorSelfTests());
+            report.AddRange(evaluatorSelfTests);
             report.Add("");
             report.Add("Mission signal bus tests:");
-            report.AddRange(RunSignalBusSelfTests());
+            report.AddRange(signalBusSelfTests);
             report.Add("");
             report.Add("Signal producer catalog tests:");
-            report.AddRange(RunSignalProducerCatalogSelfTests());
+            report.AddRange(producerCatalogSelfTests);
 
             File.WriteAllLines(ReportPath, report);
             AssetDatabase.Refresh();

@@ -8,6 +8,10 @@ This is not a peaceful delivery simulator, a linear driving game or a generic lo
 
 The game must use original characters, locations, writing, mission scenarios, UI identity, art and audio. "Same genre and mechanics" means equivalent categories of player interaction, not copying Rockstar's protected expression or exact mission content.
 
+## Content tone and boundaries
+
+The intended tone is a mature crime drama, with serious subject matter, tense confrontations, high-stakes jobs, consequential choices and intense action. Keep violence non-graphic in its presentation: do not depict gore or gruesome injury detail. Nudity is not part of PORT SABLE: do not include nude characters or nudity scenes. These are creative content boundaries, not a claim that an official age classification has been awarded.
+
 ## Core player loop
 
 1. Explore Port Sable on foot or in a vehicle; discover story missions, side jobs, activities, shops, contacts and emergent city events.

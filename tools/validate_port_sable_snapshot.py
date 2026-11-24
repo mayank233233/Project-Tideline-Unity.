@@ -1274,9 +1274,9 @@ def run() -> int:
     ):
         check(token in blockout_builder,
               f"Paper Trail mission objective or world interaction is missing: {token}")
-    check("campaign.arraySize = 4" in blockout_builder
+    check("campaign.arraySize = 6" in blockout_builder
           and "campaign.GetArrayElementAtIndex(2).objectReferenceValue = paperTrailMission" in blockout_builder,
-          "MissionDirector campaign must progress from the first score into The Paper Trail")
+          "MissionDirector campaign must include both consequence-driven Market Ledger follow-ups")
 
     check("EnsureMarketLedgerMission()" in blockout_builder
           and 'mission.missionId = "old_quay_market_ledger";' in blockout_builder
@@ -1296,14 +1296,16 @@ def run() -> int:
     ):
         check(token in blockout_builder,
               f"Market Ledger objective or interaction is missing: {token}")
-    check("campaign.arraySize = 4;" in blockout_builder
-          and "campaign.GetArrayElementAtIndex(3).objectReferenceValue = marketLedgerMission" in blockout_builder,
-          "Old Quay campaign must chain into The Market Ledger as its fourth mission")
+    check("campaign.arraySize = 6;" in blockout_builder
+          and "campaign.GetArrayElementAtIndex(3).objectReferenceValue = marketLedgerMission" in blockout_builder
+          and "campaign.GetArrayElementAtIndex(4).objectReferenceValue = marketBackingMission" in blockout_builder
+          and "campaign.GetArrayElementAtIndex(5).objectReferenceValue = marketColdShoulderMission" in blockout_builder,
+          "Old Quay campaign must chain into two distinct Market Ledger consequence missions")
     check('mission.missionId = "old_quay_paper_trail";' in blockout_builder
-          and 'mission.endsCampaign = false;' in blockout_builder
           and 'mission.missionId = "old_quay_market_ledger";' in blockout_builder
-          and 'mission.endsCampaign = true;' in blockout_builder,
-          "Paper Trail must lead into the final Old Quay Market Ledger mission")
+          and 'mission.fallbackNextMissionId = "old_quay_market_cold_shoulder";' in blockout_builder
+          and 'mission.endsCampaign = false;' in blockout_builder,
+          "Paper Trail must lead into Market Ledger, which now branches into a follow-up mission")
     check("EnsureMarketVendorDialogue()" in blockout_builder
           and "EnsureCafeOwnerDialogue()" in blockout_builder
           and "MissionDialogueSequenceInteractable" in blockout_builder
@@ -1326,6 +1328,31 @@ def run() -> int:
           and 'signalId = "old_quay.market_ledger.tally_returned"' in blockout_builder,
           "Market Ledger dialogue choices must complete the correct mission objectives")
 
+
+    check("EnsureMarketBackingMission()" in blockout_builder
+          and "EnsureMarketColdShoulderMission()" in blockout_builder
+          and 'mission.missionId = "old_quay_market_backing";' in blockout_builder
+          and 'mission.missionId = "old_quay_market_cold_shoulder";' in blockout_builder,
+          "Both distinct Market Ledger follow-up mission assets must be generated")
+    for token in (
+        'nextMissionId = "old_quay_market_backing"',
+        'storyFlagId = "market_vendor_promised_return"',
+        'storyFlagId = "market_tally_returned_with_context"',
+        'relationshipKey = "breakwater_vendor"',
+        'relationshipKey = "breakwater_cafe_owner"',
+        'mission.fallbackNextMissionId = "old_quay_market_cold_shoulder"',
+        'completionSignal = "old_quay.market_backing.supplies_collected"',
+        'completionSignal = "old_quay.market_cold_shoulder.order_collected"',
+        "BuildBreakwaterConsequenceWorld(missionDirector)",
+        'missionDirector, "old_quay_market_backing", "collect_market_backing"',
+        'missionDirector, "old_quay_market_cold_shoulder", "collect_independent_order"',
+    ):
+        check(token in blockout_builder,
+              f"Market Ledger consequence branch or follow-up interaction is missing: {token}")
+    branch_builder = blockout_builder.split("mission.completionBranches = new[]", 1)[-1].split(
+        "mission.fallbackNextMissionId", 1)[0]
+    check(branch_builder.count("new MissionBranchCondition") == 4,
+          "Positive Market Ledger branch must require both story flags and both relationship thresholds")
 
     cs_files = sorted((ROOT / "Assets").rglob("*.cs"))
     check(len(cs_files) >= 20, "Too few C# files are present in the source snapshot")

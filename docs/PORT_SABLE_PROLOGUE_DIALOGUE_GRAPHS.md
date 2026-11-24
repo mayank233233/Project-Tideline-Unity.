@@ -25,12 +25,12 @@ Start node: `garage_close`
 |---|---|---|---|---|---|
 | `garage_close` | JUNO | The customer's car comes first. | `work_order` | `prologue.mara.work_first` | `juno_kade +2` |
 | `garage_close` | JUNO | What is that notice? | `account_notice` | `prologue.mara.notice_raised` | `juno_kade -1` |
-| `work_order` | JUNO | I'll finish all three checks before the delivery. | End | `prologue.mara.work_order_accepted` | `juno_kade +1` |
+| `work_order` | JUNO | I'll finish all three checks before the delivery. | End | `prologue.mara.work_order_accepted` | `juno_kade +1`; `mara_work_order_accepted = 1` |
 | `account_notice` | JUNO | You should have told me. | `notice_close` | `prologue.mara.challenge_juno` | `juno_kade -2` |
 | `account_notice` | JUNO | Then we talk after the drive. | `notice_close` | `prologue.mara.defer_argument` | `juno_kade +1` |
-| `notice_close` | MARA | Get the vehicle ready for its final checks. | End | `prologue.mara.work_order_accepted` | `juno_kade +0` |
+| `notice_close` | MARA | Get the vehicle ready for its final checks. | End | `prologue.mara.work_order_accepted` | `juno_kade +0`; `mara_work_order_accepted = 1` |
 
-Both conversation routes can reach the work-order handoff signal. The graph's authored choice is not itself a mission objective. The first executable MissionDefinition objective listens for `mara.workshop.order.completed`, emitted only after all three unique workshop stations have been inspected.
+Both conversation routes can reach the work-order handoff signal and persist `mara_work_order_accepted = 1`. The three workshop stations remain locked until this flag is present, including after a save/load because the NarrativeStateLedger persists it. The graph's authored choice is not itself a mission objective. The first executable MissionDefinition objective listens for `mara.workshop.order.completed`, emitted only after all three unique workshop stations have been inspected.
 
 ## Mara — Nico's post-delivery graph
 
@@ -99,7 +99,7 @@ The source snapshot currently contains no tracked PORT SABLE scene or actor/NPC/
 | Scene object | Component | Inspector wiring |
 |---|---|---|
 | Juno NPC | `DialogueInteractable` | Shared `DialogueController`; graph `prologue.mara.two_minutes_to_close` |
-| Workshop order root | `MaraWorkshopOrderController` | Assign scene `MissionDirector`; task IDs exactly `steering_check`, `door_latch_check`, `engine_rattle_check` |
+| Workshop order root | `MaraWorkshopOrderController` | Assign scene `MissionDirector`; inspections stay locked until Juno's graph writes `mara_work_order_accepted = 1`; task IDs exactly `steering_check`, `door_latch_check`, `engine_rattle_check` |
 | Steering station | `MaraWorkshopTaskInteractable` | Shared order controller; task ID `steering_check` |
 | Door-latch station | `MaraWorkshopTaskInteractable` | Shared order controller; task ID `door_latch_check` |
 | Engine-rattle station | `MaraWorkshopTaskInteractable` | Shared order controller; task ID `engine_rattle_check` |

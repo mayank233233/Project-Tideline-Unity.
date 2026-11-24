@@ -659,6 +659,18 @@ def run() -> int:
           and "crossingSignal.IsPedestrianWalkAllowed" in pedestrian_walker,
           "Crossing pedestrian must wait for the protected walk phase")
 
+    check("BuildOldQuayMarketAndSouthLane(" in blockout_builder
+          and "Southline market lane asphalt" in blockout_builder
+          and "Breakwater Cafe" in blockout_builder
+          and "Quay Tool and Tackle" in blockout_builder
+          and "Breakwater market raised timber deck" in blockout_builder
+          and "Fish stall counter" in blockout_builder
+          and "Market stacked cargo crate" in blockout_builder
+          and "BuildQuayBench(" in blockout_builder
+          and "BuildStreetBin(" in blockout_builder
+          and "Market lane loading bay outline" in blockout_builder,
+          "Old Quay environment must include the southern market lane, new storefronts, pier market and street furniture")
+
     check("AddComponent<PoliceResponseDirector>()" in blockout_builder
           and "responseDirector.Configure(attentionState, player.transform, responseText);" in blockout_builder
           and 'CreateTouchImage(hudRoot, "Police response HUD background"' in blockout_builder,

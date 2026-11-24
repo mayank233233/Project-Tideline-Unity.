@@ -17,6 +17,8 @@ namespace ProjectTideline
         private Renderer _mainGreen;
         private Renderer _crossRed;
         private Renderer _crossGreen;
+        private Renderer _pedestrianRed;
+        private Renderer _pedestrianGreen;
         private int _lastPhase = -1;
 
         public bool IsMainRoadGreen
@@ -25,6 +27,18 @@ namespace ProjectTideline
             {
                 float phaseTime = GetCycleTime();
                 return phaseTime < mainRoadGreenDuration;
+            }
+        }
+
+        public bool IsPedestrianWalkAllowed
+        {
+            get
+            {
+                float phaseTime = GetCycleTime();
+                float mainClearanceEnd = mainRoadGreenDuration + firstClearanceDuration;
+                float crossGreenEnd = mainClearanceEnd + crossStreetGreenDuration;
+                return phaseTime >= mainRoadGreenDuration && phaseTime < mainClearanceEnd
+                    || phaseTime >= crossGreenEnd;
             }
         }
 
@@ -50,6 +64,13 @@ namespace ProjectTideline
             crossStreetGreenDuration = Mathf.Max(4f, crossGreenSeconds);
             secondClearanceDuration = Mathf.Max(1f, secondClearanceSeconds);
             ApplyPhase(-1);
+        }
+
+        public void ConfigurePedestrianSignals(Renderer red, Renderer green)
+        {
+            _pedestrianRed = red;
+            _pedestrianGreen = green;
+            ApplyPhase(_lastPhase);
         }
 
         private float GetCycleTime()
@@ -80,6 +101,9 @@ namespace ProjectTideline
             if (_mainGreen != null) _mainGreen.enabled = mainGreen;
             if (_crossRed != null) _crossRed.enabled = !crossGreen;
             if (_crossGreen != null) _crossGreen.enabled = crossGreen;
+            bool pedestrianWalk = phase == 1 || phase == 3;
+            if (_pedestrianRed != null) _pedestrianRed.enabled = !pedestrianWalk;
+            if (_pedestrianGreen != null) _pedestrianGreen.enabled = pedestrianWalk;
         }
     }
 }

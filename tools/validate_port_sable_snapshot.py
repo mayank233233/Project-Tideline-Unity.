@@ -1304,6 +1304,28 @@ def run() -> int:
           and 'mission.missionId = "old_quay_market_ledger";' in blockout_builder
           and 'mission.endsCampaign = true;' in blockout_builder,
           "Paper Trail must lead into the final Old Quay Market Ledger mission")
+    check("EnsureMarketVendorDialogue()" in blockout_builder
+          and "EnsureCafeOwnerDialogue()" in blockout_builder
+          and "MissionDialogueSequenceInteractable" in blockout_builder
+          and "vendorDialogue.Configure(missionDirector, dialogueController" in blockout_builder
+          and "ownerDialogue.Configure(missionDirector, dialogueController" in blockout_builder,
+          "Market Ledger characters must use objective-specific authored dialogue")
+    for token in (
+        "old_quay.breakwater_vendor_missing_tally",
+        "old_quay.breakwater_cafe_tally_return",
+        "BREAKWATER MARKET VENDOR",
+        "BREAKWATER CAFE OWNER",
+        "market_vendor_promised_return",
+        "market_tally_returned_with_context",
+        "breakwater_vendor",
+        "breakwater_cafe_owner",
+    ):
+        check(token in blockout_builder,
+              f"Market Ledger dialogue or persistent choice outcome is missing: {token}")
+    check('signalId = "old_quay.market_ledger.vendor_met"' in blockout_builder
+          and 'signalId = "old_quay.market_ledger.tally_returned"' in blockout_builder,
+          "Market Ledger dialogue choices must complete the correct mission objectives")
+
 
     cs_files = sorted((ROOT / "Assets").rglob("*.cs"))
     check(len(cs_files) >= 20, "Too few C# files are present in the source snapshot")

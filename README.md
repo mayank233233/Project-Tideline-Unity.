@@ -1,6 +1,6 @@
 # Project Tideline — PORT SABLE: NO FAVOURS LEFT
 
-An original open-world crime drama in production. The quality ambition is cinematic character work, a memorable criminal world, authored missions, a dense coastal city and strong mobile presentation. GTA V, GTA VI and Red Dead Redemption 2 are reference bars for craft and ambition only; Tideline does not reuse their characters, stories, maps, dialogue, music or assets.
+An original open-world crime-action game in production. Its intended genre loop is free-roam city exploration, vehicle play, criminal jobs and heists, police-pressure escalation, rival factions, safehouses, character switching and branching story missions. The quality ambition is cinematic character work, a memorable criminal world, authored missions, a dense coastal city and strong mobile presentation. GTA V, GTA VI and Red Dead Redemption 2 are reference bars for craft and ambition only; Tideline does not reuse their characters, stories, maps, dialogue, music or assets.
 
 ## Current campaign canon
 
@@ -50,6 +50,12 @@ Unity menu commands:
 - **Project Tideline → 14 — Build Playable Old Quay Blockout** (generates a primitive Old Quay scene, Juno dialogue, a three-objective tutorial mission, interaction prompts, mission HUD, keyboard/touch controls, and adds the scene to Build Settings)
 
 Generated outlines are design records, not playable missions. Do not attach them to `MissionDirector`.
+
+## Genre direction: open-world crime action
+
+PORT SABLE is intended to occupy the same broad genre and gameplay space as GTA V / GTA VI: a modern open-world crime sandbox with story missions, freely explorable districts, driving, criminal jobs, escalating police pressure, rival organisations, side activities and multiple playable protagonists. This means the delivery tutorial is only an early character/vehicle-control slice; it is not the game's central identity or its long-term mission template.
+
+The full intended player loop and system boundaries are defined in [Open-World Crime Gameplay Pillars](docs/PORT_SABLE_OPEN_WORLD_CRIME_GAMEPLAY.md). That document is a design target, not a claim that those systems are already implemented. The current selected source snapshot still lacks the complete open-world runtime, police response, heist/job framework, traffic simulation and fully wired three-lead scene.
 
 ## Generated Old Quay tutorial scene
 

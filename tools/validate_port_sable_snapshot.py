@@ -418,6 +418,13 @@ def run() -> int:
         check(token in mission_audit, f"Mission asset audit is missing required check: {token}")
     check("MissionBranchEvaluator.ConditionsMatch" in mission_audit,
           "Editor audit is not exercising the production mission-branch evaluator")
+    check("RunSignalBusSelfTests()" in mission_audit
+          and "MissionSignalBus.PublishBatch(" in mission_audit
+          and "observed.SequenceEqual" in mission_audit,
+          "Editor audit must include FIFO and nested-signal batch regression cases")
+    check("dispatchCompletedCount == 1" in mission_audit
+          and "if (EditorApplication.isPlaying)" in mission_audit,
+          "Signal bus Editor tests must verify one completion callback and skip active Play Mode")
     check("CollectSignalProducerCatalog()" in mission_audit
           and "signalProducers.TryResolve(objective.completionSignal" in mission_audit,
           "Mission asset audit must resolve every objective completion signal against a producer catalog")

@@ -30,7 +30,7 @@ The source includes:
 - `RouteRaceStartInteractable.cs`, `RouteRaceController.cs` and `RouteRaceCheckpoint.cs`: ordered player-driven route checkpoints with start/checkpoint/finish/cancel signals. This prototype has no rival timing, placement result or outcome-choice layer.
 - `MissionSignalBus.cs`: FIFO nested dispatch, exception-isolated listeners, batch publication for multiple outcomes from one action, and runaway-batch abort recovery. The unused generic `IInteractable.SignalId` API has been removed.
 - `MaraWorkshopOrderController.cs` / `MaraWorkshopTaskInteractable.cs`: three distinct final vehicle checks; the mission only advances after all three tasks complete.
-- `MaraDeliveryRouteCompletionRelay.cs`: emits `mara.delivery.finished` only after the assigned route has fully drained its final signal batch.
+- `MaraDeliveryHandoffController.cs` / `MaraCustomerHandoffInteractable.cs`: emit `mara.delivery.finished` only after the assigned route has finished and the customer explicitly accepts the vehicle.
 - `MaraDeliveryStartInteractable.cs` / `MaraPostDeliveryDialogueInteractable.cs`: gate route start until the workshop order is complete and gate Nico's graph until customer handoff is complete.
 - `MaraPrologueMissionBuilder.cs`: generates one three-objective `two_minutes_to_close` MissionDefinition after both Mara dialogue graphs exist.
 - `MaraPrologueSceneWiringAudit.cs`: checks actual loaded-scene references for the player, input, dialogue UI/graphs, three workshop stations, vehicle seat, ordered delivery checkpoints, customer handoff and mission objective signals. It reports missing wiring; it does not create a fake scene.

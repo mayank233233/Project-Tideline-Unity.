@@ -14,6 +14,10 @@ namespace ProjectTideline
         [SerializeField] private Transform driverSeat;
         [SerializeField] private Transform exitPoint;
         [SerializeField] private ThirdPersonCameraRig cameraRig;
+        [Header("Mission entry gate")]
+        [SerializeField] private MissionDirector missionDirector;
+        [SerializeField] private string requiredMissionId;
+        [SerializeField] private string requiredObjectiveId;
         [Header("NPC vehicle state")]
         [SerializeField] private bool startsWithNpcDriver;
         [SerializeField] private GameObject npcDriverVisual;
@@ -30,10 +34,38 @@ namespace ProjectTideline
         private bool _transitioning;
         private ThirdPersonMotor _takeoverMotor;
 
-        public override string InteractionPrompt => _npcOccupied ? "Take vehicle" : "Enter vehicle";
+        public override string InteractionPrompt
+        {
+            get
+            {
+                if (!IsCurrentMissionObjective()) return "Complete the previous delivery step first";
+                return _npcOccupied ? "Take vehicle" : "Enter vehicle";
+            }
+        }
+
         public bool IsTransitioning => _transitioning;
         public bool IsOccupied => _occupant != null;
         public bool IsOccupiedBy(GameObject actor) => actor != null && _occupant == actor;
+
+        public void ConfigureMissionGate(MissionDirector director, string missionId, string objectiveId)
+        {
+            missionDirector = director;
+            requiredMissionId = missionId;
+            requiredObjectiveId = objectiveId;
+        }
+
+        private bool IsCurrentMissionObjective()
+        {
+            if (missionDirector == null || string.IsNullOrWhiteSpace(requiredMissionId)
+                || string.IsNullOrWhiteSpace(requiredObjectiveId))
+                return true;
+
+            MissionDefinition mission = missionDirector.CurrentMission;
+            MissionObjective objective = missionDirector.CurrentObjective;
+            return mission != null && objective != null
+                && string.Equals(mission.missionId, requiredMissionId, System.StringComparison.Ordinal)
+                && string.Equals(objective.objectiveId, requiredObjectiveId, System.StringComparison.Ordinal);
+        }
 
         private void Awake()
         {
@@ -43,8 +75,10 @@ namespace ProjectTideline
 
         public override void Interact(GameObject actor)
         {
-            if (actor == null || _occupant != null || _transitioning || vehicle == null || driverSeat == null
-                || actor.GetComponent<CharacterController>() == null || actor.GetComponent<ThirdPersonMotor>() == null) return;
+            if (!IsCurrentMissionObjective() || actor == null || _occupant != null || _transitioning
+                || vehicle == null || driverSeat == null
+                || actor.GetComponent<CharacterController>() == null
+                || actor.GetComponent<ThirdPersonMotor>() == null) return;
             if (_npcOccupied)
             {
                 StartCoroutine(TakeoverSequence(actor));
@@ -55,7 +89,7 @@ namespace ProjectTideline
 
         public bool TryEnter(GameObject actor)
         {
-            if (_npcOccupied || _transitioning) return false;
+            if (!IsCurrentMissionObjective() || _npcOccupied || _transitioning) return false;
             return EnterVehicle(actor);
         }
 
@@ -74,7 +108,7 @@ namespace ProjectTideline
 
             yield return new WaitForSeconds(takeoverSequenceSeconds);
 
-            if (actor == null || !isActiveAndEnabled)
+            if (actor == null || !isActiveAndEnabled || !IsCurrentMissionObjective())
             {
                 if (_takeoverMotor != null) _takeoverMotor.enabled = true;
                 if (trafficDriver != null && trafficDriver.enabled) trafficDriver.CancelTakeoverHandoff();
@@ -99,7 +133,8 @@ namespace ProjectTideline
 
         private bool EnterVehicle(GameObject actor, bool wasNpcTakeover = false)
         {
-            if (_occupant != null || actor == null || driverSeat == null || vehicle == null) return false;
+            if (!IsCurrentMissionObjective() || _occupant != null || actor == null
+                || driverSeat == null || vehicle == null) return false;
             CharacterController controller = actor.GetComponent<CharacterController>();
             ThirdPersonMotor motor = actor.GetComponent<ThirdPersonMotor>();
             if (controller == null || motor == null) return false;
@@ -121,7 +156,6 @@ namespace ProjectTideline
             if (cameraRig != null) cameraRig.SetTarget(transform, new Vector3(0f, 2f, 0f));
             if (wasNpcTakeover)
             {
-                // Taking over an NPC-driven vehicle is one interaction with two outcomes.
                 MissionSignalBus.PublishBatch(
                     new MissionSignalBus.Signal("vehicle.entered", 1),
                     new MissionSignalBus.Signal("vehicle.taken", 1));

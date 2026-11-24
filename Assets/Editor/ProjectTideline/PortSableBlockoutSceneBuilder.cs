@@ -730,12 +730,13 @@ namespace ProjectTideline.Editor
             Transform eastboundStop = MakeTrafficStopLine("Eastbound stop line", -7.5f, -26.8f);
             Transform westboundStop = MakeTrafficStopLine("Westbound stop line", 7.5f, -19.2f);
             TrafficPedestrianCrossing crosswalk = BuildOldQuayPedestrianCrossing(junctionSignals);
+            TrafficJunctionReservation junctionReservation = BuildOldQuayJunctionReservation();
 
             // Main-road traffic: two cars in each direction, with stop-line awareness.
             BuildAmbientTrafficVehicle("Old Quay traffic — northbound A",
                 new[] { new Vector3(-3.8f, 0.1f, -34f), new Vector3(-3.8f, 0.1f, -12f),
                         new Vector3(-3.8f, 0.1f, 12f), new Vector3(-3.8f, 0.1f, 46f) },
-                new Color(0.22f, 0.30f, 0.34f), junctionSignals, northboundStop, true, crosswalk);
+                new Color(0.22f, 0.30f, 0.34f), junctionSignals, northboundStop, true, crosswalk, junctionReservation);
             BuildAmbientTrafficVehicle("Old Quay traffic — northbound B",
                 new[] { new Vector3(-3.8f, 0.1f, -14f), new Vector3(-3.8f, 0.1f, 8f),
                         new Vector3(-3.8f, 0.1f, 30f), new Vector3(-3.8f, 0.1f, 46f) },
@@ -743,7 +744,7 @@ namespace ProjectTideline.Editor
             BuildAmbientTrafficVehicle("Old Quay traffic — southbound A",
                 new[] { new Vector3(3.8f, 0.1f, 46f), new Vector3(3.8f, 0.1f, 22f),
                         new Vector3(3.8f, 0.1f, -2f), new Vector3(3.8f, 0.1f, -34f) },
-                new Color(0.38f, 0.27f, 0.19f), junctionSignals, southboundStop, true, crosswalk);
+                new Color(0.38f, 0.27f, 0.19f), junctionSignals, southboundStop, true, crosswalk, junctionReservation);
             BuildAmbientTrafficVehicle("Old Quay traffic — southbound B",
                 new[] { new Vector3(3.8f, 0.1f, 24f), new Vector3(3.8f, 0.1f, 2f),
                         new Vector3(3.8f, 0.1f, -20f), new Vector3(3.8f, 0.1f, -34f) },
@@ -755,11 +756,11 @@ namespace ProjectTideline.Editor
                         new Vector3(-10f, 0.1f, -26.8f), new Vector3(-6f, 0.1f, -25.8f),
                         new Vector3(-3.8f, 0.1f, -22f), new Vector3(-3.8f, 0.1f, -14f),
                         new Vector3(-3.8f, 0.1f, 12f), new Vector3(-3.8f, 0.1f, 46f) },
-                new Color(0.34f, 0.28f, 0.40f), junctionSignals, eastboundStop, false, crosswalk);
+                new Color(0.34f, 0.28f, 0.40f), junctionSignals, eastboundStop, false, crosswalk, junctionReservation);
             BuildAmbientTrafficVehicle("Old Quay traffic — westbound",
                 new[] { new Vector3(42f, 0.1f, -19.2f), new Vector3(20f, 0.1f, -19.2f),
                         new Vector3(-20f, 0.1f, -19.2f), new Vector3(-42f, 0.1f, -19.2f) },
-                new Color(0.36f, 0.37f, 0.25f), junctionSignals, westboundStop, false, crosswalk);
+                new Color(0.36f, 0.37f, 0.25f), junctionSignals, westboundStop, false, crosswalk, junctionReservation);
 
             BuildAmbientPedestrian("DOCK WORKER — east sidewalk", 9.35f,
                 new[] { -29f, -5f, 20f, 49f }, new Color(0.54f, 0.36f, 0.25f), 1.2f);
@@ -807,7 +808,7 @@ namespace ProjectTideline.Editor
 
         private static void BuildAmbientTrafficVehicle(string name, Vector3[] routePoints,
             Color bodyColor, TrafficSignalController signal, Transform stopLine, bool usesMainRoadSignal,
-            TrafficPedestrianCrossing pedestrianCrossing)
+            TrafficPedestrianCrossing pedestrianCrossing, TrafficJunctionReservation junctionReservation)
         {
             if (routePoints == null || routePoints.Length < 2) return;
 
@@ -934,6 +935,7 @@ namespace ProjectTideline.Editor
             trafficSerialized.FindProperty("obstacleRadius").floatValue = 0.55f;
             trafficSerialized.ApplyModifiedPropertiesWithoutUndo();
             traffic.ConfigureSignal(signal, stopLine, usesMainRoadSignal, pedestrianCrossing);
+            traffic.ConfigureJunctionReservation(junctionReservation, stopLine);
         }
 
         private static TrafficSignalController BuildOldQuayJunction(Material road, Material paint,
@@ -983,6 +985,16 @@ namespace ProjectTideline.Editor
             GameObject stop = new GameObject(name);
             stop.transform.position = new Vector3(x, 0.1f, z);
             return stop.transform;
+        }
+
+        private static TrafficJunctionReservation BuildOldQuayJunctionReservation()
+        {
+            GameObject zone = new GameObject("Old Quay — single-car junction reservation zone");
+            zone.transform.position = new Vector3(0f, 1.2f, -23f);
+            BoxCollider trigger = zone.AddComponent<BoxCollider>();
+            trigger.isTrigger = true;
+            trigger.size = new Vector3(18f, 3f, 18f);
+            return zone.AddComponent<TrafficJunctionReservation>();
         }
 
         private static TrafficPedestrianCrossing BuildOldQuayPedestrianCrossing(TrafficSignalController signals)

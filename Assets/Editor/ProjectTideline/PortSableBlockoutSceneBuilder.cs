@@ -29,7 +29,6 @@ namespace ProjectTideline.Editor
             EnsureFolder(SceneFolder);
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            scene.name = "PORT SABLE — OLD QUAY BLOCKOUT";
 
             Material ground = MakeMaterial("Quay Concrete", new Color(0.27f, 0.31f, 0.32f));
             Material road = MakeMaterial("Worn Asphalt", new Color(0.105f, 0.12f, 0.13f));
@@ -130,9 +129,7 @@ namespace ProjectTideline.Editor
             cameraObject.transform.position = player.transform.position + new Vector3(0f, 3f, -5f);
 
             // Scene metadata helps designers understand what is functional versus placeholder.
-            GameObject marker = new GameObject("BLOCKOUT NOTES — read before production");
-            marker.transform.position = new Vector3(0f, 0f, -42f);
-            marker.AddComponent<PortSableBlockoutReadmeMarker>();
+            new GameObject("BLOCKOUT NOTES — replace primitives before release");
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -233,12 +230,5 @@ namespace ProjectTideline.Editor
         }
     }
 
-    /// <summary>Visible in the hierarchy as a reminder that this scene is a greybox.</summary>
-    public sealed class PortSableBlockoutReadmeMarker : MonoBehaviour
-    {
-        [TextArea(4, 10)]
-        public string notes =
-            "GREYBOX ONLY. Player movement and camera are wired. Replace primitive geometry and the player capsule with approved PORT SABLE art. Add the Mara prologue MissionDefinition, dialogue graphs, UI, interactables, route, vehicle and save coordinator before calling this a campaign slice.";
-    }
 }
 #endif

@@ -1281,7 +1281,7 @@ def run() -> int:
     check("EnsureMarketLedgerMission()" in blockout_builder
           and 'mission.missionId = "old_quay_market_ledger";' in blockout_builder
           and 'mission.title = "The Market Ledger";' in blockout_builder
-          and "BuildMarketLedgerWorld(missionDirector);" in blockout_builder,
+          and "BuildMarketLedgerWorld(missionDirector, dialogueController);" in blockout_builder,
           "Fourth Old Quay mission must be generated and its world interactions wired")
     for token in (
         "meet_market_vendor",

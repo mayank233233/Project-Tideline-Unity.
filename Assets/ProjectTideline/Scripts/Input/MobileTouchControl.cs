@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace ProjectTideline
 {
@@ -12,25 +13,35 @@ namespace ProjectTideline
         InteractButton
     }
 
-    /// <summary>Small event-driven touch surface used by the generated mobile blockout HUD.</summary>
+    /// <summary>Event-driven touch controls shared between on-foot and vehicle input.</summary>
     public sealed class MobileTouchControl : MonoBehaviour,
         IPointerDownHandler, IDragHandler, IPointerUpHandler
     {
         [SerializeField] private MobileTouchControlMode mode;
         [SerializeField] private RectTransform joystickKnob;
+        [SerializeField] private Text contextualLabel;
         [SerializeField, Range(0.001f, 0.2f)] private float lookSensitivity = 0.055f;
 
         private RectTransform _rectTransform;
 
         private void Awake() => _rectTransform = transform as RectTransform;
 
+        private void OnEnable()
+        {
+            if (PlayerInputRouter.Instance != null)
+                PlayerInputRouter.Instance.VehicleControlModeChanged += OnVehicleControlModeChanged;
+            RefreshContextualLabel();
+        }
+
         public void Configure(MobileTouchControlMode controlMode, RectTransform knob = null,
-            float sensitivity = 0.055f)
+            float sensitivity = 0.055f, Text label = null)
         {
             mode = controlMode;
             joystickKnob = knob;
+            contextualLabel = label;
             lookSensitivity = Mathf.Clamp(sensitivity, 0.001f, 0.2f);
             _rectTransform = transform as RectTransform;
+            RefreshContextualLabel();
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -109,18 +120,43 @@ namespace ProjectTideline
                 PlayerInputRouter.Instance.AddLookDelta(eventData.delta * lookSensitivity);
         }
 
+        private void OnVehicleControlModeChanged(bool _) => RefreshContextualLabel();
+
+        private void RefreshContextualLabel()
+        {
+            if (contextualLabel == null) return;
+            bool inVehicle = PlayerInputRouter.Instance != null
+                && PlayerInputRouter.Instance.VehicleControlMode;
+
+            switch (mode)
+            {
+                case MobileTouchControlMode.SprintButton:
+                    contextualLabel.text = inVehicle ? "ACCEL" : "SPRINT";
+                    break;
+                case MobileTouchControlMode.JumpButton:
+                    contextualLabel.text = inVehicle ? "BRAKE" : "JUMP";
+                    break;
+                case MobileTouchControlMode.InteractButton:
+                    contextualLabel.text = "INTERACT";
+                    break;
+            }
+        }
+
         private void OnDisable()
         {
-            if (PlayerInputRouter.Instance == null) return;
-            if (mode == MobileTouchControlMode.MoveStick)
-                PlayerInputRouter.Instance.SetMove(Vector2.zero);
-            else if (mode == MobileTouchControlMode.SprintButton)
+            if (PlayerInputRouter.Instance != null)
             {
-                if (PlayerInputRouter.Instance.VehicleControlMode) PlayerInputRouter.Instance.SetThrottle(0f);
-                else PlayerInputRouter.Instance.SetSprint(false);
+                PlayerInputRouter.Instance.VehicleControlModeChanged -= OnVehicleControlModeChanged;
+                if (mode == MobileTouchControlMode.MoveStick)
+                    PlayerInputRouter.Instance.SetMove(Vector2.zero);
+                else if (mode == MobileTouchControlMode.SprintButton)
+                {
+                    if (PlayerInputRouter.Instance.VehicleControlMode) PlayerInputRouter.Instance.SetThrottle(0f);
+                    else PlayerInputRouter.Instance.SetSprint(false);
+                }
+                else if (mode == MobileTouchControlMode.JumpButton && PlayerInputRouter.Instance.VehicleControlMode)
+                    PlayerInputRouter.Instance.SetHandbrake(false);
             }
-            else if (mode == MobileTouchControlMode.JumpButton && PlayerInputRouter.Instance.VehicleControlMode)
-                PlayerInputRouter.Instance.SetHandbrake(false);
         }
     }
 }

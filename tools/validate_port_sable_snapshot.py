@@ -280,6 +280,7 @@ def run() -> int:
     traffic_driver = read("Assets/ProjectTideline/Scripts/Vehicles/TrafficVehicleDriver.cs")
     confrontation = read("Assets/ProjectTideline/Scripts/Interaction/CinematicConfrontationController.cs")
     attention = read("Assets/ProjectTideline/Scripts/World/PublicAttentionState.cs")
+    pressure_hud = read("Assets/ProjectTideline/Scripts/UI/PolicePressureHUD.cs")
     proximity_interactor = read("Assets/ProjectTideline/Scripts/Interaction/ProximityInteractor.cs")
     interactable = read("Assets/ProjectTideline/Scripts/Interaction/IInteractable.cs")
     check("MissionBranchEvaluator.ConditionsMatch" in mission_director,
@@ -399,6 +400,20 @@ def run() -> int:
               f"Confrontation producer is missing {signal}")
     check('"world.attention.band." + nextBand.ToString().ToLowerInvariant()' in attention,
           "Public-attention producer must publish only configured band transitions")
+    check("AttentionChanged += OnAttentionChanged" in pressure_hud
+          and "AttentionRestored += OnAttentionRestored" in pressure_hud
+          and "AttentionChanged -= OnAttentionChanged" in pressure_hud
+          and "AttentionRestored -= OnAttentionRestored" in pressure_hud,
+          "Police-pressure HUD must subscribe and unsubscribe from live and restored attention state")
+    check('pressureText.text = "POLICE PRESSURE  " + level + "/2\\n" + status;' in pressure_hud
+          and "AttentionBand.Escalated" in pressure_hud
+          and "AttentionBand.Noticed" in pressure_hud,
+          "Police-pressure HUD must map the existing attention bands into readable response tiers")
+    check('new GameObject("Public Attention / Police Pressure State")' in blockout_builder
+          and "AddComponent<PublicAttentionState>()" in blockout_builder
+          and "AddComponent<PolicePressureHUD>()" in blockout_builder
+          and "pressureHud.Configure(attentionState, pressureText);" in blockout_builder,
+          "Old Quay scene builder must wire the public-attention state into the police-pressure HUD")
     check("SignalId" not in interactable and "interaction.generic" not in interactable
           and "SignalId" not in proximity_interactor,
           "Unused generic interaction signal metadata must not remain in the interaction interface")

@@ -191,7 +191,7 @@ namespace ProjectTideline
                         if (direction.sqrMagnitude < 0.01f) return false;
                         direction.Normalize();
 
-                        Vector3 spawnPosition = first.position - direction * Mathf.Max(4f, waypointRadius * 1.5f);
+                        Vector3 spawnPosition = first.position - direction * Mathf.Min(3f, Mathf.Max(1.5f, waypointRadius * 0.65f));
                         Quaternion spawnRotation = Quaternion.LookRotation(direction, Vector3.up);
                         if (_body != null)
                         {

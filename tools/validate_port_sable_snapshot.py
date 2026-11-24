@@ -386,6 +386,12 @@ def run() -> int:
           "Distant traffic decision LOD must schedule bounded fixed-time decision intervals")
     check("WheelCollider physics at the normal fixed timestep" in traffic_driver,
           "Traffic decision LOD must explicitly preserve full-rate vehicle physics")
+    check("recycleAtRouteEnd" in traffic_driver
+          and "Quaternion.LookRotation(direction, Vector3.up)" in traffic_driver
+          and "_body.linearVelocity = Vector3.zero;" in traffic_driver
+          and "_routeIndex = 0;" in traffic_driver
+          and "artificial U-turn" in traffic_driver,
+          "Looping ambient traffic must recycle at finite route boundaries without reversing in the street")
     check("obstacleCheckInterval = 0.12f" in traffic_driver
           and "private bool IsObstacleBlocking()" in traffic_driver
           and "Time.fixedTime < _nextObstacleCheckTime" in traffic_driver

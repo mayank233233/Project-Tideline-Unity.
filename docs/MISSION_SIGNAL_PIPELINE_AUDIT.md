@@ -29,7 +29,9 @@ For a dialogue choice, the controller:
 1. Applies the relationship delta with generic mission-signal publication suppressed.
 2. Stores the story flag with generic mission-signal publication suppressed.
 3. Publishes the authored `choice.signalId` once, after both mutations.
-4. When a choice has no explicit signal ID, publishes the corresponding generic ledger signals only after the state updates.
+4. When a choice has no explicit signal ID, enqueues both applicable generic ledger signals with `MissionSignalBus.PublishBatch`, after both state updates.
+
+The generic fallback signals are part of one user choice. They must not be dispatched in separate calls, because the first call could complete an objective and switch the director before the second signal from that same choice is published.
 
 The normal `RelationshipChanged` and `FlagChanged` ledger events are still raised. The suppression applies only to the mission signal bus.
 
@@ -45,6 +47,7 @@ Previously, `MissionSignalBus.Publish()` invoked the event immediately and recur
 
 `MissionSignalBus` now uses a FIFO queue:
 - Every published signal is enqueued.
+- `PublishBatch` enqueues every valid signal from one gameplay action before dispatch starts.
 - A signal published by a listener is queued instead of recursively dispatched.
 - All queued signals are delivered before `DispatchCompleted` is raised.
 - Signals published during the completion callback are queued and drained in a subsequent pass.
@@ -68,11 +71,12 @@ The inspected selected-snapshot sources currently include these explicit signal 
 | `NPCRelationshipLedger` | `relationship.changed.<characterId>` | relationship mutation; suppressible for an atomic dialogue choice |
 | `NarrativeStateLedger` | `story.flag.changed` | flag mutation/clear; suppressible for an atomic dialogue choice |
 | `VehicleDriveController` | `vehicle.collision` | collision handler |
-| `VehicleSeatInteractable` | `vehicle.taken`, `vehicle.entered`, `vehicle.exited` | successful vehicle interaction/transition |
+| `VehicleSeatInteractable` | `vehicle.taken`, `vehicle.entered`, `vehicle.exited` | successful vehicle interaction/transition; `vehicle.entered` and `vehicle.taken` are batched together for an NPC vehicle takeover |
+| `RouteRaceController` | `race.long_loop.started`, `.checkpoint`, `.finished`, `.cancelled` | valid route start, ordered checkpoint entry, final route checkpoint, explicit cancellation; final checkpoint and finish are batched together |
 | `CinematicConfrontationController` | `confrontation.resolved`, `confrontation.withdrawn`, `confrontation.failed` | confrontation outcome |
 | `PublicAttentionState` | `world.attention.band.calm`, `world.attention.band.noticed`, `world.attention.band.escalated` | attention changes across a configured band boundary |
 
-The signal list is a runtime source inventory, not proof that any campaign mission consumes those signals. The unused `IInteractable.SignalId` property and default `interaction.generic` value have now been removed. The generic `void Interact(GameObject actor)` contract does not report success, so emitting a generic mission signal from the proximity system would risk counting rejected interactions as objective progress. Concrete interactables own their specific success signals.
+The signal list is a runtime source inventory, not proof that any campaign mission consumes those signals. `MissionSignalBus.PublishBatch` is now used when one interaction legitimately emits multiple signals: dialogue fallback state signals, vehicle takeover outcomes and the final race checkpoint/finish. This keeps all same-action signals inside one mission-dispatch batch. The unused `IInteractable.SignalId` property and default `interaction.generic` value have now been removed. The generic `void Interact(GameObject actor)` contract does not report success, so emitting a generic mission signal from the proximity system would risk counting rejected interactions as objective progress. Concrete interactables own their specific success signals.
 
 A source-level dialogue entry path now exists: `ProximityInteractor` → `DialogueInteractable.Interact` → `DialogueController.Begin(dialogueGraph)`. The controller rejects missing start nodes and overlapping conversations, and closes the active graph when disabled. A source-level confrontation entry path also now exists: `ProximityInteractor` → `CinematicConfrontationInteractable.Interact` → `CinematicConfrontationController.Begin(actor, opponentAnimator)`. The controller still owns its three outcome signals. However, no tracked PORT SABLE scene or NPC prefab assigns the dialogue graph/controller or confrontation controller/Animator references; these are reusable component paths, not verified scene wiring.
 
